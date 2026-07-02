@@ -48,7 +48,7 @@ spec:
             - name: config
               subPath: environment.js
               mountPath: /usr/share/nginx/html/environment.js
-            {{- if .Values.spxPanel.themeOverride }}
+            {{- if .Values.consoleUi.themeOverride }}
             - name: config
               subPath: theme-override.css
               mountPath: /usr/share/nginx/html/styles/theme-override.css
