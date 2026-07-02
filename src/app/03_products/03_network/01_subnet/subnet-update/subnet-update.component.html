@@ -1,0 +1,87 @@
+<div class="product-create main-content">
+  <spx-content-header navBack title="Update Subnet"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" [showAz]="false"></spx-step-general>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>network_manage</mat-icon>
+                  </div>
+                  Network options
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--space-evenly">
+                <div class="info-card__item">
+                  <h3>Private Network</h3>
+                  <span><i>Define if the network is private or not.</i></span>
+                  <p><mat-checkbox formControlName="private">Make the network private</mat-checkbox></p>
+                </div>
+
+                <div class="info-card__item">
+                  <h3>NAT Gateway</h3>
+                  <span> <i> Enabling the NAT Gateway allows to add an EIP later. </i> </span>
+                  <p><mat-checkbox formControlName="natGateway">Enable NAT gateway</mat-checkbox></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 2 - SPECIFICATIONS -->
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+        <ng-template matStepLabel>Specifications</ng-template>
+        <ng-template matStepContent>
+          <form [formGroup]="secondFormGroup">
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>network_manage</mat-icon>
+                  </div>
+                  DNS options
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--space-evenly">
+                @if (subnet()?.subnet?.spec?.protocol !== ProtocolEnum.IPv6) {
+                  <mat-form-field class="info-card__item info-card__item--form">
+                    <mat-label>DNS Server IPv4</mat-label>
+                    <input matInput formControlName="dnsV4" placeholder="1.1.1.1" />
+                  </mat-form-field>
+                }
+                @if (subnet()?.subnet?.spec?.protocol !== ProtocolEnum.IPv4) {
+                  <mat-form-field class="info-card__item info-card__item--form">
+                    <mat-label>DNS Server IPv6</mat-label>
+                    <input matInput formControlName="dnsV6" placeholder="2606:4700:4700::1111" />
+                  </mat-form-field>
+                }
+              </div>
+            </div>
+          </form>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button matButton="filled" [disabled]="!firstFormGroup.valid || !secondFormGroup.valid" (click)="update()">
+              Update
+            </button>
+          </div>
+        </ng-template>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

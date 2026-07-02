@@ -1,0 +1,189 @@
+<div class="product-create main-content">
+  <spx-content-header navBack titleOnly title="Edit an Instance"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" [showAz]="false"></spx-step-general>
+
+            <spx-step-label
+              titleText="Labels"
+              subtitleText="You can add up to 10 custom labels."
+              [prefix]="CUSTOM_USER_LABEL_PREFIX"
+              [maxSize]="CUSTOM_USER_LABEL_NUMBER"
+              [labels]="initLabels()"
+              (labelsChange)="labels.set($event)"></spx-step-label>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 2 - COMPUTE -->
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+        <ng-template matStepLabel>Compute</ng-template>
+        <ng-template matStepContent>
+          <form [formGroup]="secondFormGroup">
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>settings</mat-icon>
+                  </div>
+                  Configuration
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span><i>Define the run strategy and instance type.</i></span>
+                </div>
+                <div class="info-card__block info-card__block--space-evenly">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>RunStrategy</mat-label>
+                    <mat-select formControlName="runStrategy">
+                      @for (strat of RunStrategy; track strat) {
+                        <mat-option [value]="strat">{{ strat }}</mat-option>
+                      }
+                    </mat-select>
+                    <button
+                      type="button"
+                      class="color-primary"
+                      mat-icon-button
+                      matSuffix
+                      (click)="$event.stopPropagation(); openRunStrategyHelp()">
+                      <mat-icon>help</mat-icon>
+                    </button>
+                  </mat-form-field>
+
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Instance Type</mat-label>
+                    <mat-select formControlName="vmType">
+                      @if (vmTypeList.hasValue()) {
+                        @for (vmType of vmTypeList.value(); track $index) {
+                          <mat-option [value]="vmType"> {{ vmType }} </mat-option>
+                        }
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>memory</mat-icon>
+                  </div>
+                  Compute Resources
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--space-evenly">
+                <mat-form-field class="info-card__item">
+                  <mat-label>Cores</mat-label>
+                  <mat-select formControlName="cpu">
+                    @for (unit of CpuValueList; track unit) {
+                      <mat-option [value]="unit">{{ unit }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field class="info-card__item">
+                  <mat-label>RAM</mat-label>
+                  <mat-select formControlName="memory">
+                    @for (unit of MemoryValueList; track unit) {
+                      <mat-option [value]="unit">{{ unit }}</mat-option>
+                    }
+                  </mat-select>
+                  <span matTextSuffix class="ml-2">GB</span>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <spx-instance-advanced-create
+              [initial]="advancedInitial()"
+              [inherited]="instanceTypeAdvancedDefaults.value()"
+              [instanceTypeName]="vmTypeSignal()"
+              [az]="selectedAz()"
+              (advancedChange)="advanced = $event"></spx-instance-advanced-create>
+          </form>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button matButton="filled" matStepperNext>
+              Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+            </button>
+          </div>
+        </ng-template>
+      </mat-step>
+
+      <!-- STEP 3 - STORAGE & SSH -->
+      <mat-step>
+        <ng-template matStepLabel>Storage & SSH</ng-template>
+        <ng-template matStepContent>
+          <spx-instance-storage-create
+            [limited]="!instanceIsStopped()"
+            [az]="selectedAz()"
+            [vmName]="firstFormGroup.get('productName')?.value"
+            [initCloudInit]="initCloudInit"
+            [initDisks]="initDisks"
+            [vmType]="vmTypeSignal()"
+            [initContainerDisks]="initContainerDisks"
+            (disksChange)="disks = $event"
+            (cloudInitChange)="cloudInit = $event"
+            (containerDisksChange)="containerDisks = $event"
+            (isLoaded)="disksLoaded.set($event)"></spx-instance-storage-create>
+
+          <spx-instance-ssh-create
+            [az]="selectedAz()"
+            [initSshKeys]="initSshKeys"
+            (sshKeysChange)="sshKeys = $event"></spx-instance-ssh-create>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button matButton="filled" matStepperNext>
+              Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+            </button>
+          </div>
+        </ng-template>
+      </mat-step>
+
+      <!-- STEP 4 - NETWORK -->
+      <mat-step>
+        <ng-template matStepLabel>Network</ng-template>
+        <ng-template matStepContent>
+          <spx-instance-network-create
+            [az]="selectedAz()"
+            [initList]="initNetwork"
+            (networksChange)="networks = $event"
+            (validChange)="networksValid = $event"></spx-instance-network-create>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button
+              matButton="filled"
+              [disabled]="
+                !instance() ||
+                !firstFormGroup.valid ||
+                !secondFormGroup.valid ||
+                !networks ||
+                (networks && networks.length <= 0) ||
+                !networksValid ||
+                !disksLoaded()
+              "
+              (click)="update()">
+              Update
+            </button>
+          </div>
+        </ng-template>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

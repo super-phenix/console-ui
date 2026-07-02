@@ -1,0 +1,96 @@
+@use '@angular/material' as mat;
+
+.status-chip {
+  &--running,
+  &--ready,
+  &--completed {
+    @include mat.chips-overrides(
+      (
+        container-shape-radius: var(--mat-sys-corner-large),
+        disabled-outline-color: var(--custom-chips-success),
+        elevated-disabled-container-color: var(--custom-chips-success),
+        disabled-label-text-color: var(--custom-chips-on-success),
+      )
+    );
+  }
+
+  &--failed,
+  &--pending,
+  &--scheduled,
+  &--starting,
+  &--scheduling,
+  &--stopping,
+  &--unknown,
+  &--warning {
+    @include mat.chips-overrides(
+      (
+        container-shape-radius: var(--mat-sys-corner-large),
+        disabled-outline-color: var(--custom-chips-warning),
+        elevated-disabled-container-color: var(--custom-chips-warning),
+        disabled-label-text-color: var(--custom-chips-on-warning),
+      )
+    );
+  }
+
+  &--succeeded,
+  &--stopped,
+  &--terminating,
+  &--error {
+    @include mat.chips-overrides(
+      (
+        container-shape-radius: var(--mat-sys-corner-large),
+        disabled-outline-color: var(--custom-chips-error),
+        elevated-disabled-container-color: var(--custom-chips-error),
+        disabled-label-text-color: var(--custom-chips-on-error),
+      )
+    );
+  }
+
+  &--deactivated,
+  &--migrating,
+  &--paused {
+    @include mat.chips-overrides(
+      (
+        container-shape-radius: var(--mat-sys-corner-large),
+        disabled-outline-color: var(--custom-chips-info),
+        elevated-disabled-container-color: var(--custom-chips-info),
+        disabled-label-text-color: var(--custom-chips-on-info),
+      )
+    );
+  }
+
+  &--info {
+    @include mat.chips-overrides(
+      (
+        outline-width: 0px,
+        container-shape-radius: var(--mat-sys-corner-large),
+        elevated-disabled-container-color: var(--mat-sys-background),
+        disabled-label-text-color: var(--mat-sys-on-background),
+      )
+    );
+  }
+}
+
+.chip--with-edit {
+  .mat-mdc-chip-action .mdc-evolution-chip__text-label {
+    height: 100%;
+    display: flex;
+    align-items: center;
+
+    .chip-text {
+      &--with-wrap {
+        word-break: break-all;
+        overflow: hidden;
+        text-wrap: initial;
+      }
+    }
+  }
+}
+
+.chip--large {
+  @include mat.chips-overrides(
+    (
+      container-height: 40px,
+    )
+  );
+}

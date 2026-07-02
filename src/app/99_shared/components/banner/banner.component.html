@@ -1,0 +1,6 @@
+<div [class]="['banner', 'banner--' + level()]">
+  <mat-icon>{{ icon() }}</mat-icon>
+  <div class="banner__content" [class.banner__content--multiline]="multiline() !== undefined">
+    <ng-content></ng-content>
+  </div>
+</div>

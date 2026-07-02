@@ -1,0 +1,188 @@
+<div class="product-create main-content">
+  <spx-content-header navBack title="Create Disk"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" (azChange)="selectedAz.set($event)"></spx-step-general>
+
+            <spx-step-label
+              titleText="Labels"
+              [subtitleText]="`You can add up to ${CUSTOM_USER_LABEL_NUMBER} custom labels.`"
+              [prefix]="CUSTOM_USER_LABEL_PREFIX"
+              [maxSize]="CUSTOM_USER_LABEL_NUMBER"
+              (labelsChange)="labels.set($event)"></spx-step-label>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 2 - SPECIFICATIONS -->
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+        <ng-template matStepLabel>Storage</ng-template>
+        <ng-template matStepContent>
+          <form [formGroup]="secondFormGroup">
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>storage</mat-icon>
+                  </div>
+                  Storage
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--space-evenly">
+                <mat-form-field class="info-card__item">
+                  <mat-label>Disk size</mat-label>
+                  <input
+                    type="number"
+                    matInput
+                    pattern="[0-9]+"
+                    [min]="minStorageSize()"
+                    max="5000"
+                    formControlName="storage" />
+                  <span matSuffix class="pr-2">Gi</span>
+                  @if (secondFormGroup.get('storage')?.hasError('required')) {
+                    <mat-error>This field is required</mat-error>
+                  }
+                  @if (secondFormGroup.get('storage')?.hasError('min')) {
+                    <mat-error>
+                      <span>The minimum value is {{ secondFormGroup.get('storage')?.getError('min').min }}.</span>
+                    </mat-error>
+                  }
+                  @if (secondFormGroup.get('storage')?.hasError('max')) {
+                    <mat-error>
+                      <span>The maximum value is {{ secondFormGroup.get('storage')?.getError('max').max }}.</span>
+                    </mat-error>
+                  }
+                  @if (
+                    secondFormGroup.get('source.type')?.value === 'clone' ||
+                    secondFormGroup.get('source.type')?.value === 'snapshot'
+                  ) {
+                    <mat-hint>
+                      <span>
+                        <i> The storage size must be equal to or greater than the source size. </i>
+                      </span>
+                    </mat-hint>
+                  }
+                </mat-form-field>
+
+                <mat-form-field class="info-card__item">
+                  <mat-label>Storage class</mat-label>
+                  <mat-select formControlName="storageClass">
+                    @for (storageClass of storageClassList(); track $index) {
+                      <mat-option [value]="storageClass">
+                        <span> {{ storageClass | titlecase }} </span>
+                      </mat-option>
+                    }
+                  </mat-select>
+                  @if (secondFormGroup.get('storageClass')?.hasError('required')) {
+                    <mat-error>This field is required</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="info-card" formGroupName="source">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>folder_managed</mat-icon>
+                  </div>
+                  Source definition
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                @if (secondFormGroup.get('source.type')?.value === 'clone') {
+                  <div class="info-card__block">
+                    <span>
+                      <i> Warning, cloning a disk that is in use may cause errors during the cloning process! </i>
+                      <br />
+                      <i>It is recommended to shut down the instance using the disk before cloning</i>
+                    </span>
+                  </div>
+                }
+                <div class="info-card__block info-card__block--space-evenly">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Source type selection</mat-label>
+                    <mat-select formControlName="type">
+                      @for (type of DiskSourceTypes; track $index) {
+                        <mat-option [value]="type">
+                          <span> {{ type | titlecase }} </span>
+                        </mat-option>
+                      }
+                    </mat-select>
+                    @if (secondFormGroup.get('az')?.hasError('required')) {
+                      <mat-error>This field is required</mat-error>
+                    }
+                  </mat-form-field>
+
+                  @if (
+                    secondFormGroup.get('source.type')?.value === 'http' ||
+                    secondFormGroup.get('source.type')?.value === 'registry'
+                  ) {
+                    <mat-form-field class="info-card__item">
+                      <mat-label>Url</mat-label>
+                      <input matInput formControlName="url" placeholder="Url source" />
+                    </mat-form-field>
+                  }
+
+                  @if (secondFormGroup.get('source.type')?.value === 'clone') {
+                    <mat-form-field class="info-card__item">
+                      <mat-label>Select a disk</mat-label>
+                      <mat-select formControlName="clone">
+                        @for (option of disksProduct(); track $index) {
+                          @if (option.mountStatus) {
+                            <mat-option [value]="option.eid">
+                              {{ option.productName || option.eid }}
+                              {{ option.mountStatus.isMounted ? ' - In use' : '' }}
+                              <br />
+                              ({{ option.disk?.spec?.storage?.resources?.requests?.['storage'] }})
+                            </mat-option>
+                          }
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  }
+
+                  @if (secondFormGroup.get('source.type')?.value === 'snapshot') {
+                    <mat-form-field class="info-card__item">
+                      <mat-label>Select a snapshot</mat-label>
+                      <mat-select formControlName="snapshot">
+                        @for (option of snapshotsProduct(); track $index) {
+                          @if (!option.snapshot?.status?.error) {
+                            <mat-option [value]="option.eid">
+                              {{ option.productName || option.eid }}
+                              <br />
+                              ({{ option.snapshot?.status?.restoreSize }})
+                            </mat-option>
+                          }
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  }
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button matButton="filled" [disabled]="!firstFormGroup.valid || !secondFormGroup.valid" (click)="create()">
+              Create
+            </button>
+          </div>
+        </ng-template>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

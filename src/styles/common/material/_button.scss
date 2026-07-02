@@ -1,0 +1,105 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.button-overrides(
+    (
+      // Height
+      filled-container-height: 48px,
+      outlined-container-height: 48px,
+      text-container-height: 48px,
+      tonal-container-height: 48px,
+
+      // Shape
+      text-container-shape: var(--mat-sys-corner-small),
+      filled-container-shape: var(--mat-sys-corner-small),
+      outlined-container-shape: var(--mat-sys-corner-small),
+      protected-container-shape: var(--mat-sys-corner-small),
+      tonal-container-shape: var(--mat-sys-corner-small),
+      // Container Color
+      filled-container-color: var(--input),
+      tonal-container-color: var(--input-light),
+      // Color
+      outlined-label-text-color: var(--text-input-dark),
+      tonal-label-text-color: var(--text-dark)
+    )
+  );
+
+  @include mat.icon-button-overrides(
+    (
+      container-shape: var(--mat-sys-corner-small),
+    )
+  );
+}
+
+.mdc-button--outlined {
+  background-color: var(--component-light) !important;
+}
+
+.mdc-icon-button {
+  // Fix misalignment of icons in buttons
+  .mat-icon {
+    vertical-align: top;
+  }
+}
+
+.btn--small {
+  @include mat.button-overrides(
+    (
+      filled-container-height: 40px,
+      outlined-container-height: 40px,
+      text-container-height: 40px,
+      tonal-container-height: 40px,
+    )
+  );
+}
+
+.btn--large {
+  @include mat.button-overrides(
+    (
+      filled-container-height: 56px,
+      outlined-container-height: 56px,
+      text-container-height: 56px,
+      tonal-container-height: 56px,
+    )
+  );
+}
+
+.icon-btn {
+  &--border {
+    background-color: var(--component-light) !important;
+    border: 1px solid var(--stroke-default) !important;
+  }
+
+  &--with-bg {
+    background-color: var(--accent) !important;
+    color: var(--icon-accent) !important;
+  }
+
+  &--small {
+    @include mat.icon-button-overrides(
+      (
+        icon-size: 24px,
+        state-layer-size: 32px,
+        touch-target-size: 32px,
+      )
+    );
+  }
+
+  &--medium {
+    @include mat.icon-button-overrides(
+      (
+        state-layer-size: 48px,
+        touch-target-size: 48px,
+      )
+    );
+  }
+
+  &--large {
+    @include mat.icon-button-overrides(
+      (
+        state-layer-size: 56px,
+        touch-target-size: 56px,
+      )
+    );
+  }
+}

@@ -1,0 +1,47 @@
+export enum PermissionsEnum {
+  OrganizationRead = 'OrganizationRead',
+  OrganizationWrite = 'OrganizationWrite',
+  OrganizationIAMRead = 'OrganizationIAMRead',
+  OrganizationIAMWrite = 'OrganizationIAMWrite',
+  OrganizationBillingRead = 'OrganizationBillingRead',
+  OrganizationBillingWrite = 'OrganizationBillingWrite',
+  OrganizationProjectManagement = 'OrganizationProjectManagement',
+
+  ProjectInstanceRead = 'ProjectInstanceRead',
+  ProjectInstanceTerminal = 'ProjectInstanceTerminal',
+  ProjectInstanceControl = 'ProjectInstanceControl',
+  ProjectInstanceWrite = 'ProjectInstanceWrite',
+
+  ProjectDiskRead = 'ProjectDiskRead',
+  ProjectDiskWrite = 'ProjectDiskWrite',
+
+  ProjectSnapshotRead = 'ProjectSnapshotRead',
+  ProjectSnapshotWrite = 'ProjectSnapshotWrite',
+
+  ProjectVPCRead = 'ProjectVPCRead',
+  ProjectVPCWrite = 'ProjectVPCWrite',
+
+  ProjectSubnetRead = 'ProjectSubnetRead',
+  ProjectSubnetWrite = 'ProjectSubnetWrite',
+
+  ProjectEipRead = 'ProjectEipRead',
+  ProjectEipWrite = 'ProjectEipWrite',
+
+  ProjectLoadBalancerRead = 'ProjectLoadBalancerRead',
+  ProjectLoadBalancerWrite = 'ProjectLoadBalancerWrite',
+
+  ProjectFirewallRead = 'ProjectFirewallRead',
+  ProjectFirewallWrite = 'ProjectFirewallWrite',
+
+  ProjectKaaSRead = 'ProjectKaaSRead',
+  ProjectKaaSKubeConfig = 'ProjectKaaSKubeConfig',
+  ProjectKaaSWrite = 'ProjectKaaSWrite',
+
+  ProjectBaaSRead = 'ProjectBaaSRead',
+  ProjectBaaSWrite = 'ProjectBaaSWrite',
+
+  ProjectSSHRead = 'ProjectSSHRead',
+  ProjectSSHWrite = 'ProjectSSHWrite',
+
+  ProjectArgoCdRead = 'ProjectArgoCdRead',
+}

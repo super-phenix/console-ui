@@ -1,0 +1,45 @@
+<div class="info-card">
+  <div class="info-card__title">
+    <div class="d-flex align-items-center gap-2">
+      <div class="mat-icon--with-bg">
+        <mat-icon>vpn_key</mat-icon>
+      </div>
+      SSH Key
+    </div>
+  </div>
+  <div class="info-card__content info-card__content--multi-block">
+    <div class="info-card__block">
+      <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+        <mat-label>Add an SSH key</mat-label>
+        <input type="text" matInput [formControl]="sshKeySelected()" [matAutocomplete]="auto" />
+        <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="addItem()">
+          @for (option of filteredOptions() | async; track $index) {
+            <mat-option [value]="option">
+              {{ option.productName || option.eid }}
+            </mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <div class="info-card__block flex-column">
+      @if (sshList.length > 0) {
+        <div cdkDropList class="product-create__ssh-list" (cdkDropListDropped)="drop($event)">
+          @for (ssh of sshList; track $index) {
+            <div class="product-create__ssh-item" cdkDrag>
+              <div class="product-create__ssh-item-header">
+                <h4 class="label">{{ ssh.name }} - {{ ssh.eid }}</h4>
+                <div class="product-create__ssh-item-header-btns">
+                  <button class="color-primary" mat-icon-button (click)="removeItemByIndex($index)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  <mat-icon cdkDragHandle>swap_vert</mat-icon>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

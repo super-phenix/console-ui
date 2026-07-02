@@ -1,0 +1,32 @@
+<div class="header">
+  <button class="header__account as-div" [matMenuTriggerFor]="beforeMenu" #t="matMenuTrigger">
+    <img class="header__account-profile" [ngSrc]="userIconPath()" alt="Cat Profile Icon" width="40" height="40" />
+    <mat-icon>{{ t.menuOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}</mat-icon>
+  </button>
+  <mat-menu #beforeMenu="matMenu" xPosition="before" class="mt-3">
+    <a type="button" mat-menu-item [routerLink]="['user', 'details']">
+      <mat-icon>account_circle</mat-icon>My Account
+    </a>
+    <mat-divider class="small-divider"></mat-divider>
+    <button type="button" mat-menu-item (click)="logout()"><mat-icon>exit_to_app</mat-icon>Log out</button>
+  </mat-menu>
+
+  <mat-button-toggle-group
+    class="header__theme"
+    name="themeSelection"
+    aria-label="Theme Selection"
+    [hideSingleSelectionIndicator]="true"
+    [value]="this.isDarkTheme() ? 'dark' : 'light'"
+    (change)="switchTheme()">
+    <mat-button-toggle value="light" aria-label="Light mode">
+      <mat-icon class="symbols-fill">brightness_7</mat-icon>
+    </mat-button-toggle>
+    <mat-button-toggle value="dark" aria-label="Dark mode">
+      <mat-icon class="symbols-fill">bedtime</mat-icon>
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (screenSvc.isWeb()) {
+    <spx-context-selector></spx-context-selector>
+  }
+</div>

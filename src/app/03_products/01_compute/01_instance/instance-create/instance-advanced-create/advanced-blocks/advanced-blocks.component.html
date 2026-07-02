@@ -1,0 +1,104 @@
+<form [formGroup]="form" class="ao-rows">
+  @for (block of blocks(); track block.key) {
+    <div class="ao-block">
+      <!-- Block toggle row -->
+      <div class="aoa-row">
+        <div class="aoa-main">
+          <div class="aoa-left">
+            <div class="ao-name">{{ block.label }}</div>
+            <div class="ao-desc">{{ block.description }}</div>
+          </div>
+          <div class="aoa-right">
+            @if (editable() && hasControl(block.key)) {
+              <mat-button-toggle-group
+                class="ao-toggle"
+                [formControlName]="block.key"
+                hideSingleSelectionIndicator
+                aria-label="{{ block.label }} mode">
+                <mat-button-toggle value="inherit">Auto</mat-button-toggle>
+                <mat-button-toggle value="enabled">{{ block.onLabel }}</mat-button-toggle>
+                <mat-button-toggle value="disabled">{{ block.offLabel }}</mat-button-toggle>
+              </mat-button-toggle-group>
+
+              @if (blockState(block) === 'inherit' && blockInheritHint(block); as hint) {
+                <span class="advanced-badge advanced-badge--{{ blockInheritSource(block) }}">{{ hint }}</span>
+              }
+            } @else {
+              <span class="aoa-valrow">
+                <span class="ao-state" [class.ao-state--drift]="block.enabled.stale">
+                  <span
+                    class="ao-dot"
+                    [class.ao-dot--on]="block.enabled.value"
+                    [class.ao-dot--off]="!block.enabled.value"></span>
+                  {{ formatValue(block.enabled) }}
+                </span>
+                @if (block.enabled.stale) {
+                  <mat-icon class="aoa-warn" aria-label="restart required">warning</mat-icon>
+                }
+              </span>
+              <span [class]="sourceClass(block.enabled.source)">{{ sourceLabel(block.enabled.source) }}</span>
+            }
+          </div>
+        </div>
+
+        @if (!editable() && driftText(block.enabled); as drift) {
+          <div class="aoa-drift">
+            <mat-icon>restart_alt</mat-icon>
+            <span class="aoa-drift-txt">{{ drift }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Sub-fields: hidden only when the user forced the block Off (editable) -->
+      @if (!subFieldsHidden(block)) {
+        @for (field of block.fields; track field.key) {
+          <div class="aoa-row aoa-subrow">
+            <div class="aoa-main">
+              <div class="aoa-left">
+                <div class="ao-name">{{ field.label }}</div>
+                <div class="ao-desc">{{ field.description }}</div>
+              </div>
+              <div class="aoa-right">
+                @if (editable()) {
+                  @if (blockState(block) === 'enabled' && hasControl(fieldKey(block, field))) {
+                    <mat-button-toggle-group
+                      class="ao-toggle"
+                      [formControlName]="fieldKey(block, field)"
+                      hideSingleSelectionIndicator
+                      aria-label="{{ field.label }} value">
+                      <mat-button-toggle value="enabled">Enabled</mat-button-toggle>
+                      <mat-button-toggle value="disabled">Disabled</mat-button-toggle>
+                    </mat-button-toggle-group>
+                  } @else {
+                    <!-- Auto: the block inherits, so the sub-field is read-only. -->
+                    <span class="advanced-badge advanced-badge--{{ inferredSource(block, field) }}">{{
+                      inferredHint(block, field)
+                    }}</span>
+                  }
+                } @else {
+                  <span class="aoa-valrow">
+                    <span class="ao-state" [class.ao-state--drift]="field.stale">
+                      <span class="ao-dot" [class.ao-dot--on]="field.value" [class.ao-dot--off]="!field.value"></span>
+                      {{ formatValue(field) }}
+                    </span>
+                    @if (field.stale) {
+                      <mat-icon class="aoa-warn" aria-label="restart required">warning</mat-icon>
+                    }
+                  </span>
+                  <span [class]="sourceClass(field.source)">{{ sourceLabel(field.source) }}</span>
+                }
+              </div>
+            </div>
+
+            @if (driftText(field); as drift) {
+              <div class="aoa-drift">
+                <mat-icon>restart_alt</mat-icon>
+                <span class="aoa-drift-txt">{{ drift }}</span>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</form>

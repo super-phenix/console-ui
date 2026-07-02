@@ -1,0 +1,19 @@
+.exception-list {
+  display: flex;
+  flex-direction: column;
+
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-block: 8px;
+    padding-inline: 1rem;
+
+    &-content {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+}

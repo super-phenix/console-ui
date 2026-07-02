@@ -1,0 +1,57 @@
+@use '@angular/material' as mat;
+
+.context-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  row-gap: 0.5rem;
+  justify-content: center;
+
+  &--inverted {
+    @include mat.form-field-overrides(
+      (
+        filled-container-color: var(--mat-sys-background),
+      )
+    );
+  }
+
+  @include mat.form-field-overrides(
+    (
+      container-height: 40px,
+      container-vertical-padding: 8px,
+    )
+  );
+
+  &__project,
+  &__organization {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    .mat-mdc-form-field {
+      width: 290px;
+    }
+
+    &-prefix {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding-left: 8px;
+
+      font: var(--mat-sys-label-large);
+    }
+  }
+
+  &__organization-selection {
+    position: relative;
+    display: flex;
+    align-items: center;
+    // add 16px to keep same spacing than select list
+    // margin-left: calc(24px + 16px);
+
+    .material-symbols-rounded {
+      position: absolute;
+      left: calc(-24px - 16px);
+    }
+  }
+}

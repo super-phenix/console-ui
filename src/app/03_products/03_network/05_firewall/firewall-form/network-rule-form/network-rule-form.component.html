@@ -1,0 +1,106 @@
+<div class="network-rule">
+  <mat-form-field>
+    <mat-label>Rule Template</mat-label>
+    <mat-select [formControl]="templateSelection" (selectionChange)="updateOutput()">
+      @for (rule of RuleTemplateEnum | keyvalue; track $index) {
+        @if (rule.key !== RuleTemplateEnum.AllowSpecific) {
+          <mat-option [value]="rule.key">{{ rule.value }}</mat-option>
+        }
+      }
+      <mat-option [value]="RuleTemplateEnum.AllowSpecific">{{ RuleTemplateEnum.AllowSpecific }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  @if (templateSelection.value === RuleTemplateEnum.AllowSpecific) {
+    <div class="d-flex justify-content-between align-items-center">
+      <h4>Ports</h4>
+
+      <button matButton="text" (click)="definePorts()">Edit ports</button>
+    </div>
+    @if (rulePorts() && rulePorts().length > 0) {
+      <ul class="network-rule__ports">
+        @for (port of rulePorts(); track $index) {
+          <li class="network-rule__ports-item">
+            <span>
+              {{ port.port }}
+              <mat-icon>arrow_right_alt</mat-icon>
+              {{ port.endPort }}
+              [{{ port.protocol }}]
+            </span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <span><i>No port defined</i></span>
+    }
+
+    <div class="d-flex justify-content-between align-items-center">
+      <h4>{{ type() === 'ingress' ? 'From' : 'To' }}</h4>
+
+      <button matButton="text" (click)="updatePeer()">Add</button>
+    </div>
+    @if (peerList() && peerList().length > 0) {
+      <ul class="network-rule__rules">
+        @for (peer of peerList(); track $index; let idx = $index) {
+          <li class="network-rule__rules-item">
+            <div class="d-flex align-items-center justify-content-between">
+              Condition {{ idx + 1 }}
+
+              <div class="d-flex">
+                <button matIconButton (click)="updatePeer(idx)"><mat-icon>edit</mat-icon></button>
+                <button matIconButton (click)="removePeer(idx)"><mat-icon>delete</mat-icon></button>
+              </div>
+            </div>
+
+            @if (peer.podSelector) {
+              @if (peer.podSelector.matchLabels && peer.podSelector.matchLabels.length > 0) {
+                <div class="d-flex gap-2">
+                  <span><strong>Match Labels</strong></span>
+
+                  <div class="d-flex flex-column">
+                    @for (item of peer.podSelector.matchLabels; track $index) {
+                      <span>- {{ item.key }}: {{ item.value }}</span>
+                    }
+                  </div>
+                </div>
+              }
+              @if (peer.podSelector.matchExpressions && peer.podSelector.matchExpressions.length > 0) {
+                <div class="d-flex gap-2">
+                  <span><strong>Match Expressions</strong></span>
+                  <div class="d-flex flex-column">
+                    @for (item of peer.podSelector.matchExpressions; track $index) {
+                      <span>
+                        - {{ item.key }} {{ item.operator }}
+                        @if (item.values && item.values.length > 0) {
+                          ["{{ item.values.join('","') }}"]
+                        }
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            }
+            @if (peer.ipBlock && peer.ipBlock.cidr) {
+              <span><strong>IP Block</strong></span>
+              <div class="d-flex gap-2">
+                <span>CIDR: {{ peer.ipBlock.cidr }}</span>
+              </div>
+              @if (peer.ipBlock.except && peer.ipBlock.except.length > 0) {
+                <div class="d-flex gap-2">
+                  <span>Exceptions</span>
+                  <div class="d-flex flex-column">
+                    @for (item of peer.ipBlock.except; track $index) {
+                      <span>- {{ item }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </li>
+        }
+      </ul>
+    } @else {
+      <span><i>No element defined</i></span>
+    }
+  }
+</div>

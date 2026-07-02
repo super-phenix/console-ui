@@ -1,0 +1,35 @@
+@if (!readOnly()) {
+  <mat-form-field class="tag-selector" subscriptSizing="dynamic">
+    <mat-label>{{ labelText() }}</mat-label>
+    <mat-chip-grid #chipGrid aria-label="Tag selection">
+      @for (item of selection(); track $index) {
+        <mat-chip-row (removed)="removeSelected(item.id)">
+          {{ mapIdName.get(item.id) }}
+          <button matChipRemove [ariaLabel]="'Remove ' + mapIdName.get(item.id)">
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+      }
+      <input #tagInput [formControl]="inputCtrl" [matChipInputFor]="chipGrid" [matAutocomplete]="auto" />
+    </mat-chip-grid>
+    <mat-autocomplete
+      #auto="matAutocomplete"
+      (optionSelected)="selectTag($event); tagInput.value = ''"
+      autoActiveFirstOption
+      hideSingleSelectionIndicator>
+      @for (item of autocomplete(); track $index) {
+        <mat-option [value]="item">{{ mapIdName.get(item.id) }}</mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+} @else {
+  <mat-form-field class="tag-selector tag-selector--ro" subscriptSizing="dynamic">
+    <mat-label>{{ labelText() }}</mat-label>
+    <mat-chip-grid #chipGrid aria-label="Tag selection" disabled>
+      @for (item of selection(); track $index) {
+        <mat-chip-row> {{ mapIdName.get(item.id) }} </mat-chip-row>
+      }
+      <input [matChipInputFor]="chipGrid" />
+    </mat-chip-grid>
+  </mat-form-field>
+}

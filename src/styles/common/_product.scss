@@ -1,0 +1,359 @@
+@use '@angular/material' as mat;
+
+/**
+ * Product creation page
+ */
+.product-create {
+  &__scrollable {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    justify-items: center;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+
+    height: 100%;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 0 auto;
+
+    width: 100%;
+    max-width: 400px;
+    gap: 16px;
+
+    &-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 0.5rem;
+
+      h3 {
+        margin-block: 0;
+      }
+
+      h2 {
+        margin-top: 0;
+      }
+    }
+  }
+
+  &__buttons {
+    z-index: 2;
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-self: center;
+
+    background-color: var(--mat-sys-background);
+
+    width: 100%;
+    max-width: 400px;
+
+    height: 40px;
+    max-height: 40px;
+    padding-block: 8px;
+  }
+
+  &__az-icon {
+    width: 60px;
+    height: 30px;
+  }
+
+  // NEW STYLE
+  &__form-stepper {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 0 auto;
+
+    width: 100%;
+    gap: 16px;
+
+    $size: 48px;
+
+    .mat-horizontal-stepper-header-container {
+      position: sticky;
+      top: 0;
+      background-color: var(--background);
+      z-index: 100;
+
+      max-width: max(75%, 600px);
+      width: 100%;
+      // force full size background
+      padding-inline: calc((100% - max(75%, 600px)) / 2);
+      align-self: center;
+      margin-bottom: 8px;
+
+      // Center the step, if there is only one child
+      &:has(:only-child) {
+        justify-content: center;
+      }
+    }
+
+    .mat-horizontal-stepper-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      @include mat.form-field-overrides(
+        (
+          filled-container-color: var(--mat-sys-background),
+        )
+      );
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+    }
+
+    .mat-step-icon {
+      height: $size !important;
+      width: $size !important;
+      border-radius: var(--mat-sys-corner-large) !important;
+    }
+    .mat-step-header {
+      &::after,
+      &::before {
+        width: calc(50% - $size) !important;
+        top: calc(calc(3 * $size) / 2 - ($size / 2)) !important;
+        border-top-width: 2px !important;
+      }
+    }
+    .mat-stepper-horizontal-line {
+      top: calc(calc(3 * $size) / 2 - ($size / 2)) !important;
+      border-top-width: 2px !important;
+    }
+  }
+
+  &__step-buttons {
+    display: flex;
+    justify-content: space-between;
+
+    &--justify-end {
+      justify-content: end;
+    }
+  }
+
+  &__step {
+    &-form {
+      display: flex;
+      width: 100%;
+
+      gap: 16px;
+
+      .mat-mdc-form-field {
+        flex: 1 0 auto;
+      }
+    }
+  }
+}
+
+/**
+ * Product list page
+ */
+.product-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  &__header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 8px;
+    gap: 8px;
+
+    &-create-btn {
+      a {
+        width: 100%;
+      }
+    }
+  }
+
+  &__table {
+    position: relative;
+    flex: 1 0 auto;
+    height: 1%;
+
+    &-loading-shade {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      border-radius: var(--mat-sys-corner-small);
+      background: var(--mat-sys-disable-state-bg);
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &-error {
+      text-align: center;
+      font: var(--mat-sys-headline-medium);
+    }
+
+    mat-table {
+      height: 100%;
+      width: 100%;
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: var(--mat-sys-corner-small);
+    }
+  }
+
+  &__az-icon {
+    width: 60px;
+    height: 30px;
+  }
+}
+
+/**
+ * Product details page
+ */
+.product-details {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+  padding-right: 8px;
+
+  &__content {
+    flex: 1 0 auto;
+    height: 1%;
+    display: flex;
+    flex-direction: column;
+
+    overflow-y: auto;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  &__tabs {
+    flex: 1 0 auto;
+    height: 1%;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+
+    background-color: var(--mat-sys-surface);
+    border-radius: var(--mat-sys-corner-medium);
+    padding: 1rem;
+    gap: 4px;
+
+    &-eid {
+      color: var(--mat-sys-primary);
+
+      button {
+        color: inherit;
+      }
+    }
+
+    &-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &--split {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: minmax(1lh, 1fr);
+        grid-column-gap: 0px;
+        grid-row-gap: 0.5rem;
+
+        align-items: start;
+      }
+
+      &-left {
+        grid-column: 1 / 2;
+      }
+
+      &-right {
+        grid-column: 2 / 3;
+      }
+
+      &-left,
+      &-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        height: 100%;
+      }
+    }
+  }
+
+  &__labels {
+    @include mat.chips-overrides(
+      (
+        container-height: 40px,
+      )
+    );
+
+    &-item--custom {
+      @include mat.chips-overrides(
+        (
+          outline-color: var(--stroke-accent),
+        )
+      );
+    }
+  }
+
+  &__delete {
+    display: flex;
+    justify-content: space-between;
+    flex-grow: 1;
+
+    &-text {
+      display: flex;
+      flex-direction: column;
+      flex: 0 1 auto;
+      margin-right: 2rem;
+      gap: 16px;
+    }
+    &-btn {
+      display: flex;
+      align-items: flex-end;
+    }
+  }
+
+  &__az-icon {
+    width: 60px;
+    height: 30px;
+  }
+
+  &__az-full {
+    height: 36px;
+    aspect-ratio: 23 / 6;
+
+    position: relative;
+
+    /* style this to fit your needs */
+    /* and remove [alt] to apply to all images*/
+    &[alt]:after {
+      display: flex;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--mat-sys-surface);
+      line-height: 2;
+      content: attr(alt);
+    }
+  }
+}

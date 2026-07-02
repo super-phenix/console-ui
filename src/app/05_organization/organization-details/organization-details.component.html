@@ -1,0 +1,30 @@
+<div class="org-details">
+  @let orga = stateSvc.organization()!;
+
+  <div class="info-card">
+    <div class="info-card__title">
+      <div class="d-flex align-items-center gap-2">
+        <div class="mat-icon--with-bg">
+          <mat-icon>info</mat-icon>
+        </div>
+
+        Informations
+      </div>
+    </div>
+
+    <div class="info-card__content info-card__content--space-evenly">
+      <div class="info-card__item info-card__item--fixed">
+        <div class="info-card__item-label">Administrative Contact</div>
+        <div class="info-card__item-text">{{ orga.administrativeContact || '-' }}</div>
+      </div>
+      <div class="info-card__item info-card__item--fixed">
+        <div class="info-card__item-label">Billing Contact</div>
+        <div class="info-card__item-text">{{ orga.billingContact || '-' }}</div>
+      </div>
+      <div class="info-card__item info-card__item--fixed">
+        <div class="info-card__item-label">Technical Contact</div>
+        <div class="info-card__item-text">{{ orga.technicalContact || '-' }}</div>
+      </div>
+    </div>
+  </div>
+</div>

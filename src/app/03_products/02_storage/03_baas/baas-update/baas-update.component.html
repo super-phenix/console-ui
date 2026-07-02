@@ -1,0 +1,108 @@
+<div class="product-create main-content">
+  <spx-content-header navBack titleOnly title="Update BaaS"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" [showAz]="false"></spx-step-general>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 2 - SPECIFICATIONS -->
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+        <ng-template matStepLabel>Specifications</ng-template>
+        <ng-template matStepContent>
+          <form [formGroup]="secondFormGroup">
+            <div class="d-flex flex-column gap-4">
+              @if (isScheduled()) {
+                <div class="info-card">
+                  <div class="info-card__title">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="mat-icon--with-bg">
+                        <mat-icon>backup</mat-icon>
+                      </div>
+                      Schedule Specification
+                    </div>
+                  </div>
+
+                  <div class="info-card__content info-card__content--multi-block">
+                    <div class="info-card__block">
+                      <span> <i>Define the schedule parameters.</i> </span>
+                    </div>
+
+                    <div class="info-card__block info-card__block--space-evenly">
+                      <mat-form-field class="info-card__item">
+                        <mat-label>Backup interval (in days)</mat-label>
+                        <input matInput type="number" formControlName="schedule" min="1" max="7" />
+                        @if (secondFormGroup.get('schedule')?.hasError('required')) {
+                          <mat-error>This field is required.</mat-error>
+                        }
+                        @if (secondFormGroup.get('schedule')?.hasError('min')) {
+                          <mat-error>
+                            The minimum value is {{ secondFormGroup.get('schedule')?.getError('min').min }}.
+                          </mat-error>
+                        }
+                        @if (secondFormGroup.get('schedule')?.hasError('max')) {
+                          <mat-error>
+                            The maximum value is {{ secondFormGroup.get('schedule')?.getError('max').max }}.
+                          </mat-error>
+                        }
+                      </mat-form-field>
+
+                      <mat-form-field class="info-card__item">
+                        <mat-label>Retention Expiry Time (in hours - min 24h)</mat-label>
+                        <input matInput type="number" formControlName="expiryTime" min="24" max="960" />
+                        @if (secondFormGroup.get('expiryTime')?.hasError('required')) {
+                          <mat-error>This field is required.</mat-error>
+                        }
+                        @if (secondFormGroup.get('expiryTime')?.hasError('min')) {
+                          <mat-error>
+                            The minimum value is {{ secondFormGroup.get('expiryTime')?.getError('min').min }}.
+                          </mat-error>
+                        }
+                        @if (secondFormGroup.get('expiryTime')?.hasError('max')) {
+                          <mat-error>
+                            The maximum value is {{ secondFormGroup.get('expiryTime')?.getError('max').max }}.
+                          </mat-error>
+                        }
+                      </mat-form-field>
+
+                      <div class="info-card__item">
+                        <mat-checkbox formControlName="paused">Create backup paused</mat-checkbox>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <spx-step-label
+                titleText="Labels selector"
+                subtitleText="Define label filter for the backup. Leave empty to includes all resources from the namespace."
+                [maxSize]="10"
+                [labels]="initLabels()"
+                (labelsChange)="labelSelector.set($event)"></spx-step-label>
+            </div>
+          </form>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button matButton="filled" [disabled]="!firstFormGroup.valid || !secondFormGroup.valid" (click)="update()">
+              Update
+            </button>
+          </div>
+        </ng-template>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

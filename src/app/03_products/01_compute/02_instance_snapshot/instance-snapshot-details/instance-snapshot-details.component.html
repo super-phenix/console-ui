@@ -1,0 +1,221 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Instance snapshot details"></spx-content-header>
+
+    @if (instanceSnapshotProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        @if (
+          (canProjectInstanceWrite() && canProjectSnapshotWrite()) ||
+          (canProjectArgoCdRead() && instanceSnapshotProduct.value().gitops === 'true') ||
+          (instanceSnapshotProduct.value().gitops !== 'true' && canProjectSnapshotWrite())
+        ) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+          <mat-menu #menu="matMenu">
+            @if (canProjectInstanceWrite() && canProjectSnapshotWrite()) {
+              <button mat-menu-item aria-label="Restore snapshot button" (click)="restore()">
+                <mat-icon>settings_backup_restore</mat-icon>
+                Restore
+              </button>
+              <button mat-menu-item aria-label="Clone snapshot button" (click)="clone()">
+                <mat-icon>content_copy</mat-icon>
+                Clone
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && instanceSnapshotProduct.value().gitops === 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (instanceSnapshotProduct.value().gitops !== 'true' && canProjectSnapshotWrite()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete instance snapshot button" (click)="deleteSnapshot()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (
+    instanceSnapshotProduct.hasValue() &&
+    instanceSnapshotProduct.value().gitops !== 'true' &&
+    !instanceSnapshotProduct.value().productTypeId
+  ) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (instanceSnapshotProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (instanceSnapshotProduct.hasValue() && !instanceSnapshotProduct.value().vmSnapshot) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the snapshot on the AZ.</spx-banner>
+  }
+
+  @if (instanceProduct.error()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">The source instance of the snapshot no longer exists.</spx-banner>
+  }
+
+  <div class="product-details__content">
+    @if (instanceSnapshotProduct.hasValue()) {
+      <h2>General Information</h2>
+      @let instanceSnapshot = instanceSnapshotProduct.value();
+      <div spxGrid>
+        <div class="product-details__card sg-r2 sg-c2">
+          <h3 class="text-break-all mt-0 mb-1">{{ instanceSnapshot.productName }}</h3>
+
+          <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="instanceSnapshot.eid" />
+
+          <div class="product-details__card-line">
+            <strong>Status: </strong>
+            <mat-chip-set aria-label="instance status">
+              @if (!instanceSnapshot.vmSnapshot?.status?.error) {
+                @let status = instanceSnapshot.vmSnapshot?.status?.readyToUse ? 'ready' : 'pending';
+                <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                  {{ instanceSnapshot.vmSnapshot?.status?.readyToUse ? 'Ready' : 'Not Ready' }}
+                </mat-chip>
+              } @else {
+                <mat-chip class="status-chip--error" disabled="true">Error</mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+
+          <spx-span-copy class="product-details__card-line" key="Local ID" [value]="instanceSnapshot.id" />
+          <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+          <spx-span-copy
+            class="product-details__card-line"
+            key="Organization ID"
+            [value]="productLabelInfo().organizationId" />
+        </div>
+
+        <div class="product-details__card sg-r1 sg-c1">
+          <div class="product-details__card-line product-details__card-line--split flex-grow">
+            <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+            <span class="product-details__card-line-right"> {{ instanceSnapshot.codeAZ?.toUpperCase() }} </span>
+
+            <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+            <span class="product-details__card-line-right">
+              {{ instanceSnapshot.gitops === 'true' ? 'Yes' : 'No' }}
+            </span>
+
+            <span class="product-details__card-line-left"> <strong>Creation date:</strong> </span>
+            <span class="product-details__card-line-right">
+              {{ instanceSnapshot.vmSnapshot?.status?.creationTime | date: 'short' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <h2>Specifications</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r1 sg-c2">
+          <h3 class="mt-0 d-flex align-items-center gap-1">
+            Source Instance
+            @if (instanceProduct.status() !== 'error' && instanceProduct.value()) {
+              <a
+                mat-icon-button
+                class="color-primary"
+                [routerLink]="['/products', 'compute', 'instance', 'details', az(), instanceProduct.value()?.eid]"
+                target="_blank">
+                <mat-icon>open_in_new</mat-icon>
+              </a>
+            }
+          </h3>
+
+          @if (instanceProduct.status() !== 'error' && instanceProduct.value()) {
+            <span class="product-details__card-line">
+              <strong>Name : </strong>{{ instanceProduct.value()?.productName }}
+            </span>
+            <spx-span-copy
+              class="product-details__card-line"
+              key="Effective ID"
+              [value]="instanceProduct.value()?.eid" />
+          } @else {
+            <spx-span-copy
+              class="product-details__card-line"
+              key="Effective ID"
+              [value]="instanceSnapshot.vmSnapshot?.spec?.source?.name" />
+          }
+        </div>
+      </div>
+
+      <h2>Labels</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c-all">
+          <mat-chip-set class="product-details__labels" aria-label="Labels">
+            @for (labels of instanceSnapshot.vmSnapshot?.metadata?.labels | keyvalue; track $index) {
+              <mat-chip (click)="copy(labels.value)">
+                <div class="d-flex flex-wrap gap-x-1">
+                  <span>{{ labels.key }}:</span>
+                  <span>{{ labels.value }}</span>
+                </div>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+    }
+
+    @if (diskSnapshotProduct.hasValue()) {
+      <h2>Linked Snapshots</h2>
+
+      <div class="product-list__table mat-table--full-size">
+        @if (diskSnapshotProduct.isLoading() || diskSnapshotProduct.status() === 'error') {
+          <div class="product-list__table-loading-shade">
+            @if (diskSnapshotProduct.isLoading()) {
+              <mat-spinner></mat-spinner>
+            }
+            @if (diskSnapshotProduct.status() === 'error') {
+              <div class="product-list__table-error">Problem while fetching products</div>
+            }
+          </div>
+        }
+
+        <mat-table [dataSource]="diskSnapshotProduct.value()!">
+          <ng-container matColumnDef="id">
+            <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
+            <mat-cell *matCellDef="let el"> {{ el.eid }} </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="actions" stickyEnd>
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+            <mat-cell *matCellDef="let el">
+              <a
+                mat-icon-button
+                class="color-primary"
+                [routerLink]="['/products', 'storage', 'snapshot', 'details', az(), el.eid]"
+                aria-label="Go to subnet"
+                target="_blank">
+                <mat-icon>open_in_new</mat-icon>
+              </a>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="['id', 'actions']; sticky: true"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: ['id', 'actions']"></mat-row>
+        </mat-table>
+      </div>
+    }
+  </div>
+</div>

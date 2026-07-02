@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>Create a snapshot of {{ data.instance.productName }}</h2>
+<div mat-dialog-content class="d-flex flex-column">
+  <form class="dialog-form">
+    <mat-form-field class="w-100">
+      <mat-label>Snapshot name</mat-label>
+      <input matInput type="text" autocomplete="off" [formControl]="nameControl" />
+      <mat-hint align="end"> {{ nameControl.getRawValue()?.length }} / 63 </mat-hint>
+      @if (nameControl.hasError('required')) {
+        <mat-error>This field is required</mat-error>
+      }
+    </mat-form-field>
+  </form>
+  <span>
+    <i
+      >Creating a snapshot takes time and will not be available immediately.
+      <br />
+      During the instance snapshot, it will be paused. Please avoid using it during the process.
+    </i></span
+  >
+</div>
+<div mat-dialog-actions>
+  <button type="button" mat-stroked-button mat-dialog-close>Cancel</button>
+  <button type="button" matButton="filled" [disabled]="!nameControl.valid" (click)="create()">Create</button>
+</div>

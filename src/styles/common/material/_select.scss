@@ -1,0 +1,20 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.select-overrides(
+    (
+      trigger-text-font: var(--mat-sys-body-medium),
+      trigger-text-line-height: var(--mat-sys-body-medium-line-height),
+      trigger-text-size: var(--mat-sys-body-medium-size),
+      trigger-text-tracking: var(--mat-sys-body-medium-tracking),
+      trigger-text-weight: var(--mat-sys-body-medium-weight),
+      panel-background-color: var(--block),
+    )
+  );
+
+  @include mat.option-overrides(
+    (
+      selected-state-label-text-color: var(--mat-sys-on-surface),
+    )
+  );
+}

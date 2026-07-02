@@ -1,0 +1,270 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="VPC Details"></spx-content-header>
+
+    @if (vpcProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        @let vpc = vpcProduct.value()!;
+
+        @if (
+          canProjectSubnetWrite() ||
+          (canProjectVPCWrite() && vpcProduct.value().gitops !== 'true') ||
+          (canProjectArgoCdRead() && vpcProduct.value().gitops === 'true')
+        ) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectVPCWrite() && vpcProduct.value().gitops !== 'true') {
+              <button
+                mat-menu-item
+                aria-label="Edit vpc button"
+                [routerLink]="['/products', 'network', 'vpc', 'update', vpc.codeAZ, vpc.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+            @if (canProjectSubnetWrite()) {
+              <button mat-menu-item aria-label="Add subnet to vpc button" (click)="addSubnet()">
+                <mat-icon>add</mat-icon>
+                Add subnet
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && vpcProduct.value().gitops === 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectVPCWrite() && vpcProduct.value().gitops !== 'true') {
+              <mat-divider></mat-divider>
+              <button
+                mat-menu-item
+                aria-label="Delete VPC button"
+                (click)="deleteVPC()"
+                [disabled]="vpc?.vpc?.status?.subnets && vpc?.vpc?.status?.subnets?.length !== 0">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (vpcProduct.hasValue() && vpcProduct.value().gitops !== 'true' && !vpcProduct.value().productTypeId) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (vpcProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (vpcProduct.hasValue() && !vpcProduct.value().vpc) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the vpc on the AZ.</spx-banner>
+  }
+
+  @if (vpcProduct.hasValue()) {
+    @let vpc = vpcProduct.value()!;
+    <mat-tab-group
+      class="product-details__tabs mat-tab-fill-height"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      preserveContent
+      (selectedIndexChange)="updateFragment($event)"
+      [selectedIndex]="initialIndex()">
+      <mat-tab label="General">
+        <ng-template matTabContent>
+          <div class="product-details">
+            <h2>General Information</h2>
+
+            <div spxGrid>
+              <div class="product-details__card sg-r2 sg-c2">
+                <h3 class="text-break-all mt-0 mb-1">{{ vpc.productName }}</h3>
+
+                <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="vpc.eid" />
+                <spx-span-copy class="product-details__card-line" key="Local ID" [value]="vpc.id" />
+                <spx-span-copy
+                  class="product-details__card-line"
+                  key="Project ID"
+                  [value]="productLabelInfo().projectId" />
+                <spx-span-copy
+                  class="product-details__card-line"
+                  key="Organization ID"
+                  [value]="productLabelInfo().organizationId" />
+              </div>
+
+              <div class="product-details__card sg-r1 sg-c1">
+                <div class="product-details__card-line product-details__card-line--split flex-grow">
+                  <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+                  <span class="product-details__card-line-right"> {{ vpc.codeAZ?.toUpperCase() }} </span>
+
+                  <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+                  <span class="product-details__card-line-right">
+                    {{ vpc.gitops === 'true' ? 'Yes' : 'No' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <h2>Labels</h2>
+
+            <div spxGrid>
+              <div class="product-details__card sg-r-all sg-c-all">
+                <mat-chip-set class="product-details__labels" aria-label="Labels">
+                  @for (labels of vpc.vpc?.metadata?.labels | keyvalue; track $index) {
+                    <mat-chip (click)="copy(labels.value)">{{ labels.key }}: {{ labels.value }}</mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="Route Table">
+        <ng-template matTabContent>
+          <div class="product-details">
+            <div class="mt-2 product-list__table">
+              <mat-table [dataSource]="staticRoutes()">
+                <ng-container matColumnDef="policy">
+                  <mat-header-cell *matHeaderCellDef> Policy </mat-header-cell>
+                  <mat-cell *matCellDef="let el"> {{ el.policy === policyDst ? 'Destination' : 'Source' }} </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="cidr">
+                  <mat-header-cell *matHeaderCellDef> CIDR </mat-header-cell>
+                  <mat-cell *matCellDef="let el"> {{ el.cidr }} </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="nextHop">
+                  <mat-header-cell *matHeaderCellDef> Next Hop </mat-header-cell>
+                  <mat-cell *matCellDef="let el"> {{ el.nextHopIP }} </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="subnet">
+                  <mat-header-cell *matHeaderCellDef> Subnet </mat-header-cell>
+                  <mat-cell *matCellDef="let el"> {{ el.subnet ? el.subnet.productName : el.routeTable }} </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="autoGenerated">
+                  <mat-header-cell *matHeaderCellDef class="justify-content-center"> Auto-Generated </mat-header-cell>
+                  <mat-cell *matCellDef="let el" class="justify-content-center">
+                    @if (el.autoGenerated) {
+                      <mat-icon>check</mat-icon>
+                    }
+                  </mat-cell>
+                </ng-container>
+
+                <!-- This column is shown only is the user can read subnets -->
+                <ng-container matColumnDef="actions" stickyEnd>
+                  <mat-header-cell *matHeaderCellDef></mat-header-cell>
+                  <mat-cell *matCellDef="let el">
+                    @if (el.subnet) {
+                      <a
+                        mat-icon-button
+                        class="color-primary"
+                        [routerLink]="['/products', 'network', 'subnet', 'details', az(), el.subnet.eid]"
+                        aria-label="Go to subnet"
+                        target="_blank">
+                        <mat-icon>open_in_new</mat-icon>
+                      </a>
+                    }
+                  </mat-cell>
+                </ng-container>
+
+                <tr class="d-flex mat-mdc-row" *matNoDataRow>
+                  <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+                    No static route for this VPC.
+                  </td>
+                  <td class="mat-mdc-cell mat-column-actions mat-column-actions--empty"></td>
+                </tr>
+
+                <mat-header-row *matHeaderRowDef="staticRoutesColumns(); sticky: true"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: staticRoutesColumns()"></mat-row>
+              </mat-table>
+            </div>
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      @if (canProjectSubnetRead()) {
+        <mat-tab label="Subnets">
+          <ng-template matTabContent>
+            <div class="product-details">
+              @let subnets = subnetsProduct.hasValue() ? subnetsProduct.value() : [];
+              <div class="mt-2 product-list__table">
+                @if (subnets.length > 0 && (subnetsProduct.isLoading() || subnetsProduct.status() === 'error')) {
+                  <div class="product-list__table-loading-shade">
+                    @if (subnetsProduct.isLoading()) {
+                      <mat-spinner></mat-spinner>
+                    }
+                    @if (subnetsProduct.status() === 'error') {
+                      <div class="product-list__table-error">Failed to retrieve products</div>
+                    }
+                  </div>
+                }
+
+                <mat-table [dataSource]="subnets">
+                  <ng-container matColumnDef="id">
+                    <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
+                    <mat-cell *matCellDef="let el"> {{ el.eid }} </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="name">
+                    <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+                    <mat-cell *matCellDef="let el"> {{ el.productName }} </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="cidr">
+                    <mat-header-cell *matHeaderCellDef> CIDR Block </mat-header-cell>
+                    <mat-cell *matCellDef="let el"> {{ el.subnet.spec.cidrBlock }} </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="actions" stickyEnd>
+                    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+                    <mat-cell *matCellDef="let el">
+                      <a
+                        mat-icon-button
+                        class="color-primary"
+                        [routerLink]="['/products', 'network', 'subnet', 'details', az(), el.eid]"
+                        aria-label="Go to subnet"
+                        target="_blank">
+                        <mat-icon>open_in_new</mat-icon>
+                      </a>
+                    </mat-cell>
+                  </ng-container>
+
+                  <tr class="d-flex mat-mdc-row" *matNoDataRow>
+                    <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+                      No subnets for this VPC.
+                    </td>
+                    <td class="mat-mdc-cell mat-column-actions mat-column-actions--empty"></td>
+                  </tr>
+
+                  <mat-header-row *matHeaderRowDef="subnetColumns; sticky: true"></mat-header-row>
+                  <mat-row *matRowDef="let row; columns: subnetColumns"></mat-row>
+                </mat-table>
+              </div>
+            </div>
+          </ng-template>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  }
+</div>

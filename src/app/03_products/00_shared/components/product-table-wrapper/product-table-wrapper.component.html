@@ -1,0 +1,45 @@
+<mat-table
+  [dataSource]="dataSource()"
+  matSort
+  #matTableSort="matSort"
+  [matSortActive]="defaultSort.active"
+  [matSortDirection]="defaultSort.direction"
+  matSortDisableClear
+  [trackBy]="trackBy">
+  <ng-content></ng-content>
+
+  <ng-container matColumnDef="az">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>AZ</mat-header-cell>
+    <mat-cell *matCellDef="let el" [class.mat-column-az--pra]="el.isPRA">
+      <img
+        class="product-list__az-icon"
+        [src]="getAzLogoUrl(el.data.codeAZ)"
+        [alt]="el.data.codeAZ + 'icon'" />
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>ID</mat-header-cell>
+    <mat-cell *matCellDef="let el">
+      <div class="text-truncate">{{ el.data.eid }}</div>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+    <mat-cell *matCellDef="let el">
+      <div class="text-truncate">
+        {{ el.data.productName }}
+      </div>
+    </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="gitops">
+    <mat-header-cell *matHeaderCellDef>GitOps</mat-header-cell>
+    <mat-cell *matCellDef="let el">
+      @if (el.data.gitops === 'true') {
+        <mat-icon>check</mat-icon>
+      }
+    </mat-cell>
+  </ng-container>
+</mat-table>

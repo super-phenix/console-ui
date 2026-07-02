@@ -1,0 +1,17 @@
+<div class="changelog">
+  <div class="changelog__title">
+    <mat-icon class="icon-accent">bolt</mat-icon>
+    <span>Last update</span>
+  </div>
+
+  <div class="changelog__list">
+    @for (item of changelogs; track $index) {
+      <div class="changelog__item">
+        <span class="changelog__item-date">{{ item.date | date }}</span>
+        <div class="changelog__item-description">
+          <span> {{ item.description }} </span>
+        </div>
+      </div>
+    }
+  </div>
+</div>

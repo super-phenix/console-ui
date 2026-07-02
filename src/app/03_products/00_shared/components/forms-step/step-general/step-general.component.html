@@ -1,0 +1,45 @@
+<div class="info-card">
+  <div class="info-card__title">
+    <div class="d-flex align-items-center gap-2">
+      <div class="mat-icon--with-bg">
+        <mat-icon>info</mat-icon>
+      </div>
+      Informations
+    </div>
+  </div>
+
+  <div class="info-card__content info-card__content--space-evenly">
+    @if (productNameInput()) {
+      <mat-form-field class="info-card__item info-card__item--form">
+        <mat-label>Name</mat-label>
+        <input matInput [formControl]="productNameInput()!" [maxlength]="maxLength" placeholder="Nom du produit" />
+        <mat-hint align="end"> {{ productNameInput()?.getRawValue()?.length }} / {{ maxLength }} </mat-hint>
+        @if (productNameInput()?.getError('required')) {
+          <mat-error>Name is required.</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (azInput() && showAz()) {
+      <mat-form-field class="info-card__item info-card__item--form">
+        <mat-label>AZ Selection</mat-label>
+        <mat-select [formControl]="azInput()!" (selectionChange)="azChange.emit($event.value)">
+          @for (az of stateSvc.azList(); track $index) {
+            <mat-option [value]="az.code">
+              <div class="d-flex align-items-center gap-2">
+                <img
+                  class="product-create__az-icon"
+                  [src]="az.logoUrl"
+                  [alt]="az.code + 'icon'" />
+                <span> {{ az.name }} </span>
+              </div>
+            </mat-option>
+          }
+        </mat-select>
+        @if (azInput()?.getError('required')) {
+          <mat-error>AZ is required.</mat-error>
+        }
+      </mat-form-field>
+    }
+  </div>
+</div>

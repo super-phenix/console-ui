@@ -1,0 +1,49 @@
+// Host chrome for the editable advanced options form, shown inside a collapsible
+// card. The block list itself is rendered by <spx-advanced-blocks>.
+
+/* ---------- body layout ---------- */
+.ao-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+// Subsection label + helper on the left, instance-type action on the right.
+.ao-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ao-section-headings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+// Smaller than the card title so it reads as a subsection, not a second heading.
+.ao-section-title {
+  font: var(--mat-sys-title-small-prominent);
+  color: var(--text-title);
+}
+
+.ao-section-sub {
+  font-size: 0.75rem;
+  color: var(--text-label);
+}
+
+.ao-section-pref {
+  flex: none;
+}
+
+// Group the option rows into one bordered list so they read as a set.
+spx-advanced-blocks {
+  display: block;
+  border: 1px solid var(--stroke-default);
+  border-radius: var(--br-small);
+  overflow: hidden;
+}

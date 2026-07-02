@@ -1,0 +1,14 @@
+@use '@angular/material' as mat;
+
+.tag-selector {
+  width: 100%;
+
+  &--ro {
+    @include mat.form-field-overrides(
+      (
+        outlined-focus-outline-color: var(--mat-sys-outline),
+        outlined-focus-outline-width: 1px,
+      )
+    );
+  }
+}

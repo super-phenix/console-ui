@@ -1,0 +1,140 @@
+<div class="info-card">
+  <div class="info-card__title">
+    <div class="d-flex align-items-center gap-2">
+      <div class="mat-icon--with-bg">
+        <mat-icon>lan</mat-icon>
+      </div>
+      Network
+    </div>
+  </div>
+  <div class="info-card__content info-card__content--multi-block">
+    <div class="info-card__block">
+      <span>Select a subnet to add it as network interface.</span>
+    </div>
+
+    @if (subnetSelected().disabled) {
+      <div class="info-card__block">
+        <span><i>To add a subnet, please first select an AZ.</i></span>
+      </div>
+    }
+
+    @if (subnetsProduct.status() !== 'error') {
+      @if (subnetsProduct.value() && subnetsProduct.value()!.length <= 0) {
+        <div class="info-card__block">
+          <span>
+            <i>
+              If no subnet is listed, you can create one
+              <a [routerLink]="['/products', 'network', 'subnet', 'create']">here</a>.
+            </i>
+          </span>
+        </div>
+      }
+    } @else {
+      <div class="info-card__block">
+        <span class="color-error">Failed to retrieve subnets!</span>
+      </div>
+    }
+
+    <div class="info-card__block">
+      <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+        <mat-label>Add a subnet</mat-label>
+        <mat-select [formControl]="subnetSelected()" (selectionChange)="addItem()">
+          @for (subnet of subnetsList(); track $index) {
+            <mat-option [value]="subnet">
+              <span>
+                {{ subnet.productName || subnet.eid }}
+                @if (subnet.subnet?.isShared) {
+                  <i>- Shared</i>
+                }
+              </span>
+              <br />
+              <span>({{ subnet.subnet?.spec?.cidrBlock }}) </span>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="info-card__block flex-column">
+      @if (networkList.length > 0) {
+        <div cdkDropList class="d-flex flex-column gap-3" (cdkDropListDropped)="drop($event)" [formGroup]="formIps">
+          @for (network of networkList; track network.eid) {
+            <div class="d-flex flex-column justify-content-center" cdkDrag>
+              <div class="d-flex flex-grow align-items-center justify-content-between gap-3">
+                <h4 class="label">
+                  <span>
+                    Interface {{ $index }} - {{ network.productName || network.eid }}
+                    @if (network.subnet?.isShared) {
+                      <i>- Shared</i>
+                    }
+                  </span>
+                  <br />
+                  <span> ({{ network.subnet?.spec?.cidrBlock }}) </span>
+                </h4>
+                <div class="d-flex align-items-center gap-2">
+                  <button class="color-primary" mat-icon-button (click)="removeItemByIndex($index)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  <mat-icon cdkDragHandle>swap_vert</mat-icon>
+                </div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between gap-3">
+                <div class="align-items-start d-flex flex-grow gap-3" [formGroupName]="network.id">
+                  @let protocol = network.subnet?.spec?.protocol || '';
+                  @let cidr = network.subnet?.spec?.cidrBlock || '';
+                  @let v4Cidr = cidrForVersion(cidr, 4);
+                  @let v6Cidr = cidrForVersion(cidr, 6);
+                  @if (protocol === 'IPv4' || protocol === 'Dual') {
+                    <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+                      <mat-label>IPv4 - automatic if empty</mat-label>
+                      <input
+                        type="text"
+                        #v4Input
+                        matInput
+                        [placeholder]="v4Cidr ? cidrNetworkAddress(v4Cidr) : '10.0.0.0'"
+                        formControlName="v4"
+                        (blur)="updateStaticIp(network.id, v4Input.value, 'v4')" />
+                      @if (formIps.get([network.id, 'v4'])?.errors?.['ip']) {
+                        <mat-error>Invalid IP address</mat-error>
+                      } @else if (formIps.get([network.id, 'v4'])?.errors?.['ipRange']) {
+                        <mat-error>IP not in subnet range</mat-error>
+                      }
+                    </mat-form-field>
+                  }
+                  @if (protocol === 'IPv6' || protocol === 'Dual') {
+                    <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+                      <mat-label>IPv6 - automatic if empty</mat-label>
+                      <input
+                        type="text"
+                        #v6Input
+                        matInput
+                        [placeholder]="v6Cidr ? cidrNetworkAddress(v6Cidr) : '2001:db8::'"
+                        formControlName="v6"
+                        (blur)="updateStaticIp(network.id, v6Input.value, 'v6')" />
+                      @if (formIps.get([network.id, 'v6'])?.errors?.['ip']) {
+                        <mat-error>Invalid IP address</mat-error>
+                      } @else if (formIps.get([network.id, 'v6'])?.errors?.['ipRange']) {
+                        <mat-error>IP not in subnet range</mat-error>
+                      }
+                    </mat-form-field>
+                  }
+
+                  <mat-form-field class="info-card__item info-card__item--small" subscriptSizing="dynamic">
+                    <mat-label>Mount type</mat-label>
+                    <mat-select
+                      formControlName="model"
+                      (selectionChange)="updateNetworkModel(network.id, $event.value)">
+                      @for (bus of NETWORK_MODEL_LIST; track $index) {
+                        <mat-option [value]="bus"> {{ bus }} </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

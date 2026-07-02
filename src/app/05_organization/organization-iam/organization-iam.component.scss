@@ -1,0 +1,101 @@
+@use '@angular/material' as mat;
+
+.org-iam {
+  display: grid;
+  grid-template-rows: 100%;
+  grid-template-columns: 20% 1fr;
+
+  height: 100%;
+  overflow: hidden;
+
+  gap: 8px;
+
+  &-menu {
+    grid-row: 1;
+    grid-column: 1;
+
+    height: calc(100% - 16px);
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+    padding: 8px 16px;
+
+    border-right: 1px solid var(--stroke-default);
+
+    &__group {
+      overflow-y: auto;
+      flex: 1 0 auto;
+      height: 1%;
+
+      gap: 8px;
+      border: none;
+
+      @include mat.button-toggle-overrides(
+        (
+          shape: var(--mat-sys-corner-none),
+          selected-state-background-color: var(--accent),
+          selected-state-text-color: var(--mat-sys-on-primary-container),
+        )
+      );
+
+      &-btn {
+        color: inherit;
+        // background-color: inherit;
+        border: none !important;
+        border-radius: var(--mat-sys-corner-full) !important;
+
+        & > button {
+          border-radius: var(--mat-sys-corner-full) !important;
+        }
+      }
+    }
+  }
+
+  &-content {
+    grid-row: 1;
+    grid-column: 2;
+
+    overflow-y: auto;
+    height: 100%;
+
+    &__permissions {
+      display: flex;
+      flex-direction: column;
+
+      padding: 8px 24px;
+      gap: 8px;
+
+      &-group {
+        display: flex;
+        justify-content: space-between;
+
+        padding-top: 8px;
+
+        &-name {
+          width: 300px;
+        }
+      }
+
+      &-checkbox {
+        padding-left: 1rem;
+      }
+    }
+
+    &__actions {
+      position: sticky;
+      bottom: 0;
+      background-color: var(--mat-sys-background);
+
+      display: flex;
+      flex: 0 1 auto;
+
+      padding: 8px;
+      gap: 8px;
+
+      justify-content: flex-end;
+      align-items: center;
+    }
+  }
+}

@@ -1,0 +1,67 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.slide-toggle-overrides(
+    (
+      // Selected
+      selected-icon-color: none,
+      selected-track-color: var(--icon-accent),
+      //// focus
+      selected-focus-track-color: var(--icon-accent),
+      selected-focus-handle-color: var(--icon-light),
+      //// hover
+      selected-hover-track-color: var(--icon-accent),
+      selected-hover-handle-color: var(--icon-light),
+      //// pressed
+      selected-pressed-track-color: var(--icon-accent),
+      selected-pressed-handle-color: var(--icon-light),
+      // Unselected
+      unselected-icon-color: none,
+      unselected-track-color: var(--icon-default),
+      unselected-handle-color: var(--icon-disabled),
+      //// focus
+      unselected-focus-track-color: var(--icon-default),
+      unselected-focus-handle-color: var(--icon-disabled),
+      //// hover
+      unselected-hover-track-color: var(--icon-default),
+      unselected-hover-handle-color: var(--icon-disabled),
+      // pressed
+      unselected-pressed-track-color: var(--icon-default),
+      unselected-pressed-handle-color: var(--icon-disabled),
+      // Disabled
+      disabled-unselected-track-color: var(--component-light)
+    )
+  );
+}
+
+.slide-toggle--bordered {
+  display: flex;
+  height: 46px;
+  width: inherit;
+
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+
+  border-radius: var(--mat-sys-corner-extra-small);
+
+  border: 1px solid var(--stroke-default);
+  background-color: var(--component-light);
+
+  &:has(.mat-mdc-slide-toggle:hover) {
+    background-color: color-mix(
+      in srgb,
+      var(--mat-sys-on-surface) calc(var(--mat-sys-hover-state-layer-opacity) * 100 * 1%),
+      transparent
+    );
+  }
+
+  &:has(.mat-mdc-slide-toggle:active) {
+    border-color: var(--stroke-accent);
+    background-color: var(--component-hover);
+  }
+
+  .mdc-form-field {
+    gap: 10px;
+  }
+}

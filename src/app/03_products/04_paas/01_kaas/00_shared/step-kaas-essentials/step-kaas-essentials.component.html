@@ -1,0 +1,32 @@
+<div class="info-card">
+  <div class="info-card__title">
+    <div class="d-flex align-items-center gap-2">
+      <div class="mat-icon--with-bg">
+        <mat-icon>network_node</mat-icon>
+      </div>
+      Cluster Essentials Customization
+    </div>
+  </div>
+
+  <div class="info-card__content info-card__content--multi-block">
+    <div class="info-card__block">
+      <span><i>Define custom parameters for essentials component of the cluster.</i></span>
+    </div>
+    <div class="info-card__block flex-column">
+      <div class="d-flex justify-content-between align-items-center">
+        <h3>CoreDNS Configuration</h3>
+        <button matButton="tonal" (click)="openTextEditor('coredns')">Edit config</button>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <h3>Cilium Configuration</h3>
+        <button matButton="tonal" (click)="openTextEditor('cilium')">Edit config</button>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <h3>Metrics Server Configuration</h3>
+        <button matButton="tonal" (click)="openTextEditor('metricsServer')">Edit config</button>
+      </div>
+    </div>
+  </div>
+</div>

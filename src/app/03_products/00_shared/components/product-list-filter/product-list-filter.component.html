@@ -1,0 +1,72 @@
+<div
+  class="product-filter"
+  [class.product-filter--mobile]="screenSvc.isMobile()"
+  [class.product-filter--tablet]="screenSvc.isTablet()">
+  @if (screenSvc.isWeb()) {
+    <div class="product-filter__full">
+      <ng-container *ngTemplateOutlet="az"></ng-container>
+
+      <ng-container *ngTemplateOutlet="filter"></ng-container>
+
+      <ng-container *ngTemplateOutlet="toggleClusterView"></ng-container>
+      <ng-container *ngTemplateOutlet="autoRefresh"></ng-container>
+    </div>
+  } @else {
+    <div class="product-filter__full">
+      <ng-container *ngTemplateOutlet="az"></ng-container>
+      @if (!screenSvc.isMobile()) {
+        <div class="product-filter__full-filler"></div>
+
+        <ng-container *ngTemplateOutlet="toggleClusterView"></ng-container>
+        <ng-container *ngTemplateOutlet="autoRefresh"></ng-container>
+      }
+    </div>
+
+    <ng-container *ngTemplateOutlet="filter"></ng-container>
+  }
+</div>
+
+<!-- TEMPLATES -->
+<ng-template #az>
+  <mat-form-field class="product-filter__full-az" subscriptSizing="dynamic">
+    <mat-label>Localization</mat-label>
+    <mat-select canSelectNullableOptions #azInput (selectionChange)="updateFilter('az', azInput.value)">
+      <mat-option>All AZ</mat-option>
+      @for (az of stateSvc.azList(); track $index) {
+        <mat-option [value]="az.code">
+          <div class="d-flex align-items-center gap-2">
+            <img
+              class="product-filter__full-az-icon"
+              [src]="az.logoUrl"
+              [alt]="az.code + 'icon'" />
+            <span> {{ az.name }} </span>
+          </div>
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</ng-template>
+
+<ng-template #autoRefresh>
+  <div class="product-filter__full-auto-refresh">
+    <spx-auto-refresh [(refreshInterval)]="refreshInterval" (refresh)="reloadData()"></spx-auto-refresh>
+  </div>
+</ng-template>
+
+<ng-template #filter>
+  <mat-form-field class="product-filter__full-search" subscriptSizing="dynamic">
+    <mat-label>Search</mat-label>
+    <input matInput #searchInput (input)="updateFilter('search', searchInput.value.trim().toLowerCase())" />
+    <mat-icon matPrefix>search</mat-icon>
+  </mat-form-field>
+</ng-template>
+
+<ng-template #toggleClusterView>
+  @if (showCluster() !== undefined) {
+    <div class="product-filter__show-toggle slide-toggle--bordered">
+      <mat-slide-toggle [checked]="showCluster()" (change)="showClusterChange.emit($event.checked)">
+        See clusters
+      </mat-slide-toggle>
+    </div>
+  }
+</ng-template>

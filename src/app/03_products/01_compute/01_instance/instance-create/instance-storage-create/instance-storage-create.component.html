@@ -1,0 +1,203 @@
+<div class="d-flex flex-column gap-3">
+  <!-- CLOUD INIT CONFIGURATION -->
+  <div class="info-card" [formGroup]="cloudInitForm">
+    <div class="info-card__title">
+      <div class="d-flex align-items-center gap-2">
+        <div class="mat-icon--with-bg">
+          <mat-icon>storage</mat-icon>
+        </div>
+        CloudInit Configuration
+      </div>
+
+      <div>
+        <mat-slide-toggle formControlName="custom" labelPosition="before">
+          <span>Customize configuration</span>
+        </mat-slide-toggle>
+      </div>
+    </div>
+    <div class="info-card__content info-card__content--multi-block">
+      <div class="info-card__block">
+        <span>
+          <i>Define the mount type for the cloud init volume</i>
+        </span>
+      </div>
+      <div class="info-card__block info-card__block--space-between">
+        <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+          <mat-label>Mount type</mat-label>
+          <mat-select formControlName="bus">
+            @for (bus of BUS_LIST; track $index) {
+              <mat-option [value]="bus"> {{ bus }} </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <div class="info-card__item">
+          <div class="d-flex justify-content-end">
+            <button matButton="tonal" (click)="openTextEditor()">
+              {{ cloudInitForm.get('custom')?.value === true ? 'Edit' : 'View' }} configuration
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISK CONFIGURATION -->
+  <div class="info-card">
+    <div class="info-card__title">
+      <div class="d-flex align-items-center gap-2">
+        <div class="mat-icon--with-bg">
+          <mat-icon>storage</mat-icon>
+        </div>
+        Disk Configuration
+      </div>
+    </div>
+    <div class="info-card__content info-card__content--multi-block">
+      <!-- Add or Create disk -->
+      <div class="info-card__block info-card__block--space-between">
+        <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+          <mat-label>Add a disk</mat-label>
+          <input type="text" matInput [formControl]="diskSelected()" [matAutocomplete]="auto" />
+          <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="addItem()">
+            @for (option of filteredOptions() | async; track $index) {
+              @let size =
+                option?.pvc?.status?.capacity?.storage || option?.disk?.spec?.storage?.resources?.requests?.['storage'];
+              <mat-option [value]="option" [disabled]="option?.mountStatus?.isMounted !== false">
+                {{ option.productName || option.eid }}
+                @if (option?.mountStatus?.isMounted !== false) {
+                  - In use
+                }
+                <br />
+                ({{ size }})
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+        <div class="info-card__item">
+          <div class="d-flex justify-content-end">
+            <button matButton="tonal" (click)="addNewStorage()">Create a disk</button>
+          </div>
+        </div>
+      </div>
+
+      @if (limited()) {
+        <div class="info-card__block">
+          <span>
+            <i> As long as the instance is not stopped, it is not possible to delete a disk or change its order. </i>
+          </span>
+        </div>
+      }
+
+      <div class="info-card__block flex-column">
+        @if (diskList.length > 0) {
+          <div
+            cdkDropList
+            class="d-flex flex-column gap-3"
+            (cdkDropListDropped)="drop($event)"
+            [cdkDropListDisabled]="limited()">
+            @for (disk of diskList; track $index) {
+              <div class="d-flex flex-column" cdkDrag>
+                <div class="d-flex align-items-center justify-content-between gap-2">
+                  <h4 class="label">
+                    @if (disk.diskExisting) {
+                      {{ disk.diskExisting.productName || disk.diskExisting.eid }} -
+                      {{
+                        disk.diskExisting.pvc.status.capacity.storage ||
+                          disk.diskExisting.disk?.spec?.storage?.resources?.requests?.['storage']
+                      }}
+                    }
+                    @if (disk.diskToCreate) {
+                      {{ disk.diskToCreate.general.productName }} - {{ disk.diskToCreate.general.storage + ' Gi' }}
+                    }
+                  </h4>
+
+                  <div class="align-items-center d-flex flex-grow gap-4 justify-content-end">
+                    <mat-form-field subscriptSizing="dynamic">
+                      <mat-label>Mount type</mat-label>
+                      <mat-select [value]="disk.bus" (selectionChange)="diskBusChange(disk, $event)">
+                        @for (bus of BUS_LIST; track $index) {
+                          <mat-option [value]="bus"> {{ bus }} </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-checkbox
+                      class="d-flex"
+                      [checked]="disk.cdrom"
+                      (change)="disk.cdrom = $event.checked; updateOutput()">
+                      CD-Rom
+                    </mat-checkbox>
+
+                    <div class="d-flex align-items-center gap-2">
+                      @if (!limited()) {
+                        <button
+                          class="color-primary"
+                          mat-icon-button
+                          (click)="removeItemByIndex($index)"
+                          [disabled]="limited()">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                        <mat-icon cdkDragHandle>swap_vert</mat-icon>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- DRIVER DISKS -->
+  @if (availableContainerDisks().length > 0) {
+    <div class="info-card">
+      <div class="info-card__title">
+        <div class="d-flex align-items-center gap-2">
+          <div class="mat-icon--with-bg">
+            <mat-icon>save_alt</mat-icon>
+          </div>
+          Driver Disks
+        </div>
+      </div>
+      <div class="info-card__content info-card__content--multi-block">
+        <div class="info-card__block flex-column">
+          <span>
+            <i>Mount platform-provided driver disks (e.g. Windows VirtIO drivers). Changes apply after the next restart.</i>
+          </span>
+          <span>
+            <i>Pre-checked entries are recommended by the platform for the selected OS — unchecking them may degrade guest compatibility.</i>
+          </span>
+        </div>
+        <div class="info-card__block flex-column">
+          @if (isEditMode()) {
+            <mat-button-toggle-group
+              class="container-disk-filter"
+              [value]="containerDiskFilter()"
+              (change)="containerDiskFilter.set($event.value)"
+              aria-label="Filter container disks">
+              <mat-button-toggle value="all">All ({{ availableContainerDisks().length }})</mat-button-toggle>
+              <mat-button-toggle value="mounted">Mounted ({{ mountedContainerDiskCount() }})</mat-button-toggle>
+              <mat-button-toggle value="unmounted">Not mounted ({{ unmountedContainerDiskCount() }})</mat-button-toggle>
+            </mat-button-toggle-group>
+          }
+          @if (visibleContainerDisks().length === 0) {
+            <span>
+              <i>No disks match this filter.</i>
+            </span>
+          } @else {
+            <div class="container-disk-list">
+              @for (cd of visibleContainerDisks(); track cd.id) {
+                <spx-container-disk-card
+                  [disk]="cd"
+                  [selected]="!!containerDiskSelections()[cd.id]"
+                  [mounted]="mountedContainerDiskTypes().has(cd.id)"
+                  (toggled)="toggleContainerDisk(cd.id, $event)" />
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

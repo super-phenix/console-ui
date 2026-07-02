@@ -1,0 +1,31 @@
+<div class="d-flex flex-column gap-2" [formGroup]="labelsFormGroup">
+  <button matButton="filled" (click)="addLabel()"><mat-icon>add</mat-icon> Add a label</button>
+  <ng-container formArrayName="labels">
+    <div class="d-flex flex-wrap gap-4">
+      @for (control of labelsArray.controls; track control; let i = $index) {
+        <div class="d-flex gap-1 align-items-center w-100">
+          <mat-form-field class="flex-grow" floatLabel="always" subscriptSizing="dynamic">
+            <input
+              matInput
+              type="text"
+              autocomplete="off"
+              [maxlength]="labelMaxLength()"
+              [formControlName]="i"
+              (blur)="lintFix(i)" />
+            @if (prefix()) {
+              <span matPrefix>&nbsp;{{ prefix() }}</span>
+            }
+            <mat-hint align="end">{{ control.value.length }}/{{ labelMaxLength() }}</mat-hint>
+            @if (control.getError('label')) {
+              <mat-error>The label syntax is invalid</mat-error>
+            }
+            @if (control.getError('required')) {
+              <mat-error>This field is required</mat-error>
+            }
+          </mat-form-field>
+          <button mat-icon-button (click)="removeLabel(i)"><mat-icon>delete</mat-icon></button>
+        </div>
+      }
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,293 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="BaaS Details"></spx-content-header>
+
+    @if (baasProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        @let baas = baasProduct.value()!;
+        @if ((canProjectBaaSWrite() && baasProduct.value().gitops !== 'true') || canProjectArgoCdRead()) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectBaaSWrite() && baasProduct.value().gitops !== 'true') {
+              <button
+                mat-menu-item
+                aria-label="Edit BaaS button"
+                [routerLink]="['/products', 'storage', 'baas', 'update', baas.codeAZ, baas.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+
+              @if (!isBackup()) {
+                <button mat-menu-item aria-label="Change State" (click)="changeScheduleState()">
+                  <mat-icon>{{ baas.backup?.schedule?.spec?.paused ? 'play_arrow' : 'pause' }}</mat-icon>
+                  {{ baas.backup?.schedule?.spec?.paused ? 'Resume' : 'Pause' }}
+                </button>
+              }
+            }
+
+            @if (canProjectArgoCdRead()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectBaaSWrite() && baasProduct.value().gitops !== 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete BaaS button" (click)="deleteBaaS()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (baasProduct.hasValue() && baasProduct.value().gitops !== 'true' && !baasProduct.value().productTypeId) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (baasProduct.hasValue()) {
+    @let baas = baasProduct.value()!;
+    <mat-tab-group
+      class="product-details__tabs mat-tab-fill-height"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      preserveContent
+      (selectedIndexChange)="updateFragment($event)"
+      [selectedIndex]="initialIndex()">
+      <mat-tab label="General">
+        <ng-template matTabContent>
+          <div class="product-details">
+            <h2>General Information</h2>
+
+            <div spxGrid>
+              <div class="product-details__card sg-r2 sg-c2">
+                <h3 class="text-break-all mt-0 mb-1">{{ baas.productName }}</h3>
+
+                <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="baas.eid" />
+                <spx-span-copy class="product-details__card-line" key="Local ID" [value]="baas.id" />
+                <spx-span-copy
+                  class="product-details__card-line"
+                  key="Project ID"
+                  [value]="productLabelInfo().projectId" />
+                <spx-span-copy
+                  class="product-details__card-line"
+                  key="Organization ID"
+                  [value]="productLabelInfo().organizationId" />
+              </div>
+
+              <div class="product-details__card sg-r1 sg-c1">
+                <div class="product-details__card-line product-details__card-line--split flex-grow">
+                  <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+                  <span class="product-details__card-line-right"> {{ baas.codeAZ?.toUpperCase() }} </span>
+
+                  <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+                  <span class="product-details__card-line-right">
+                    {{ baas.gitops === 'true' ? 'Yes' : 'No' }}
+                  </span>
+
+                  <span class="product-details__card-line-left"> <strong>Type:</strong> </span>
+                  <span class="product-details__card-line-right">
+                    {{ isBackup() ? 'Backup' : 'Schedule' }}
+                  </span>
+
+                  <span class="product-details__card-line-left"> <strong>Scope:</strong> </span>
+                  <span class="product-details__card-line-right">
+                    {{ backupScope() | titlecase }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <h2>Specifications</h2>
+            <div spxGrid>
+              @if (isBackup()) {
+                <!-- Standalone / Orphan Backup -->
+
+                <div class="product-details__card sg-r1 sg-c1">
+                  <h3 class="mt-0 mb-1">Backup</h3>
+
+                  <div class="product-details__card-line product-details__card-line--split flex-grow">
+                    <span class="product-details__card-line-left"> <strong>Completion date:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      {{ baas.backup?.backup?.status?.completionTimestamp | date: 'short' }}
+                    </span>
+
+                    <span class="product-details__card-line-left"> <strong>TTL:</strong> </span>
+                    <span class="product-details__card-line-right"> {{ baas.backup?.backup?.spec?.ttl }} </span>
+
+                    <span class="product-details__card-line-left"> <strong>Standalone:</strong> </span>
+                    <span class="product-details__card-line-right"> {{ baas.backup?.standalone ? 'Yes' : 'No' }} </span>
+
+                    <span class="product-details__card-line-left"> <strong>Orphan:</strong> </span>
+                    <span class="product-details__card-line-right"> {{ baas.backup?.orphan ? 'Yes' : 'No' }} </span>
+                  </div>
+                </div>
+
+                <div class="product-details__card sg-r1 sg-c1">
+                  <h3 class="mt-0 mb-1">Status</h3>
+                  <div class="product-details__card-line product-details__card-line--split flex-grow">
+                    <span class="product-details__card-line-left"> <strong>Phase:</strong> </span>
+                    <span class="product-details__card-line-right"> {{ baas.backup?.backup?.status?.phase }} </span>
+
+                    <span class="product-details__card-line-left"> <strong>Warnings:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      {{ baas.backup?.backup?.status?.warnings || 0 }}
+                    </span>
+
+                    <span class="product-details__card-line-left"> <strong>Errors:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      {{ baas.backup?.backup?.status?.errors || 0 }}
+                    </span>
+
+                    <span class="product-details__card-line-left"> <strong>Progress:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      @if (baas.backup?.backup?.status?.progress?.totalItems) {
+                        {{
+                          (
+                            (baas.backup!.backup!.status!.progress!.itemsBackedUp! /
+                              baas.backup!.backup!.status!.progress!.totalItems!) *
+                            100
+                          ).toFixed(0)
+                        }}%
+                      } @else {
+                        0%
+                      }
+                    </span>
+                  </div>
+                </div>
+              } @else {
+                <!-- Schedule -->
+                <div class="product-details__card sg-r1 sg-c1">
+                  <h3 class="mt-0 mb-1">Configuration</h3>
+                  <div class="product-details__card-line product-details__card-line--split flex-grow">
+                    <span class="product-details__card-line-left"> <strong>Schedule:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      @if (scheduleDayInterval(); as days) {
+                        Every {{ days }} day(s)
+                      } @else {
+                        {{ baas.backup?.schedule?.spec?.schedule }}
+                      }
+                    </span>
+
+                    <span class="product-details__card-line-left"> <strong>TTL:</strong> </span>
+                    <span class="product-details__card-line-right"> {{ baas.backup?.schedule?.spec?.ttl }} </span>
+
+                    <span class="product-details__card-line-left"> <strong>Paused:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      {{ baas.backup?.schedule?.spec?.paused ? 'Yes' : 'No' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="product-details__card sg-r1 sg-c1">
+                  <h3 class="mt-0 mb-1">Status</h3>
+                  <div class="product-details__card-line product-details__card-line--split flex-grow">
+                    <span class="product-details__card-line-left"> <strong>Phase:</strong> </span>
+                    <span class="product-details__card-line-right"> {{ baas.backup?.schedule?.status?.phase }} </span>
+
+                    <span class="product-details__card-line-left"> <strong>Last Backup:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      {{ baas.backup?.schedule?.status?.lastBackup | date: 'short' }}
+                    </span>
+
+                    <span class="product-details__card-line-left"> <strong>Nb Backup:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      {{ baas.backup?.schedule?.backups?.length || 0 }}
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <div class="product-details__card sg-r1 sg-c-all">
+                <h3 class="mt-0 mb-1">Label Selector</h3>
+                <mat-chip-set class="product-details__labels" aria-label="Labels">
+                  @for (label of matchLabels() | keyvalue; track $index) {
+                    <mat-chip (click)="copy(label.key + ':' + label.value)">
+                      {{ label.key }}: {{ label.value }}
+                    </mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+            </div>
+
+            <h2>Labels</h2>
+
+            <div spxGrid>
+              <div class="product-details__card sg-r-all sg-c-all">
+                <mat-chip-set class="product-details__labels" aria-label="Labels">
+                  @for (label of baas.backup?.metadata?.labels | keyvalue; track $index) {
+                    <mat-chip (click)="copy(label.key + ':' + label.value)">
+                      {{ label.key }}: {{ label.value }}
+                    </mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      @if (!isBackup()) {
+        <mat-tab label="Backups">
+          <ng-template matTabContent>
+            <div class="product-details">
+              <div class="mt-2 product-list__table">
+                <mat-table [dataSource]="backups()">
+                  <ng-container matColumnDef="name">
+                    <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+                    <mat-cell *matCellDef="let el"> {{ el.metadata?.name }} </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="phase">
+                    <mat-header-cell *matHeaderCellDef> Phase </mat-header-cell>
+                    <mat-cell *matCellDef="let el"> {{ el.status?.phase }} </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="warnings">
+                    <mat-header-cell *matHeaderCellDef> Warnings </mat-header-cell>
+                    <mat-cell *matCellDef="let el"> {{ el.status?.warnings }} </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="errors">
+                    <mat-header-cell *matHeaderCellDef> Errors </mat-header-cell>
+                    <mat-cell *matCellDef="let el"> {{ el.status?.errors }} </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="completionTimestamp">
+                    <mat-header-cell *matHeaderCellDef> Completion </mat-header-cell>
+                    <mat-cell *matCellDef="let el"> {{ el.status?.completionTimestamp | date: 'medium' }} </mat-cell>
+                  </ng-container>
+
+                  <tr class="d-flex mat-mdc-row" *matNoDataRow>
+                    <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+                      No backups for this schedule.
+                    </td>
+                  </tr>
+
+                  <mat-header-row *matHeaderRowDef="backupColumns; sticky: true"></mat-header-row>
+                  <mat-row *matRowDef="let row; columns: backupColumns"></mat-row>
+                </mat-table>
+              </div>
+            </div>
+          </ng-template>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  }
+</div>

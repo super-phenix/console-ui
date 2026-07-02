@@ -1,0 +1,13 @@
+.product-list {
+  &__table {
+    mat-table {
+      .mat-column-status {
+        justify-content: center;
+      }
+
+      .mat-column-ip {
+        --col-min-width: 250px;
+      }
+    }
+  }
+}

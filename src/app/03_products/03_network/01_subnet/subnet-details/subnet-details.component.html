@@ -1,0 +1,236 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Subnet Details"></spx-content-header>
+
+    @if (subnetProduct.hasValue() && !isSharedSubnet()) {
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        @if (
+          (canProjectEipWrite() && subnetProduct.value().natGateway) ||
+          (canProjectSubnetWrite() && subnetProduct.value().gitops !== 'true') ||
+          (canProjectArgoCdRead() && subnetProduct.value().gitops === 'true')
+        ) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectSubnetWrite() && subnetProduct.value().gitops !== 'true' && subnetProduct.hasValue()) {
+              <button
+                mat-menu-item
+                aria-label="Edit subnet button"
+                [routerLink]="[
+                  '/products/network/subnet',
+                  'update',
+                  subnetProduct.value().codeAZ,
+                  subnetProduct.value().eid,
+                ]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectEipWrite() && subnetProduct.value().natGateway) {
+              <button mat-menu-item aria-label="Attach EIP button" (click)="attachEip()">
+                <mat-icon>add_link</mat-icon>
+                Attach EIP
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && subnetProduct.value().gitops === 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectSubnetWrite() && subnetProduct.value().gitops !== 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete subnet button" (click)="deleteSubnet()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (subnetProduct.hasValue() && subnetProduct.value().gitops !== 'true' && !subnetProduct.value().productTypeId) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (subnetProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (subnetProduct.hasValue() && !subnetProduct.value().subnet) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the subnet on the AZ.</spx-banner>
+  }
+
+  @if (subnetProduct.hasValue() && vpcProduct.error() && !this.isSharedSubnet()) {
+    <spx-banner [level]="BannerLevelEnum.Error" multiline>
+      <span>Problem while fetching linked VPC.</span>
+      <span>Id: {{ subnetProduct.value().subnet?.spec?.vpc }}</span>
+    </spx-banner>
+  }
+
+  @if (subnetError()) {
+    <spx-banner [level]="BannerLevelEnum.Error" multiline>
+      <span>Subnet en error</span><span>{{ subnetError()?.message }}</span>
+    </spx-banner>
+  }
+
+  <div class="product-details__content">
+    @if (subnetProduct.hasValue()) {
+      <h2>General Information</h2>
+      @let subnet = subnetProduct.value()!;
+
+      <div spxGrid>
+        <div class="product-details__card sg-r2 sg-c2">
+          <h3 class="text-break-all mt-0 mb-1">{{ subnet.productName }}</h3>
+
+          <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="subnet.eid" />
+          <spx-span-copy class="product-details__card-line" key="Local ID" [value]="subnet.id" />
+          <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+          <spx-span-copy
+            class="product-details__card-line"
+            key="Organization ID"
+            [value]="productLabelInfo().organizationId" />
+        </div>
+
+        <div class="product-details__card sg-r1 sg-c1">
+          <div class="product-details__card-line product-details__card-line--split flex-grow">
+            <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+            <span class="product-details__card-line-right"> {{ subnet.codeAZ?.toUpperCase() }} </span>
+
+            <span class="product-details__card-line-left"> <strong>Private:</strong> </span>
+            <span class="product-details__card-line-right">
+              {{ subnet.subnet?.spec?.private ? 'Yes' : 'No' }}
+            </span>
+
+            <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+            <span class="product-details__card-line-right">
+              {{ subnet.gitops === 'true' ? 'Yes' : 'No' }}
+            </span>
+
+            @if (this.isSharedSubnet()) {
+              <span class="product-details__card-line-left"> <strong>Shared:</strong> </span>
+              <span class="product-details__card-line-right"> Yes </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <h2>Specifications</h2>
+
+      <div spxGrid>
+        @let line_protocol =
+          subnet.subnet?.spec?.protocol === ProtocolEnum.IPv6 ? ProtocolEnum.IPv6 : ProtocolEnum.IPv4;
+        <ng-container
+          *ngTemplateOutlet="ipBlock; context: { $implicit: line_protocol, index: 0, subnet: subnet }"></ng-container>
+
+        @if (subnet.subnet?.spec?.protocol === ProtocolEnum.Dual) {
+          <ng-container
+            *ngTemplateOutlet="
+              ipBlock;
+              context: { $implicit: ProtocolEnum.Dual, index: 1, subnet: subnet }
+            "></ng-container>
+        }
+
+        @if (!isSharedSubnet()) {
+          <div class="product-details__card sg-r1 sg-c2">
+            @let vpc = vpcProduct.hasValue() ? vpcProduct.value() : undefined;
+            <h3 class="mt-0">
+              Parent VPC
+              @if (vpc) {
+                <a
+                  class="color-primary"
+                  mat-icon-button
+                  [routerLink]="['/products', 'network', 'vpc', 'details', az(), vpc?.eid]"
+                  target="_blank">
+                  <mat-icon>open_in_new</mat-icon>
+                </a>
+              }
+            </h3>
+
+            @if (vpc) {
+              <span class="product-details__card-line"><strong>Name: </strong>{{ vpc?.productName }}</span>
+            }
+            <spx-span-copy class="product-details__card-line" key="Effective ID" [value]="subnet.subnet?.spec?.vpc" />
+          </div>
+        }
+
+        <div class="product-details__card sg-r1 sg-c1">
+          <h3 class="mt-0">NAT Gateway</h3>
+
+          @if (subnet.natGateway) {
+            <span class="product-details__card-line"><strong>LanIP: </strong>{{ subnet.natGateway.spec.lanIp }}</span>
+          } @else {
+            <span class="product-details__card-line">
+              <strong>Status: </strong>
+              <mat-chip [class]="'status-chip--deactivated'" disabled="true"> Deactivated </mat-chip>
+            </span>
+          }
+        </div>
+      </div>
+
+      <h2>Labels</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c-all">
+          <mat-chip-set class="product-details__labels" aria-label="Labels">
+            @for (labels of subnet.subnet?.metadata?.labels | keyvalue; track $index) {
+              <mat-chip (click)="copy(labels.value)">{{ labels.key }}: {{ labels.value }}</mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<ng-template #ipBlock let-type let-index="index" let-subnet="subnet">
+  <div class="product-details__card sg-r1 sg-c1">
+    @let protocolName = type === ProtocolEnum.Dual ? ProtocolEnum.IPv6 : type;
+
+    <h3 class="mt-0">{{ protocolName }}</h3>
+
+    <div class="product-details__card-line product-details__card-line--split flex-grow">
+      <span class="product-details__card-line-left">
+        <strong>Block:</strong>
+      </span>
+      <span class="product-details__card-line-right">
+        {{ subnet.subnet?.spec?.cidrBlock?.split(',')?.[index] }}
+      </span>
+
+      <span class="product-details__card-line-left">
+        <strong>Gateway IP:</strong>
+      </span>
+      <span class="product-details__card-line-right">
+        {{ subnet.subnet?.spec?.gateway?.split(',')?.[index] }}
+      </span>
+
+      @let dnsValue =
+        (protocolName === ProtocolEnum.IPv4
+          ? subnet.subnet?.spec?.dhcpV4Options
+          : subnet.subnet?.spec?.dhcpV6Options
+        )?.replace('dns_server=', '');
+      @if (dnsValue) {
+        <span class="product-details__card-line-left"> <strong>DNS Server:</strong> </span>
+        <span class="product-details__card-line-right"> {{ dnsValue }} </span>
+      }
+    </div>
+  </div>
+</ng-template>

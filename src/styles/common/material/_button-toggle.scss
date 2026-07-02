@@ -1,0 +1,6 @@
+@use '@angular/material' as mat;
+
+.mat-button-toggle-button,
+.mat-button-toggle-ripple {
+  border-radius: inherit;
+}

@@ -1,0 +1,75 @@
+<div class="info-card">
+  <div class="info-card__title">
+    <div class="d-flex align-items-center gap-2">
+      <div class="mat-icon--with-bg">
+        <mat-icon>deployed_code</mat-icon>
+      </div>
+      Post Installation Chart
+    </div>
+    <div>
+      <mat-slide-toggle [(ngModel)]="active"></mat-slide-toggle>
+    </div>
+  </div>
+
+  <div class="info-card__content info-card__content--multi-block">
+    <div class="info-card__block">
+      <span>
+        <i>Define a helm chart that will be automatically installed after the initialization of the cluster</i>
+      </span>
+    </div>
+
+    @if (active()) {
+      <div class="info-card__block info-card__block--space-evenly">
+        @if (chartName()) {
+          <mat-form-field class="info-card__item">
+            <mat-label>Chart Name</mat-label>
+            <input matInput [formControl]="chartName()!" placeholder="Chart Name" />
+            @if (chartName()?.getError('required')) {
+              <mat-error>Field is required.</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        @if (chartVersion()) {
+          <mat-form-field class="info-card__item">
+            <mat-label>Chart Version</mat-label>
+            <input matInput [formControl]="chartVersion()!" placeholder="Chart Version" />
+            @if (chartVersion()?.getError('required')) {
+              <mat-error>Field is required.</mat-error>
+            }
+          </mat-form-field>
+        }
+      </div>
+      <div class="info-card__block info-card__block--space-evenly">
+        @if (namespace()) {
+          <mat-form-field class="info-card__item">
+            <mat-label>Namespace</mat-label>
+            <input matInput [formControl]="namespace()!" placeholder="Namespace (default if empty)" />
+            @if (namespace()?.getError('required')) {
+              <mat-error>Field is required.</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        @if (repoUrl()) {
+          <mat-form-field class="info-card__item">
+            <mat-label>Repository Url</mat-label>
+            <input matInput [formControl]="repoUrl()!" placeholder="Repository Url" />
+            @if (repoUrl()?.getError('required')) {
+              <mat-error>Field is required.</mat-error>
+            }
+          </mat-form-field>
+        }
+      </div>
+
+      <div class="info-card__block info-card__block--fullsize">
+        <div class="info-card__item">
+          <div class="d-flex align-items-center justify-content-between">
+            <h3>Helm Chart Values</h3>
+            <button matButton="tonal" (click)="openTextEditor()">Edit values</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<div class="d-flex flex-column gap-2">
+  @if (showTitle()) {
+    @if (showCheckbox()) {
+      <mat-checkbox #enableCheckbox [checked]="enabled()" (change)="enabled.set(enableCheckbox.checked)">
+        <strong> Selection by label:</strong>
+      </mat-checkbox>
+    } @else {
+      <span><strong> Selection by label:</strong> </span>
+    }
+  }
+
+  @if (!showCheckbox() || enabled()) {
+    <div class="d-flex gap-2 align-items-center justify-content-between" [formGroup]="matchForm">
+      <mat-form-field>
+        <mat-label>Key</mat-label>
+        <input
+          matInput
+          type="text"
+          autocomplete="off"
+          [maxlength]="labelKeyMaxLength"
+          [pattern]="labelKeyPattern"
+          formControlName="key" />
+        <mat-hint align="end"> {{ matchForm.get('key')?.getRawValue().length }} / {{ labelKeyMaxLength }} </mat-hint>
+      </mat-form-field>
+
+      <div class="d-flex"><span>:</span></div>
+
+      <mat-form-field>
+        <mat-label>Value</mat-label>
+        <input
+          matInput
+          type="text"
+          autocomplete="off"
+          [maxlength]="labelValueMaxLength"
+          [pattern]="labelValuePattern"
+          formControlName="value" />
+        <mat-hint align="end">
+          {{ matchForm.get('value')?.getRawValue().length }} / {{ labelValueMaxLength }}
+        </mat-hint>
+      </mat-form-field>
+      <div class="d-flex">
+        <button
+          matIconButton
+          [class.color-primary]="matchForm.valid"
+          [disabled]="!matchForm.valid"
+          (click)="addSelector()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+    <div>
+      @if (matchLabels().length > 0) {
+        <div class="match-label-list">
+          @for (selector of matchLabels(); track $index) {
+            <div class="match-label-list__item">
+              <div class="match-label-list__item-content">
+                <span>{{ selector.key }}: {{ selector.value }}</span>
+              </div>
+              <div class="match-label-list__item-actions">
+                <button class="color-primary" mat-icon-button (click)="removeItemByIndex($index, matchLabels())">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

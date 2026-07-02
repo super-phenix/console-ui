@@ -1,0 +1,25 @@
+.match-expression-list {
+  display: flex;
+  flex-direction: column;
+
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: var(--mat-sys-corner-medium);
+    margin-block: 8px;
+    padding-inline: 1rem;
+
+    &-content {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      max-width: calc(100% - 56px);
+      text-wrap: auto;
+      word-break: break-all;
+    }
+  }
+}

@@ -1,0 +1,28 @@
+<div class="inactive-account">
+  <div class="inactive-account__section">
+    <div class="inactive-account__content">
+      <div class="inactive-account__content-text">
+        <div class="inactive-account__logo" role="img" aria-label="Superphenix Logo"></div>
+
+        <h1>Inactive Account</h1>
+        <p>
+          Your account is inactive and does not allow you to access the Console UI.<br />
+          If you believe this is an error, please contact a platform administrator.
+        </p>
+
+        <p>
+          You can send an email to <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+        </p>
+
+        <button matButton="filled" (click)="logout()">Sign in with another account</button>
+
+        <button mat-button routerLink="/dashboard">Back to home</button>
+      </div>
+    </div>
+
+    <div class="inactive-account__footer">
+      <img class="footer__logo" ngSrc="assets/favicon/favicon.svg" alt="SPX logo" width="16" height="16" />
+      <span class="footer__copyright"> 142 857 ! © 2024 </span>
+    </div>
+  </div>
+</div>

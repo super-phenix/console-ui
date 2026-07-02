@@ -1,0 +1,28 @@
+.main-content__header {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  justify-content: center;
+  height: 48px;
+
+  &-navBack {
+    width: fit-content;
+    margin-left: -12px; //align with text
+  }
+
+  &-subtitle {
+    color: var(--mat-sys-primary);
+    align-content: center;
+    margin: 0;
+    height: 40px;
+  }
+
+  &-title {
+    margin: 0;
+    align-content: center;
+
+    font: var(--mat-sys-headline-medium-prominent);
+  }
+}

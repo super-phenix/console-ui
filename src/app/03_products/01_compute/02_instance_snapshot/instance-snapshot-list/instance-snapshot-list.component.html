@@ -1,0 +1,105 @@
+<div class="product-list main-content">
+  <div class="product-list__header">
+    <spx-content-header titleOnly title="Instance Snapshot"></spx-content-header>
+  </div>
+
+  <spx-product-list-filter
+    [refreshInterval]="refreshInterval()"
+    (refreshIntervalChange)="lss.setValue(INSTANCE_SNAPSHOT_REFRESH_KEY, $event.toString())"
+    (needReload)="reloadData()"
+    (filter)="filterValue.set($event)"></spx-product-list-filter>
+
+  <div class="product-list__table">
+    @if (instanceSnapshotProduct.isLoading() || instanceSnapshotProduct.status() === 'error') {
+      <div class="product-list__table-loading-shade">
+        @if (instanceSnapshotProduct.isLoading()) {
+          <mat-spinner></mat-spinner>
+        }
+        @if (instanceSnapshotProduct.status() === 'error') {
+          <div class="product-list__table-error">Failed to retrieve products</div>
+        }
+      </div>
+    }
+
+    <spx-product-table-wrapper [dataSource]="dataSource()" [columns]="displayedColumns">
+      <ng-container matColumnDef="date">
+        <mat-header-cell *matHeaderCellDef> Date </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          {{ el.data.vmSnapshot?.status?.creationTime | date: 'short' }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="ready">
+        <mat-header-cell *matHeaderCellDef> Statut </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          <mat-chip-set aria-label="snapshot status">
+            @if (el.data.vmSnapshot) {
+              @if (!el.data.vmSnapshot?.status?.error) {
+                @let status = el.data.vmSnapshot?.status?.readyToUse ? 'ready' : 'pending';
+                <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                  {{ el.data.vmSnapshot?.status?.readyToUse ? 'Ready' : 'Not Ready' }}
+                </mat-chip>
+              } @else {
+                <mat-chip class="status-chip--error" disabled="true">Error</mat-chip>
+              }
+            }
+          </mat-chip-set>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions" stickyEnd>
+        <mat-header-cell *matHeaderCellDef class="mat-column-actions--double-btn"></mat-header-cell>
+        <mat-cell *matCellDef="let el" class="mat-column-actions--double-btn">
+          <a matIconButton [routerLink]="['details', el.data.codeAZ, el.data.eid]" aria-label="Open Details button">
+            <mat-icon class="icon-accent">visibility</mat-icon>
+          </a>
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Action menu">
+            <mat-icon>more_horiz</mat-icon>
+          </button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectInstanceWrite() && canProjectSnapshotWrite()) {
+              <button mat-menu-item aria-label="Restore snapshot button" (click)="restoreSnapshot(el.data)">
+                <mat-icon>settings_backup_restore</mat-icon>
+                Restore
+              </button>
+              <button mat-menu-item aria-label="Clone snapshot button" (click)="cloneSnapshot(el.data)">
+                <mat-icon>content_copy</mat-icon>
+                Clone
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && el.data.gitops === 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD(el.data)">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (el.data.gitops !== 'true' && canProjectSnapshotWrite()) {
+              <mat-divider></mat-divider>
+              <button
+                mat-menu-item
+                aria-label="Delete snapshot button"
+                (click)="deleteSnapshot(el.data)">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <tr class="d-flex mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+          No data for this product type
+        </td>
+        <td class="mat-mdc-cell mat-column-actions mat-column-actions--empty mat-column-actions--double-btn"></td>
+      </tr>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </spx-product-table-wrapper>
+  </div>
+</div>

@@ -1,0 +1,37 @@
+<div class="info-card" [formGroup]="formGroup()">
+  <div class="info-card__title">
+    <div class="d-flex align-items-center gap-2">
+      <div class="mat-icon--with-bg">
+        <mat-icon>database</mat-icon>
+      </div>
+      Disaster Recovery Datastore
+    </div>
+  </div>
+  <div class="info-card__content info-card__content--multi-block">
+    <div class="info-card__block">
+      <span>
+        <i>
+          Customize the dedicated control plane datastore. Defaults (cluster default storage class, 8Gi) are used if
+          left untouched.
+        </i>
+      </span>
+    </div>
+    <div class="info-card__block">
+      <mat-form-field class="info-card__item">
+        <mat-label>Storage Class</mat-label>
+        <mat-select formControlName="storageClassName">
+          @for (sc of storageClassList(); track $index) {
+            <mat-option [value]="sc">{{ sc }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="info-card__item">
+        <mat-label>Storage size</mat-label>
+        <input matInput type="number" [min]="min()" formControlName="storage" />
+        <span matSuffix>Gi</span>
+        <mat-error>Storage cannot be reduced below the current value ({{ min() }} Gi).</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+</div>

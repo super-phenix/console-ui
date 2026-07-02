@@ -1,0 +1,17 @@
+@use '@angular/material' as mat;
+
+.mat-mdc-dialog-panel {
+  @include mat.form-field-overrides(
+    (
+      filled-container-color: var(--mat-sys-background),
+    )
+  );
+}
+
+.dialog--large {
+  @include mat.dialog-overrides(
+    (
+      container-max-width: 75vw,
+    )
+  );
+}

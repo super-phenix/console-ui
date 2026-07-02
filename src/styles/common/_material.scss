@@ -1,0 +1,66 @@
+@use '@angular/material' as mat;
+
+@use 'material/button-toggle';
+@use 'material/button';
+@use 'material/chip';
+@use 'material/dialog';
+@use 'material/form-field';
+@use 'material/icon';
+@use 'material/menu';
+@use 'material/select';
+@use 'material/slide-toggle';
+@use 'material/stepper';
+@use 'material/table';
+@use 'material/tabs';
+
+.snackbar {
+  &--multiline {
+    white-space: pre-wrap;
+  }
+}
+
+.mat-mdc-dialog-surface {
+  border: 1px solid var(--stroke-default);
+}
+
+mat-card.horizontal {
+  flex-direction: row;
+  flex: 1 0 auto;
+
+  .mat-mdc-card-header {
+    padding: 16px 0 16px 16px;
+
+    @include mat.card-overrides(
+      (
+        // Title
+        title-text-font: var(--mat-sys-title-medium-font),
+        title-text-line-height: var(--mat-sys-title-medium-line-height),
+        title-text-size: var(--mat-sys-title-medium-size),
+        title-text-tracking: var(--mat-sys-title-medium-tracking),
+        title-text-weight: var(--mat-sys-title-medium-weight),
+        // Subtitle
+        subtitle-text-font: var(--mat-sys-body-medium-font),
+        subtitle-text-line-height: var(--mat-sys-body-medium-line-height),
+        subtitle-text-size: var(--mat-sys-body-medium-size),
+        subtitle-text-tracking: var(--mat-sys-body-medium-tracking),
+        subtitle-text-weight: var(--mat-sys-body-medium-weight)
+      )
+    );
+  }
+
+  .mat-mdc-card-image {
+    order: 1;
+    margin-left: auto;
+
+    // height: 100%;
+    height: 80px;
+    width: 80px;
+    border-radius: var(--mat-card-outlined-container-shape, var(--mat-sys-corner-medium));
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .mat-mdc-card-content {
+    display: none;
+  }
+}

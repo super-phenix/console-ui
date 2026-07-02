@@ -1,0 +1,43 @@
+@use '@angular/material' as mat;
+
+.header {
+  display: flex;
+  flex-grow: 1;
+
+  flex-direction: row-reverse;
+  align-items: center;
+
+  padding-block: 8px 10px;
+  padding-inline: 8px 24px;
+  gap: 20px;
+
+  background-color: var(--block);
+
+  &__theme {
+    min-width: calc(48px * 2);
+    @include mat.button-toggle-overrides(
+      (
+        shape: var(--mat-sys-corner-small),
+        divider-color: var(--stroke-default),
+        selected-state-text-color: var(--icon-light),
+        selected-state-background-color: var(--input),
+      )
+    );
+  }
+
+  &__account {
+    display: flex;
+    align-items: center;
+
+    gap: 4px;
+
+    &-profile {
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+  &__spacer {
+    flex: 1 0 auto;
+  }
+}

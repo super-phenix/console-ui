@@ -1,0 +1,256 @@
+<div class="product-create main-content">
+  <spx-content-header navBack titleOnly title="Create KaaS Cluster"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" (azChange)="selectedAz.set($event)"></spx-step-general>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>network_node</mat-icon>
+                  </div>
+                  Cluster Parameters
+                </div>
+              </div>
+
+              <div class="info-card__content info-card__content--space-evenly">
+                <div class="info-card__item">
+                  <h3>Cluster Version</h3>
+                  <span class="mb-4"><i>Define the Kubernetes version for the cluster.</i></span>
+                  <mat-form-field>
+                    <mat-label>Kube Version</mat-label>
+                    <mat-select formControlName="kubeVersion">
+                      @let versions = kubeVersions.hasValue() ? kubeVersions.value() : [];
+                      @for (version of versions; track version) {
+                        <mat-option [value]="version">{{ version }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                <div class="info-card__item">
+                  <h3>Advanced configuration</h3>
+                  <span>
+                    <i>
+                      Enable to unlock advanced customization options. Use it carefully as a misconfiguration can
+                      prevent your cluster from working properly.
+                    </i>
+                  </span>
+                  <p><mat-checkbox formControlName="advanced">Enable advanced configuration</mat-checkbox></p>
+                </div>
+              </div>
+            </div>
+
+            <spx-step-disaster-recovery
+              [(active)]="disasterRecovery"
+              [disabled]="!drSupported()"
+              disabledTooltip="Requires Kubernetes 1.35+"></spx-step-disaster-recovery>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>rule</mat-icon>
+                  </div>
+                  Cluster Network Policies
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span><i>Select default network policies for the cluster.</i></span>
+                </div>
+                <div class="info-card__block">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Control Plane Network Policies</mat-label>
+                    <mat-select formControlName="cpNetPol">
+                      @for (cpNetPol of controlPlaneNetworkPolicies; track $index) {
+                        <mat-option [value]="cpNetPol">{{ cpNetPol }}</mat-option>
+                      }
+                    </mat-select>
+                    @if (firstFormGroup.get('cpNetPol')?.hasError('required')) {
+                      <mat-error>This field is required.</mat-error>
+                    }
+
+                    <button
+                      type="button"
+                      class="mr-1 color-primary"
+                      mat-icon-button
+                      matSuffix
+                      (click)="$event.stopPropagation(); openCPNetworkPoliciesHelper()">
+                      <mat-icon>help</mat-icon>
+                    </button>
+                  </mat-form-field>
+
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Workers Network Policies</mat-label>
+                    <mat-select formControlName="workersNetPol">
+                      @for (workerNetPol of workersNetworkPolicies; track $index) {
+                        <mat-option [value]="workerNetPol">{{ workerNetPol }}</mat-option>
+                      }
+                    </mat-select>
+                    @if (firstFormGroup.get('workersNetPol')?.hasError('required')) {
+                      <mat-error>This field is required.</mat-error>
+                    }
+
+                    <button
+                      type="button"
+                      class="mr-1 color-primary"
+                      mat-icon-button
+                      matSuffix
+                      (click)="$event.stopPropagation(); openWorkersNetworkPoliciesHelper()">
+                      <mat-icon>help</mat-icon>
+                    </button>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      @if (firstFormGroup.get('advanced')?.value === true) {
+        <!-- STEP 2 - Essentials -->
+        <mat-step
+          [optional]="
+            (!postInstallChartActive() && !disasterRecovery()) || firstFormGroup.get('advanced')?.value !== true
+          "
+          [stepControl]="advancedFormGroup"
+          errorMessage="Form invalid.">
+          <form class="d-flex gap-2 flex-column">
+            <ng-template matStepLabel>Advanced Configuration</ng-template>
+            <ng-template matStepContent>
+              <div class="d-flex flex-column gap-2">
+                <spx-step-kaas-essentials
+                  [(coredns)]="corednsValues"
+                  [(cilium)]="ciliumValues"
+                  [(metricsServer)]="metricsServerValues"></spx-step-kaas-essentials>
+
+                <spx-step-post-install-chart
+                  [formGroup]="postInstallChartFormGroup"
+                  [(active)]="postInstallChartActive"></spx-step-post-install-chart>
+
+                @if (disasterRecovery()) {
+                  <spx-step-datastore
+                    [formGroup]="dataStoreFormGroup"
+                    [storageClassList]="storageClassList.value()"></spx-step-datastore>
+                }
+              </div>
+
+              <div class="product-create__step-buttons">
+                <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+                <button matButton="filled" matStepperNext [disabled]="advancedFormGroup.invalid">
+                  Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+                </button>
+              </div>
+            </ng-template>
+          </form>
+        </mat-step>
+      }
+
+      <!-- STEP 3 - GROUP DETAILS -->
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="secondFormGroup">
+          <ng-template matStepLabel>Node Groups</ng-template>
+          <ng-template matStepContent>
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>dns</mat-icon>
+                  </div>
+                  Cluster Node Groups
+                </div>
+              </div>
+
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block info-card__block--space-between align-items-center">
+                  <span><i>Define node groups for the new cluster.</i></span>
+                  <button matButton="tonal" (click)="addNewInstanceGroup()"><mat-icon>add</mat-icon> Add group</button>
+                </div>
+                <div class="info-card__block flex-column" formArrayName="groups">
+                  @for (group of groups.controls; track group) {
+                    @if ($index > 0) {
+                      <div class="info-card__hr"></div>
+                    }
+                    <spx-node-group-form
+                      [index]="$index"
+                      [group]="group"
+                      [storageClassList]="storageClassList.value()"
+                      (removeGroup)="removeInstanceGroup($event)"></spx-node-group-form>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons">
+              <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 4 - NETWORK INFORMATION -->
+      <mat-step>
+        <ng-template matStepLabel>Network</ng-template>
+        <ng-template matStepContent>
+          <div class="info-card">
+            <div class="info-card__title">
+              <div class="d-flex align-items-center gap-2">
+                <div class="mat-icon--with-bg">
+                  <mat-icon>network_manage</mat-icon>
+                </div>
+                Network configuration
+              </div>
+            </div>
+
+            <div class="info-card__content info-card__content--multi-block">
+              <div class="info-card__block">
+                <span><i>Define subnet linked to the group of nodes.</i></span>
+              </div>
+              <div class="info-card__block">
+                <span class="color-warn">
+                  <i>
+                    <strong>Warning:</strong> To function properly, each node group needs to have internet access.
+                    <br />
+                    To allow internet access, you need to have at least one subnet with an EIP in SNAT mode per node
+                    group.
+                  </i>
+                </span>
+              </div>
+              <div class="info-card__block flex-column">
+                @for (group of groups.controls; track group) {
+                  <h3 class="m-0">Group of Nodes n°{{ $index + 1 }}</h3>
+                  <spx-network-select
+                    [az]="selectedAz()"
+                    [subnets]="subnetsProduct.hasValue() ? subnetsProduct.value() : []"
+                    (networkListChanged)="updateNetwork($index, $event)"></spx-network-select>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button matButton="filled" [disabled]="!isNetworkValid()" (click)="create()">Create</button>
+          </div>
+        </ng-template>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

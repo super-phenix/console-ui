@@ -1,0 +1,99 @@
+<div class="d-flex flex-column gap-2" [formGroup]="matchForm">
+  @if (showTitle()) {
+    @if (showCheckbox()) {
+      <mat-checkbox #enableCheckbox [checked]="enabled()" (change)="enabled.set(enableCheckbox.checked)">
+        <strong> Selection by expression:</strong>
+      </mat-checkbox>
+    } @else {
+      <span><strong> Selection by expression:</strong> </span>
+    }
+  }
+  @if (!showCheckbox() || enabled()) {
+    <div class="info-card__block">
+      <mat-form-field class="info-card__item info-card__item--form">
+        <mat-label>Key</mat-label>
+        <input
+          matInput
+          type="text"
+          autocomplete="off"
+          [maxlength]="labelKeyMaxLength"
+          [pattern]="labelKeyPattern"
+          formControlName="key" />
+        <mat-hint align="end"> {{ matchForm.get('key')?.getRawValue().length }} / {{ labelKeyMaxLength }} </mat-hint>
+        @if (matchForm.get('key')?.hasError('pattern')) {
+          <mat-error>The syntax is not valid</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="info-card__item info-card__item--form">
+        <mat-label>Operator</mat-label>
+        <mat-select formControlName="operator">
+          @for (opt of EXPRESSION_OPERATORS; track $index) {
+            <mat-option [value]="opt">{{ opt }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (matchForm.get('operator')?.value === OPERATOR_IN || matchForm.get('operator')?.value === OPERATOR_NOT_IN) {
+      <mat-form-field class="info-card__item info-card__item--form">
+        <mat-label>Values</mat-label>
+        <mat-chip-grid #chipGrid formControlName="values" aria-label="Enter values">
+          @for (value of values(); track value; let idx = $index) {
+            <mat-chip-row (removed)="remove(idx)" [editable]="false">
+              {{ value }}
+              <button matChipRemove [attr.aria-label]="'remove ' + value">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip-row>
+          }
+          <input
+            placeholder="New value..."
+            [matChipInputFor]="chipGrid"
+            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+            [matChipInputAddOnBlur]="addOnBlur"
+            [maxlength]="labelValueMaxLength"
+            [pattern]="labelValuePattern"
+            [formControl]="newValueControl"
+            (matChipInputTokenEnd)="add($event)" />
+          <mat-hint class="d-flex align-items-center" align="end">
+            {{ newValueControl.value?.length }} / {{ labelValueMaxLength }}
+          </mat-hint>
+        </mat-chip-grid>
+        @if (matchForm.get('values')?.hasError('required')) {
+          <mat-error>At least one value is required</mat-error>
+        }
+        @if (newValueControl.hasError('pattern')) {
+          <mat-error>The syntax is not valid</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    <div class="d-flex">
+      <button matButton="filled" [disabled]="!matchForm.valid" (click)="addSelector()">
+        <mat-icon>add</mat-icon> Add expression
+      </button>
+    </div>
+
+    <div>
+      @if (matchExpressions().length > 0) {
+        <mat-chip-grid #chipGrid>
+          @for (selector of matchExpressions(); track $index; let i = $index) {
+            <mat-chip-row (removed)="removeItemByIndex($index, matchExpressions())" class="chip--large">
+              <span class="chip-text--with-wrap">
+                {{ selector.key }} {{ selector.operator }}
+                @if (selector.values && selector.values.length > 0) {
+                  ["{{ selector.values.join('","') }}"]
+                }
+              </span>
+
+              <button matChipRemove [attr.aria-label]="'remove ' + selector.key">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-chip-row>
+          }
+        </mat-chip-grid>
+      }
+    </div>
+  }
+</div>

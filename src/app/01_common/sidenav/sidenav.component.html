@@ -1,0 +1,98 @@
+<div class="sidenav">
+  <div class="sidenav__menu">
+    <a
+      matButton
+      class="sidenav__menu-dashboard"
+      [routerLink]="['dashboard']"
+      routerLinkActive="sidenav__menu-link-btn--active">
+      <mat-icon class="mat-icon--normal-size">home</mat-icon>Dashboard
+    </a>
+    <mat-accordion multi displayMode="flat">
+      @for (product of ProductList; track $index) {
+        @if (product.title) {
+          <mat-expansion-panel
+            class="mat-elevation-z0"
+            routerLinkActive
+            #rla="routerLinkActive"
+            [expanded]="rla.isActive">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="menu__panel-title">
+                <mat-icon>{{ product.icon }}</mat-icon>
+                <span>{{ product.title }}</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="menu__panel-content">
+              @for (item of product.items; track $index) {
+                <a
+                  mat-button
+                  class="sidenav__menu-link-btn"
+                  [routerLink]="['products', product.baseLink, item.link]"
+                  routerLinkActive="sidenav__menu-link-btn--active">
+                  @if (item.icon) {
+                    <mat-icon>{{ item.icon }}</mat-icon>
+                  }
+                  {{ item.title }}
+                </a>
+              }
+            </div>
+          </mat-expansion-panel>
+        }
+      }
+    </mat-accordion>
+
+    <div class="sidenav__menu-hr mt-3"></div>
+
+    <!-- Uncategorized -->
+    <div class="menu__uncategorized-content">
+      @for (item of ProductUncategorized.items; track $index) {
+        <a
+          mat-button
+          class="sidenav__menu-link-btn"
+          [routerLink]="['products', ProductUncategorized.baseLink, item.link]"
+          routerLinkActive="sidenav__menu-link-btn--active">
+          @if (item.icon) {
+            <mat-icon class="mat-icon--normal-size">{{ item.icon }}</mat-icon>
+          }
+          {{ item.title }}
+        </a>
+      }
+    </div>
+
+    <div class="sidenav__menu-hr"></div>
+
+    <div class="menu__settings-content">
+      <a
+        mat-button
+        class="sidenav__menu-link-btn"
+        [routerLink]="['/organization', 'settings']"
+        routerLinkActive="sidenav__menu-link-btn--active">
+        <mat-icon class="mat-icon--normal-size">settings</mat-icon>
+        Settings
+      </a>
+    </div>
+  </div>
+  @if (helpLinks.length > 0) {
+    <div class="sidenav__footer">
+      <button matButton="outlined" [matMenuTriggerFor]="beforeMenu" #t="matMenuTrigger">
+        <mat-icon class="symbols-fill">help</mat-icon> Help
+      </button>
+      <mat-menu
+        #beforeMenu="matMenu"
+        xPosition="before"
+        [class]="screenSvc.isMobile() ? 'mobile-menu-panel' : 'web-menu-panel'">
+        @for (link of helpLinks; track link.url) {
+          <a mat-menu-item [href]="link.url" target="_blank">
+            <div class="d-flex align-items-center">
+              <mat-icon>{{ link.icon }}</mat-icon>
+              <span class="mr-3">{{ link.text }}</span>
+              <mat-icon class="ml-auto icon-default">open_in_new</mat-icon>
+            </div>
+          </a>
+          @if (!$last) {
+            <mat-divider class="small-divider"></mat-divider>
+          }
+        }
+      </mat-menu>
+    </div>
+  }
+</div>

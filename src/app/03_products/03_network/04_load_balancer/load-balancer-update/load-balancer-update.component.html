@@ -1,0 +1,239 @@
+<div class="product-create main-content">
+  <spx-content-header navBack title="Edit a Load Balancer"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" [showAz]="false"></spx-step-general>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>network_manage</mat-icon>
+                  </div>
+                  Virtual IP
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span>
+                    <i>The virtual IP must be in the {{ VIRTUAL_IP_RANGE }} subnet</i>
+                  </span>
+                </div>
+                <div class="info-card__block">
+                  <mat-form-field class="info-card__item--form">
+                    <mat-label>Virtual IP</mat-label>
+                    <input matInput formControlName="vip" placeholder="198.18.0.0" />
+                    @if (firstFormGroup.get('vip')?.errors?.['ip']) {
+                      <mat-error>Invalid IP address</mat-error>
+                    } @else if (firstFormGroup.get('vip')?.errors?.['ipRange']) {
+                      <mat-error>IP not in subnet range</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 2 - SPECIFICATIONS -->
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+        <ng-template matStepLabel>Specifications</ng-template>
+        <ng-template matStepContent>
+          <form [formGroup]="secondFormGroup">
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>hub</mat-icon>
+                  </div>
+                  Load Balancer Mapping
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span>Select mapping type:</span>
+                </div>
+                <div class="info-card__block">
+                  <mat-radio-group class="w-100 d-flex gap-4" formControlName="type">
+                    <mat-radio-button [value]="LBTypeEnum.Selector"> {{ LBTypeEnum.Selector }} </mat-radio-button>
+                    <mat-radio-button [value]="LBTypeEnum.Endpoint"> {{ LBTypeEnum.Endpoint }} </mat-radio-button>
+                  </mat-radio-group>
+                </div>
+              </div>
+            </div>
+
+            @if (secondFormGroup.get('type')?.value === LBTypeEnum.Selector) {
+              <spx-step-label
+                titleText="Selection by Label"
+                [maxSize]="20"
+                [labels]="selectorsList()"
+                (labelsChange)="updateLabels($event)"></spx-step-label>
+            }
+
+            @if (secondFormGroup.get('type')?.value === LBTypeEnum.Endpoint) {
+              <div class="info-card">
+                <div class="info-card__title">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="mat-icon--with-bg">
+                      <mat-icon>hub</mat-icon>
+                    </div>
+                    Load Balancer Mapping Configuration
+                  </div>
+                </div>
+                <div class="info-card__content info-card__content--multi-block">
+                  <div class="info-card__block">
+                    <span>Add endpoints:</span>
+                  </div>
+                  <div class="info-card__block">
+                    <div
+                      class="w-100 d-flex gap-2 align-items-center justify-content-between"
+                      [formGroup]="endpointsForm">
+                      <mat-form-field class="w-100" subscriptSizing="dynamic">
+                        <mat-label>Endpoint</mat-label>
+                        <input matInput type="text" autocomplete="off" formControlName="value" placeholder="10.0.0.1" />
+                        @if (endpointsForm.get('value')?.hasError('ipv4')) {
+                          <mat-error>Invalid IPv4 address</mat-error>
+                        }
+                      </mat-form-field>
+
+                      <div class="d-flex">
+                        <button
+                          matIconButton
+                          [class.color-primary]="endpointsForm.valid"
+                          [disabled]="!endpointsForm.valid"
+                          (click)="addEndoint()">
+                          <mat-icon>add</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="info-card__block">
+                    @if (endpointsList.length > 0) {
+                      <mat-chip-grid #chipGrid>
+                        @for (endpoint of endpointsList; track $index; let i = $index) {
+                          <mat-chip-row
+                            (removed)="removeItemByIndex($index, endpointsList, 'endpoints')"
+                            class="chip--large">
+                            <span class="chip-text--with-wrap">{{ endpoint }}</span>
+
+                            <button matChipRemove [attr.aria-label]="'remove ' + endpoint">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          </mat-chip-row>
+                        }
+                      </mat-chip-grid>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>route</mat-icon>
+                  </div>
+                  Port Routing Configuration
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block align-items-center" [formGroup]="portForm">
+                  <mat-form-field subscriptSizing="dynamic">
+                    <mat-label>Port</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      autocomplete="off"
+                      min="1"
+                      max="65535"
+                      formControlName="port"
+                      placeholder="8080" />
+                  </mat-form-field>
+
+                  <div class="d-flex">
+                    <mat-icon>arrow_right_alt</mat-icon>
+                  </div>
+
+                  <mat-form-field subscriptSizing="dynamic">
+                    <mat-label>Target Port</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      autocomplete="off"
+                      min="1"
+                      max="65535"
+                      formControlName="targetPort"
+                      placeholder="8080" />
+                  </mat-form-field>
+
+                  <mat-form-field subscriptSizing="dynamic">
+                    <mat-label>Protocol</mat-label>
+                    <mat-select formControlName="protocol">
+                      <mat-option value="tcp"> TCP </mat-option>
+                      <mat-option value="udp"> UDP </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <div class="d-flex">
+                    <button
+                      matIconButton
+                      [class.color-primary]="portForm.valid"
+                      [disabled]="!portForm.valid"
+                      (click)="addPort()">
+                      <mat-icon>add</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="info-card__block">
+                  @if (portList.length > 0) {
+                    <mat-chip-grid #chipGrid>
+                      @for (port of portList; track $index) {
+                        <mat-chip-row (removed)="removeItemByIndex($index, portList, 'ports')" class="chip--large">
+                          <span class="chip-text--with-wrap d-flex align-items-center">
+                            <span>{{ port.port }}</span>
+                            <mat-icon>arrow_right_alt</mat-icon>
+                            <span>{{ port.targetPort }} [{{ port.protocol }}] </span>
+                          </span>
+
+                          <button
+                            matChipRemove
+                            [attr.aria-label]="
+                              'remove ' + port.port + ' to ' + port.targetPort + ' in ' + port.protocol
+                            ">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        </mat-chip-row>
+                      }
+                    </mat-chip-grid>
+                  }
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button matButton="filled" [disabled]="!firstFormGroup.valid || !secondFormGroup.valid" (click)="update()">
+              Update
+            </button>
+          </div>
+        </ng-template>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

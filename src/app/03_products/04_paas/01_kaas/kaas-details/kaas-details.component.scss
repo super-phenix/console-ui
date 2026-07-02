@@ -1,0 +1,13 @@
+@use '@angular/material' as mat;
+
+.product-details {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  &__tabs {
+    flex: 1 0 auto;
+    height: 1%;
+  }
+}

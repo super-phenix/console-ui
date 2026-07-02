@@ -1,0 +1,17 @@
+<div class="btns-dropdown">
+  <button class="btns-dropdown__btn" matButton="filled" [disabled]="disabled()" (click)="btnClicked.emit()">
+    {{ btnText() }}
+  </button>
+  <button
+    class="btns-dropdown__dropdown"
+    matIconButton
+    [disabled]="disabled()"
+    [matMenuTriggerFor]="menu"
+    aria-label="Open dropdown">
+    <mat-icon fontSet="symbols-fill">arrow_drop_down</mat-icon>
+  </button>
+
+  <mat-menu #menu="matMenu" xPosition="before">
+    <ng-content></ng-content>
+  </mat-menu>
+</div>

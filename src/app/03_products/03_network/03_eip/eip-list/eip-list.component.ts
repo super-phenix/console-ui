@@ -1,0 +1,164 @@
+import { Component, computed, inject, signal, WritableSignal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ProductListFilterComponent } from '@products/00_shared/components/product-list-filter/product-list-filter.component';
+import { ProductEIP } from '@products/00_shared/models/product.model';
+import { EipService } from '@products/00_shared/services/eip.service';
+import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
+import { DEFAULT_REFRESH_INTERVAL, PRA_LABEL_KEYS } from '@shared/models/consts';
+import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
+import { EIP_REFRESH_KEY, LocalStorageService } from '@shared/services/local-storage.service';
+import { PermissionService } from '@shared/services/permission.service';
+import { StateService } from '@shared/services/state.service';
+import { mapHandlerReplacer, mapHandlerReviver } from '@shared/utils/json-utils';
+import { MatDividerModule } from '@angular/material/divider';
+import { EipActions } from '../eip-actions.utils';
+import { catchError, of } from 'rxjs';
+import { ProductTableWrapperComponent } from '@products/00_shared/components/product-table-wrapper/product-table-wrapper.component';
+
+interface ProductEIPItem {
+  data: ProductEIP;
+  isPRA: boolean;
+}
+
+@Component({
+  selector: 'spx-eip-list',
+  imports: [
+    MatTableModule,
+    MatProgressSpinnerModule,
+    MatIconModule,
+    MatButtonModule,
+    RouterLink,
+    MatChipsModule,
+    MatMenuModule,
+    MatDividerModule,
+    ContentHeaderComponent,
+    ProductListFilterComponent,
+    ProductTableWrapperComponent,
+  ],
+  templateUrl: './eip-list.component.html',
+  styleUrl: './eip-list.component.scss',
+})
+export class EipListComponent {
+  protected stateSvc = inject(StateService);
+  protected eipSvc = inject(EipService);
+  protected permissionSvc = inject(PermissionService);
+  protected route = inject(ActivatedRoute);
+  protected lss = inject(LocalStorageService);
+
+  private readonly dialog = inject(MatDialog);
+
+  readonly EIP_REFRESH_KEY = EIP_REFRESH_KEY;
+
+  refreshInterval = computed(() => {
+    const refresh = this.lss.getValue(EIP_REFRESH_KEY)();
+    return refresh !== null ? parseInt(refresh, 10) : DEFAULT_REFRESH_INTERVAL;
+  });
+
+  canProjectEipWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectEipWrite));
+  canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
+
+  displayedColumns: string[] = ['az', 'id', 'name', 'publicIp', 'gitops', 'actions'];
+
+  eipProduct;
+
+  filterValue: WritableSignal<Map<string, string>> = signal(new Map());
+  dataSource = computed(() => {
+    const eips = this.eipProduct.hasValue() ? this.eipProduct.value()! : [];
+    const datas: ProductEIPItem[] = eips.map(i => {
+      let isPRA = false;
+      if (i.eip?.metadata.labels) {
+        isPRA = Object.keys(i.eip.metadata.labels).some(v => PRA_LABEL_KEYS.includes(v));
+      }
+
+      return {
+        data: i,
+        isPRA: isPRA,
+      };
+    });
+    const dataSource = new MatTableDataSource(datas);
+    // Override filterPredicate to use nested object
+    dataSource.filterPredicate = this.filterPredicate;
+    dataSource.filter = JSON.stringify(this.filterValue(), mapHandlerReplacer);
+
+    return dataSource;
+  });
+
+
+  private needReload = signal(0);
+
+  constructor() {
+    const stateSvc = this.stateSvc;
+    const eipSvc = this.eipSvc;
+
+    this.eipProduct = rxResource({
+      params: computed(() => [stateSvc.project(), stateSvc.organization(), this.needReload()]),
+      stream: () => {
+        if (stateSvc.organization() && stateSvc.project()) {
+          return eipSvc.list(stateSvc.organization()!.id, stateSvc.project()!.id).pipe(
+            catchError(err => {
+              console.error(err);
+              return of();
+            })
+          );
+        } else {
+          return of([]);
+        }
+      },
+    });
+  }
+
+  updateFilter(key: string, value: string) {
+    this.filterValue.update(prev => new Map(prev).set(key, value));
+  }
+
+  reloadData() {
+    this.needReload.update(v => v + 1);
+  }
+
+  async openArgoCD(eip: ProductEIP) {
+    EipActions.openArgoCD(this.eipSvc, this.stateSvc, eip.codeAZ!, eip.eid);
+  }
+
+  deleteEIP(eip: ProductEIP) {
+    if (eip.codeAZ && eip.eid) {
+      EipActions.deleteEIP(
+        this.eipSvc,
+        this.stateSvc,
+        this.dialog,
+        eip.codeAZ,
+        eip.eid,
+        eip.productName
+      ).then(res => {
+        if (res) {
+          this.reloadData();
+        }
+      });
+    }
+  }
+
+  private filterPredicate(item: ProductEIPItem, filter: string) {
+    const filterMap = JSON.parse(filter, mapHandlerReviver);
+    // If we have a az filter and it doesn't match
+    if (filterMap.get('az') && item.data.codeAZ !== filterMap.get('az')) {
+      return false;
+    }
+
+    // If we have a text filter
+    if (filterMap.get('search')) {
+      return (
+        item.data.productName.toLowerCase().includes(filterMap.get('search')) ||
+        item.data.eid.toLowerCase().includes(filterMap.get('search'))
+      );
+    } else {
+      return true;
+    }
+  }
+}

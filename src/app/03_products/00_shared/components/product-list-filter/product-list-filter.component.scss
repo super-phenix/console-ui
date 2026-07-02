@@ -1,0 +1,52 @@
+.product-filter {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+
+  gap: 8px;
+
+  &__full {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+
+    &-az {
+      flex: 0 1 250px;
+      min-width: 225px;
+
+      &-icon {
+        width: 60px;
+        height: 30px;
+      }
+    }
+
+    &-search {
+      flex: 0 1 100%;
+    }
+
+    &-filler {
+      flex: 1 0 auto;
+    }
+  }
+
+  &--mobile {
+    .product-filter__full {
+      &-az,
+      &-search {
+        flex: 0 1 100%;
+      }
+    }
+  }
+
+  &--tablet {
+    .product-filter__full {
+      &-search {
+        flex: 0 1 100%;
+      }
+    }
+  }
+
+  &__show-toggle {
+    max-width: 140px;
+  }
+}

@@ -1,0 +1,59 @@
+<div class="dashboard main-content">
+  <div class="dashboard__grid" [class.dashboard__grid--mobile]="screenSvc.isMobile()">
+    <div id="dashboard__title">
+      <spx-content-header titleOnly [title]="'Dashboard'"></spx-content-header>
+    </div>
+
+    <div id="dashboard__main">
+      <div spxGrid [small]="true">
+        <div class="dashboard__card sg-c1 sg-r1">
+          <div class="mat-icon--with-bg--large"><mat-icon>bolt</mat-icon></div>
+          <span class="dashboard__card-name">Instances</span>
+          <span class="dashboard__card-value">05</span>
+        </div>
+        <div class="dashboard__card sg-c1 sg-r1">
+          <div class="mat-icon--with-bg--large"><mat-icon>bolt</mat-icon></div>
+          <span class="dashboard__card-name">Storage</span>
+          <span class="dashboard__card-value">42</span>
+        </div>
+        <div class="dashboard__card sg-c1 sg-r1">
+          <div class="mat-icon--with-bg--large"><mat-icon>bolt</mat-icon></div>
+          <span class="dashboard__card-name">Network</span>
+          <span class="dashboard__card-value">04</span>
+        </div>
+        <div class="dashboard__card sg-c1 sg-r1">
+          <div class="mat-icon--with-bg--large"><mat-icon>bolt</mat-icon></div>
+          <span class="dashboard__card-name">PaaS</span>
+          <span class="dashboard__card-value">02</span>
+        </div>
+      </div>
+
+      <div spxGrid [small]="true">
+        <div class="dashboard__chart sg-c2 sg-r3">
+          <div class="dashboard__chart-title"><span>Status</span></div>
+          <div class="dashboard__chart-img">
+            <img
+              [ngSrc]="isDarkTheme() ? 'assets/placeholders/chart1-dark.svg' : 'assets/placeholders/chart1.svg'"
+              alt="placeholder chart 1"
+              fill />
+          </div>
+        </div>
+        <div class="dashboard__chart sg-c2 sg-r3">
+          <div class="dashboard__chart-title">
+            <span>Consumption</span>
+            <span class="dashboard__chart-title-value">1489€</span>
+          </div>
+          <div class="dashboard__chart-img">
+            <img
+              [ngSrc]="isDarkTheme() ? 'assets/placeholders/chart2-dark.svg' : 'assets/placeholders/chart2.svg'"
+              alt="placeholder chart 2"
+              fill />
+          </div>
+        </div>
+      </div>
+    </div>
+    @if (!screenSvc.isMobile()) {
+      <spx-changelog id="dashboard__side"></spx-changelog>
+    }
+  </div>
+</div>

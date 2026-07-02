@@ -1,0 +1,31 @@
+<div class="info-card">
+  <div class="info-card__title">
+    <div class="d-flex align-items-center gap-2">
+      <div class="mat-icon--with-bg">
+        <mat-icon>rule</mat-icon>
+      </div>
+      Ingress Rules
+    </div>
+    <button matButton (click)="addRule()">Add a rule</button>
+  </div>
+  <div class="info-card__content info-card__content--multi-block">
+    @for (rule of rules(); track $index) {
+      @if ($index > 0) {
+        <div class="info-card__hr"></div>
+      }
+      <div class="info-card__block d-flex align-items-center">
+        <span>Rule n°{{ $index }}</span>
+      </div>
+      <div class="info-card__block d-flex align-items-center">
+        <spx-network-rule-form
+          class="flex-grow"
+          type="ingress"
+          [rule]="rules()[$index]"
+          (ruleChange)="rules()[$index] = $event; updateOutput()"></spx-network-rule-form>
+        <button matIconButton aria-label="Delete ingress rule" (click)="removeRule($index)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+</div>

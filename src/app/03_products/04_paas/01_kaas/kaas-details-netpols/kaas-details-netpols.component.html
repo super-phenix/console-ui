@@ -1,0 +1,76 @@
+<div class="product-list">
+  <div class="mt-2 d-flex justify-content-end">
+    <spx-auto-refresh (refresh)="reloadData()"></spx-auto-refresh>
+  </div>
+
+  <div class="product-list__table">
+    @if (netPolResource.isLoading() || netPolResource.status() === 'error') {
+      <div class="product-list__table-loading-shade">
+        @if (netPolResource.isLoading()) {
+          <mat-spinner></mat-spinner>
+        }
+        @if (netPolResource.status() === 'error') {
+          <div class="product-list__table-error">Fail to fetch product-list</div>
+        }
+      </div>
+    }
+
+    <mat-table [dataSource]="dataSource()">
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef> ID </mat-header-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.eid }} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.productName }} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <mat-header-cell *matHeaderCellDef> Description </mat-header-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.firewall?.description }} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="policyType">
+        <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.firewall?.spec?.policyTypes }} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="gitops">
+        <mat-header-cell *matHeaderCellDef> GitOps </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.data.gitops === 'true') {
+            <mat-icon>check</mat-icon>
+          }
+        </mat-cell>
+      </ng-container>
+
+      <!-- This column is shown only is the user can read subnets -->
+      <ng-container matColumnDef="actions" stickyEnd>
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.data) {
+            <a
+              mat-icon-button
+              class="color-primary"
+              [routerLink]="['/products', 'network', 'firewall', 'details', az(), el.data.eid]"
+              aria-label="Go to subnet"
+              target="_blank">
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          }
+        </mat-cell>
+      </ng-container>
+
+      <tr class="d-flex mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+          No data for this product type
+        </td>
+        <td class="mat-mdc-cell mat-column-actions mat-column-actions--empty"></td>
+      </tr>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </mat-table>
+  </div>
+</div>

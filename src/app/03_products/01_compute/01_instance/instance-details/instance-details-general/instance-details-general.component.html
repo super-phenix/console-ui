@@ -1,0 +1,147 @@
+<div class="product-details">
+  <h2>General Information</h2>
+
+  <div spxGrid>
+    <div class="product-details__card sg-r2 sg-c2">
+      <h3 class="text-break-all mt-0 mb-1">{{ instance().productName }}</h3>
+
+      <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="instance().eid" />
+
+      <div class="product-details__card-line">
+        <strong>Status: </strong>
+        <mat-chip-set aria-label="instance status">
+          @let status =
+            (instance().vmi && instance().vmi?.status?.phase
+              ? instance().vmi!.status.phase
+              : instance().vm?.status?.printableStatus) || 'unknown';
+          <mat-chip [class]="'status-chip--' + status!.toLowerCase()" disabled="true">
+            {{ status }}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+
+      <spx-span-copy class="product-details__card-line" key="Local ID" [value]="instance().id" />
+      <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+      <spx-span-copy class="product-details__card-line" key="Organization ID" [value]="productLabelInfo().organizationId" />
+    </div>
+
+    <div class="product-details__card sg-r1 sg-c1">
+      <div class="product-details__card-line product-details__card-line--split">
+        <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+        <span class="product-details__card-line-right"> {{ instance().codeAZ?.toUpperCase() }} </span>
+
+        <span class="product-details__card-line-left"> <strong>Hostname:</strong> </span>
+        <span class="product-details__card-line-right"> {{ instance().vmi?.spec?.hostname }} </span>
+
+        <span class="product-details__card-line-left"> <strong>Physical Host:</strong> </span>
+        <span class="product-details__card-line-right"> {{ instance().vmi?.status?.nodeName }} </span>
+
+        <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+        <span class="product-details__card-line-right"> {{ instance().gitops === 'true' ? 'Yes' : 'No' }} </span>
+      </div>
+    </div>
+
+    <div class="product-details__card sg-r1 sg-c1">
+      <div class="product-details__card-line product-details__card-line--split">
+        <span class="product-details__card-line-left"> <strong>Run Strategy:</strong> </span>
+        <span class="product-details__card-line-right"> {{ instance().vm?.spec?.runStrategy }} </span>
+
+        <span class="product-details__card-line-left"> <strong>Type:</strong> </span>
+        <span class="product-details__card-line-right"> {{ instance().vm?.spec?.preference?.name || 'linux' }} </span>
+
+        @if (hasGuestAgent() !== null) {
+          <span class="product-details__card-line-left"> <strong>Guest Agent:</strong> </span>
+          <span class="product-details__card-line-right">
+            @let gaStatus = hasGuestAgent() ? 'ready' : 'warning';
+            <mat-chip [class]="'status-chip--' + gaStatus" disabled="true">
+              {{ hasGuestAgent() ? 'Available' : 'Missing' }}
+            </mat-chip>
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <h2>Specifications</h2>
+
+  <div spxGrid>
+    @let requestedSpec = instance().vm?.spec?.template?.spec?.domain;
+    @let currentSpec = instance().vmi?.spec?.domain || requestedSpec;
+
+    <div class="product-details__card sg-r1 sg-c1">
+      <h3 class="mt-0">CPU</h3>
+
+      <div class="product-details__card-line product-details__card-line--split">
+        <span class="product-details__card-line-left"> <strong>Sockets:</strong> </span>
+        <span class="product-details__card-line-right">
+          {{ currentSpec?.cpu?.sockets || 1 }}
+          @let requestedSockets = requestedSpec?.cpu?.sockets || 1;
+          @if (currentSpec?.cpu?.sockets !== undefined && currentSpec?.cpu?.sockets !== requestedSockets) {
+            <i>({{ requestedSpec?.cpu?.sockets }})</i>
+          }
+        </span>
+
+        <span class="product-details__card-line-left"> <strong>Cores:</strong> </span>
+        <span class="product-details__card-line-right">
+          {{ currentSpec?.cpu?.cores || 1 }}
+          @let requestedCores = requestedSpec?.cpu?.cores || 1;
+          @if (currentSpec?.cpu?.cores !== undefined && currentSpec?.cpu?.cores !== requestedCores) {
+            <i>({{ requestedSpec?.cpu?.cores }})</i>
+          }
+        </span>
+
+        <span class="product-details__card-line-left"> <strong>Threads:</strong> </span>
+        <span class="product-details__card-line-right">
+          {{ currentSpec?.cpu?.threads || 1 }}
+          @let requestedThreads = requestedSpec?.cpu?.threads || 1;
+          @if (currentSpec?.cpu?.threads !== undefined && currentSpec?.cpu?.threads !== requestedThreads) {
+            <i>({{ requestedSpec?.cpu?.threads }})</i>
+          }
+        </span>
+      </div>
+    </div>
+    <div class="product-details__card sg-r1 sg-c1">
+      <h3 class="mt-0">Memory</h3>
+
+      <div class="product-details__card-line product-details__card-line--split">
+        @if (currentSpec?.memory?.guest || requestedSpec?.memory?.guest) {
+          <span class="product-details__card-line-left"> <strong>Guest:</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ currentSpec?.memory?.guest }}
+            @if (currentSpec?.memory?.guest !== requestedSpec?.memory?.guest) {
+              <i>({{ requestedSpec?.memory?.guest }})</i>
+            }
+          </span>
+        } @else if (currentSpec?.resources?.requests?.['memory'] || requestedSpec?.resources?.requests?.['memory']) {
+          <span class="product-details__card-line-left"> <strong>Requests:</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ currentSpec?.resources?.requests?.['memory'] }}
+            @if (currentSpec?.resources?.requests?.['memory'] !== requestedSpec?.resources?.requests?.['memory']) {
+              <i>({{ requestedSpec?.resources?.requests?.['memory'] }})</i>
+            }
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <h2>Labels</h2>
+
+  <div spxGrid>
+    <div class="product-details__card sg-r-all sg-c-all">
+      <mat-chip-set class="product-details__labels" aria-label="Labels">
+        @for (label of instance().vm?.metadata?.labels | keyvalue; track $index) {
+          <mat-chip
+            [class.product-details__labels-item--custom]="label.key.startsWith(CUSTOM_USER_LABEL_PREFIX)"
+            (click)="copy(label.key + ':' + label.value)">
+            <div class="d-flex flex-wrap gap-x-1">
+              <span>{{ label.key }}:</span>
+              <span>{{ label.value }}</span>
+            </div>
+          </mat-chip>
+        }
+      </mat-chip-set>
+    </div>
+  </div>
+
+</div>

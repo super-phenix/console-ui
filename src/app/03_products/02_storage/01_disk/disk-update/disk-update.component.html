@@ -1,0 +1,66 @@
+<div class="product-create main-content">
+  <spx-content-header navBack title="Edit Disk"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" [showAz]="false"></spx-step-general>
+
+            <spx-step-label
+              titleText="Labels"
+              [subtitleText]="`You can add up to ${CUSTOM_USER_LABEL_NUMBER} custom labels.`"
+              [prefix]="CUSTOM_USER_LABEL_PREFIX"
+              [maxSize]="CUSTOM_USER_LABEL_NUMBER"
+              [labels]="initLabels()"
+              (labelsChange)="labels.set($event)"></spx-step-label>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>storage</mat-icon>
+                  </div>
+                  Storage Size
+                </div>
+              </div>
+              <div class="info-card__content">
+                <mat-form-field class="info-card__item info-card__item--form">
+                  <mat-label>Disk size</mat-label>
+                  <input
+                    type="number"
+                    matInput
+                    pattern="[0-9]+"
+                    [min]="oldSize()"
+                    max="5000"
+                    formControlName="storage" />
+                  <span matSuffix class="pr-2">Gi</span>
+                  @if (firstFormGroup.get('storage')?.hasError('required')) {
+                    <mat-error>This field is required</mat-error>
+                  }
+                  @if (firstFormGroup.get('storage')?.hasError('min')) {
+                    <mat-error>
+                      <span>The minimum size is {{ firstFormGroup.get('storage')?.getError('min').min }} Gi.</span>
+                    </mat-error>
+                  }
+                  @if (firstFormGroup.get('storage')?.hasError('max')) {
+                    <mat-error>
+                      <span>The maximum size is {{ firstFormGroup.get('storage')?.getError('max').max }} Gi.</span>
+                    </mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" [disabled]="firstFormGroup.invalid" (click)="update()">Update</button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.stepper-overrides(
+    (
+      container-color: transparent,
+
+      // header global
+      header-label-text-font: var(--mat-sys-label-large-font),
+      header-icon-background-color: var(--disabled),
+      header-icon-foreground-color: var(--text-disabled),
+      // selected step state
+      header-selected-state-icon-background-color: var(--input),
+      header-selected-state-icon-foreground-color: var(--text-input-light),
+      // error state
+      header-error-state-icon-background-color: var(--alert-error),
+      header-error-state-icon-foreground-color: var(--text-input-dark),
+      // edit state
+      header-edit-state-icon-background-color: var(--input-light),
+      header-edit-state-icon-foreground-color: var(--text-dark),
+      // others
+      line-color: var(--stroke-default),
+    )
+  );
+}

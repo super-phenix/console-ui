@@ -1,0 +1,40 @@
+.network-rule {
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--mat-sys-surface);
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid var(--mat-sys-outline-variant);
+
+  padding: 1rem 0.5rem;
+  gap: 1rem;
+
+  h4 {
+    margin: 0;
+  }
+
+  &__ports {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+
+    &-item span {
+      display: flex;
+      align-items: end;
+      gap: 0.5rem;
+    }
+  }
+
+  &__rules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    &-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+}

@@ -1,0 +1,224 @@
+<div class="user-details main-content">
+  <div class="user-details__header">
+    <spx-content-header titleOnly title="My account"></spx-content-header>
+
+    <button type="button" matButton="filled" aria-label="Update account button" (click)="settings()">
+      Update information
+    </button>
+  </div>
+
+  <div class="info-card my-3">
+    <div class="info-card__content info-card__content--space-evenly">
+      <div class="info-card__item info-card__item--fixed">
+        <div class="info-card__item-label">First name</div>
+        <div class="info-card__item-text">{{ user()?.firstname }}</div>
+      </div>
+
+      <div class="info-card__item info-card__item--fixed">
+        <div class="info-card__item-label">Last name</div>
+        <div class="info-card__item-text">{{ user()?.lastname }}</div>
+      </div>
+
+      <div class="info-card__item info-card__item--fixed">
+        <div class="info-card__item-label">Mail</div>
+        <div class="info-card__item-text">
+          <spx-span-copy [value]="user()?.email" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <mat-tab-group
+    class="user-details__tabs mat-tab-fill-height"
+    mat-stretch-tabs="false"
+    mat-align-tabs="start"
+    (selectedIndexChange)="updateFragment($event)"
+    [selectedIndex]="initialIndex()">
+    <mat-tab label="General">
+      <ng-template matTabContent>
+        <div class="info-card my-3">
+          <div class="info-card__title">
+            <div class="d-flex align-items-center gap-2">
+              <div class="mat-icon--with-bg">
+                <mat-icon>send</mat-icon>
+              </div>
+
+              Invitation
+            </div>
+          </div>
+
+          <div class="info-card__content info-card__content--space-between">
+            <div class="info-card__item info-card__item--fixed">
+              <div class="info-card__item-label">Code</div>
+              <div class="info-card__item-text">
+                <spx-span-copy [value]="user()?.inviteCode" />
+              </div>
+            </div>
+
+            <div class="info-card__item info-card__item--fixed">
+              <button
+                type="button"
+                matButton="filled"
+                aria-label="Reset invitation code button"
+                (click)="resetInviteCode()">
+                Reset code
+              </button>
+            </div>
+          </div>
+
+          <div class="info-card__content pt-0">
+            <spx-banner class="w-100" [level]="BannerLevelEnum.Info">
+              Only share this invitation code with the person in charge of the users of the organization you wish to
+              join.
+            </spx-banner>
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Organizations">
+      <ng-template matTabContent>
+        <div class="user-details__organizations">
+          <div class="user-details__organizations-header">
+            <mat-form-field class="user-details__organizations-header-search" subscriptSizing="dynamic">
+              <mat-label>Search</mat-label>
+              <input matInput #searchInput (input)="updateFilter(searchInput.value)" />
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <div class="user-details__header-create-btn">
+              <button
+                matButton="filled"
+                class="btn--large"
+                ariaLabel="Button to create an organization"
+                (click)="createOrg()">
+                <mat-icon>add</mat-icon>
+                Create an organization
+              </button>
+            </div>
+          </div>
+
+          <mat-table [dataSource]="dataSource()" class="user-details__table">
+            <!-- Position Column -->
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+              <mat-cell *matCellDef="let el"> {{ el.name }} </mat-cell>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="id">
+              <mat-header-cell *matHeaderCellDef> ID </mat-header-cell>
+              <mat-cell *matCellDef="let el">
+                <spx-span-copy [value]="el.id"></spx-span-copy>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="actions">
+              <mat-header-cell *matHeaderCellDef></mat-header-cell>
+              <mat-cell *matCellDef="let el">
+                <button matIconButton (click)="openOrgSettings(el)" aria-label="Open Org Settings">
+                  <mat-icon class="icon-accent">settings</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+          </mat-table>
+        </div>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="API Tokens">
+      <ng-template matTabContent>
+        <div class="user-details__token">
+          @if (createdToken(); as token) {
+            <div class="user-details__token-banner">
+              <spx-banner [level]="BannerLevelEnum.Success" multiline>
+                <div class="d-flex justify-content-between">
+                  <p>Your API token has been created successfully.</p>
+                  <button mat-icon-button (click)="createdToken.set(null)" title="Close">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+                <p><strong>Token:</strong></p>
+                <div class="user-details__token-banner-row">
+                  <code class="user-details__token-banner-code">{{ token }}</code>
+                  <button matIconButton (click)="copy(token)" title="Copy to clipboard">
+                    <mat-icon>content_copy</mat-icon>
+                  </button>
+                </div>
+                <p class="color-error"><em>Make sure to copy your token now. You won't be able to see it again.</em></p>
+              </spx-banner>
+            </div>
+          }
+
+          <div class="user-details__token-header">
+            <mat-form-field class="user-details__token-header-search" subscriptSizing="dynamic">
+              <mat-label>Search</mat-label>
+              <input matInput #tokenSearchInput (input)="updateTokenFilter(tokenSearchInput.value)" />
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <div class="user-details__header-create-btn">
+              <button matButton="filled" ariaLabel="Button to create an API token" (click)="createToken()">
+                <mat-icon>add</mat-icon>
+                Create an API token
+              </button>
+            </div>
+          </div>
+
+          <mat-table
+            (matSortChange)="currentSort.set($event)"
+            matSort
+            #matSort
+            matSortDisableClear
+            [matSortActive]="defaultSort.active"
+            [matSortDirection]="defaultSort.direction"
+            [trackBy]="trackBy"
+            [dataSource]="filteredApiTokens()"
+            class="user-details__table user-details__tokens-table">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Name </mat-header-cell>
+              <mat-cell *matCellDef="let element"> {{ element.name }} </mat-cell>
+            </ng-container>
+
+            <!-- Prefix Column -->
+            <ng-container matColumnDef="prefix">
+              <mat-header-cell *matHeaderCellDef> Prefix </mat-header-cell>
+              <mat-cell *matCellDef="let element"> {{ element.prefix }} </mat-cell>
+            </ng-container>
+
+            <!-- CreatedAt Column -->
+            <ng-container matColumnDef="createdAt">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Created at </mat-header-cell>
+              <mat-cell *matCellDef="let element"> {{ element.createdAt | date: 'short' }} </mat-cell>
+            </ng-container>
+
+            <!-- ExpiresAt Column -->
+            <ng-container matColumnDef="expiresAt">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Expires at </mat-header-cell>
+              <mat-cell *matCellDef="let element">
+                {{ element.expiresAt.getTime() <= 0 ? 'Never' : (element.expiresAt | date: 'shortDate') }}
+              </mat-cell>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <mat-header-cell *matHeaderCellDef></mat-header-cell>
+              <mat-cell *matCellDef="let element">
+                <button mat-icon-button (click)="deleteToken(element.id)" aria-label="Delete API token button">
+                  <mat-icon class="icon-error">delete</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="tokenDisplayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: tokenDisplayedColumns"></mat-row>
+          </mat-table>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+</div>

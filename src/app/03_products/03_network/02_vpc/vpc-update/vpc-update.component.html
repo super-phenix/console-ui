@@ -1,0 +1,161 @@
+<div class="product-create main-content">
+  <spx-content-header navBack titleOnly title="Update VPC"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" [showAz]="false"></spx-step-general>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              @if (canProjectSubnetRead()) {
+                <button matButton="filled" matStepperNext>Next</button>
+              } @else {
+                <button
+                  matButton="filled"
+                  [disabled]="firstFormGroup.invalid || secondFormGroup.invalid"
+                  (click)="update()">
+                  Update
+                </button>
+              }
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 2 - STATIC ROUTES -->
+      @if (canProjectSubnetRead()) {
+        <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+          <form>
+            <ng-template matStepLabel>Static Routes</ng-template>
+            <ng-template matStepContent>
+              <div class="info-card">
+                <div class="info-card__title">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="mat-icon--with-bg">
+                      <mat-icon>graph_2</mat-icon>
+                    </div>
+                    Static Routes
+                  </div>
+                </div>
+
+                <div class="info-card__content info-card__content--multi-block">
+                  <div class="info-card__block info-card__block--space-between align-items-center">
+                    <div class="d-flex flex-column gap-2 mb-2">
+                      <span>
+                        <i>Define static routes for the VPC. (Maximum {{ MAX_STATIC_ROUTE }} manual routes)</i>
+                      </span>
+
+                      @if (secondFormGroup.errors?.['uniqueRoutes']) {
+                        <div class="d-flex align-items-center color-error gap-1">
+                          <mat-icon>error</mat-icon>
+                          <mat-error>Each route must be unique.</mat-error>
+                        </div>
+                      }
+                    </div>
+
+                    <button
+                      type="button"
+                      matButton="tonal"
+                      (click)="addStaticRoute()"
+                      [disabled]="
+                        this.manualRoutesCount() >= MAX_STATIC_ROUTE ||
+                        (vpc()?.vpc?.status?.subnets && vpc()!.vpc!.status.subnets.length <= 0)
+                      ">
+                      <mat-icon>add</mat-icon> Add route
+                    </button>
+                  </div>
+
+                  @for (route of secondFormGroup.controls; track route; let i = $index) {
+                    <div class="info-card__block flex-column">
+                      <div class="d-flex flex-column">
+                        <div [formGroup]="route" class="product-create__step-form flex-wrap align-items-center">
+                          @if (route.errors?.['unique']) {
+                            <div class="color-error">
+                              <mat-icon>error</mat-icon>
+                            </div>
+                          }
+
+                          <mat-form-field>
+                            <mat-label>Policy</mat-label>
+                            <mat-select formControlName="policy">
+                              <mat-option value="policySrc">Source</mat-option>
+                              <mat-option value="policyDst">Destination</mat-option>
+                            </mat-select>
+                          </mat-form-field>
+
+                          <mat-form-field>
+                            <mat-label>CIDR</mat-label>
+                            <input matInput formControlName="cidr" placeholder="0.0.0.0/0" />
+                          </mat-form-field>
+
+                          <mat-form-field>
+                            <mat-label>Next Hop IP</mat-label>
+                            <input matInput formControlName="nextHopIP" placeholder="10.0.0.1" />
+                            @if (route.get('nextHopIP')?.errors?.['ip']) {
+                              <mat-error>Invalid IP address</mat-error>
+                            }
+                            @if (route.get('nextHopIP')?.errors?.['ipRange']) {
+                              <mat-error>IP not in subnet range</mat-error>
+                            }
+                          </mat-form-field>
+
+                          <mat-form-field>
+                            <mat-label>Route Table</mat-label>
+                            <mat-select formControlName="routeTable">
+                              @if (subnetsProduct.hasValue()) {
+                                @for (subnet of subnetsProduct.value(); track $index) {
+                                  <mat-option [value]="subnet.eid">
+                                    {{ subnet.productName }}
+                                  </mat-option>
+                                }
+                              } @else {
+                                <mat-option [value]="route.controls['routeTable']?.value">
+                                  {{ route.controls['routeTable']?.value }}
+                                </mat-option>
+                              }
+                            </mat-select>
+                          </mat-form-field>
+
+                          @if (!route.get('autoGenerated')?.value) {
+                            <button type="button" mat-icon-button color="warn" (click)="removeStaticRoute(i)">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          }
+                        </div>
+
+                        @if (route.get('autoGenerated')?.value) {
+                          <span class="color-warn pl-3 mt-1">
+                            <i>
+                              <strong>Warning:</strong> This route is auto-generated by a Nat Gateway in the subnet.
+                              <br />To remove it, deactivate the Nat Gateway from the subnet.
+                            </i>
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="d-flex flex-column gap-2 mt-2"></div>
+
+              <div class="product-create__step-buttons">
+                <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+                <button
+                  matButton="filled"
+                  [disabled]="firstFormGroup.invalid || secondFormGroup.invalid"
+                  (click)="update()">
+                  Update
+                </button>
+              </div>
+            </ng-template>
+          </form>
+        </mat-step>
+      }
+    </mat-stepper>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<div class="d-flex flex-column gap-3">
+  <div class="info-card">
+    <div class="info-card__title">
+      <div class="d-flex align-items-center gap-2">
+        <div class="mat-icon--with-bg">
+          <mat-icon>filter_alt</mat-icon>
+        </div>
+        Target Selectors
+      </div>
+    </div>
+    <div class="info-card__content info-card__content--multi-block">
+      <div class="info-card__block">
+        <span><i>If no selector is active, the rules will apply to the entire project</i></span>
+      </div>
+      <div class="info-card__block">
+        <mat-checkbox
+          [checked]="matchLabelsEnabled()"
+          (change)="matchLabelsEnabled.set($any($event).checked); updateOutput()">
+          Selection by Label
+        </mat-checkbox>
+        <mat-checkbox
+          [checked]="matchExpressionsEnabled()"
+          (change)="matchExpressionsEnabled.set($any($event).checked); updateOutput()">
+          Selection by Expression
+        </mat-checkbox>
+      </div>
+    </div>
+  </div>
+
+  @if (matchLabelsEnabled()) {
+    <spx-step-label
+      titleText="Selection by Label"
+      [maxSize]="20"
+      [labels]="matchLabels()"
+      (labelsChange)="updateLabels($event)"></spx-step-label>
+  }
+
+  @if (matchExpressionsEnabled()) {
+    <div class="info-card">
+      <div class="info-card__title">
+        <div class="d-flex align-items-center gap-2">
+          <div class="mat-icon--with-bg">
+            <mat-icon>rule</mat-icon>
+          </div>
+          Selection by Expression
+        </div>
+      </div>
+      <div class="info-card__content">
+        <spx-match-expression
+          class="info-card__item info-card__item--form w-100"
+          [showCheckbox]="false"
+          [showTitle]="false"
+          [(matchExpressions)]="matchExpressions"
+          (matchExpressionsChange)="updateOutput()"></spx-match-expression>
+      </div>
+    </div>
+  }
+</div>

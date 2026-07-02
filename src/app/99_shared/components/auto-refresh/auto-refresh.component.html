@@ -1,0 +1,19 @@
+<div class="auto-refresh">
+  <button mat-icon-button class="icon-btn--large icon-btn--border" aria-label="Refresh button" (click)="refresh.emit()">
+    <mat-icon>refresh</mat-icon>
+  </button>
+  <mat-form-field class="auto-refresh__selection" subscriptSizing="dynamic">
+    <mat-label>Actualization</mat-label>
+    <mat-select (selectionChange)="selectionChange($event)" hideSingleSelectionIndicator [value]="refreshInterval()">
+      @for (interval of intervalOpt; track $index) {
+        @if (interval === 0) {
+          <mat-option [value]="interval">Manual</mat-option>
+        } @else if (interval === 1) {
+          <mat-option [value]="interval">{{ interval }} minute</mat-option>
+        } @else {
+          <mat-option [value]="interval">{{ interval }} minutes</mat-option>
+        }
+      }
+    </mat-select>
+  </mat-form-field>
+</div>

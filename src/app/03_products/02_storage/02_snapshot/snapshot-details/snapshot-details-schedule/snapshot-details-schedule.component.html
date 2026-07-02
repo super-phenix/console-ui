@@ -1,0 +1,95 @@
+<div class="product-details">
+  @if (snapshotResource()) {
+    <h2>General Information</h2>
+    @let schedule = snapshotResource().snapshotSchedule;
+
+    <div spxGrid>
+      <div class="product-details__card sg-r2 sg-c2">
+        @if (!snapshotResource().productName && snapshotResource().eid.startsWith('vmsnapshot')) {
+          <h3 class="text-break-all mt-0 mb-1">VM Snapshot</h3>
+        } @else {
+          <h3 class="text-break-all mt-0 mb-1">{{ snapshotResource().productName }}</h3>
+        }
+
+        <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="snapshotResource().eid" />
+
+        <spx-span-copy class="product-details__card-line" key="Local ID" [value]="snapshotResource().id" />
+        <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+        <spx-span-copy class="product-details__card-line" key="Organization ID" [value]="productLabelInfo().organizationId" />
+      </div>
+
+      <div class="product-details__card sg-r1 sg-c1">
+        <div class="product-details__card-line product-details__card-line--split flex-grow">
+          <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+          <span class="product-details__card-line-right"> {{ snapshotResource().codeAZ?.toUpperCase() }} </span>
+
+          <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ snapshotResource().gitops === 'true' ? 'Yes' : 'No' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Specifications</h2>
+
+    <div spxGrid>
+      <div class="product-details__card sg-r1 sg-c1">
+        <div class="product-details__card-line product-details__card-line--split flex-grow">
+          <span class="product-details__card-line-left"> <strong>Schedule :</strong> </span>
+          <span class="product-details__card-line-right">
+            @if (scheduleDayInterval(); as days) {
+              Every {{ days }} day(s)
+            } @else {
+              {{ schedule?.spec?.schedule }}
+            }
+          </span>
+          <span class="product-details__card-line-left"> <strong>Last snapshot :</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ schedule?.status?.lastSnapshotTime | date: 'short' }}
+          </span>
+
+          <span class="product-details__card-line-left"> <strong>Next snapshot :</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ schedule?.status?.nextSnapshotTime | date: 'short' }}
+          </span>
+
+          <span class="product-details__card-line-left"> <strong>Retention :</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ schedule?.spec?.retention?.expires }}
+          </span>
+
+          <span class="product-details__card-line-left"> <strong>Paused :</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ schedule?.spec?.disabled ? 'Yes' : 'No' }}
+          </span>
+        </div>
+      </div>
+      <div class="product-details__card sg-r1 sg-c2">
+        <h2 class="mt-0">Labels Selector</h2>
+        <mat-chip-set class="product-details__labels" aria-label="Labels">
+          @let matchLabels = schedule?.spec?.claimSelector?.matchLabels | keyvalue;
+          @for (label of matchLabels; track $index) {
+            <mat-chip (click)="copy(label.value)">{{ label.key }}: {{ label.value }}</mat-chip>
+          }
+        </mat-chip-set>
+      </div>
+    </div>
+
+    @let labels = schedule?.metadata?.labels | keyvalue;
+    @if (labels && labels.length > 0) {
+      <h2>Labels</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c-all">
+          <mat-chip-set class="product-details__labels" aria-label="Labels">
+            @for (label of labels; track $index) {
+              <mat-chip (click)="copy(label.value)">{{ label.key }}: {{ label.value }}</mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+    }
+
+  }
+</div>

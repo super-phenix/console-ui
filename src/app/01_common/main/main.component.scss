@@ -1,0 +1,91 @@
+@use '@angular/material' as mat;
+
+.app {
+  --header-height: 60px;
+  --sidenav-width: 250px;
+
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+
+  .sidenav {
+    display: flex;
+    min-width: var(--sidenav-width);
+    max-width: var(--sidenav-width);
+
+    @include mat.sidenav-overrides(
+      (
+        container-shape: var(--mat-sys-corner-none),
+        container-divider-color: var(--stroke-default),
+      )
+    );
+
+    &--large {
+      --sidenav-width: 350px;
+      border-right: 1px solid var(--stroke-default);
+    }
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      // 100% view height
+      height: 100vh;
+      overflow: hidden;
+
+      &-menu {
+        padding-top: 16px;
+        min-height: calc(100% - 16px);
+
+        &--over-mode {
+          padding-top: 0;
+          min-height: calc(100% - 90px - 16px);
+        }
+      }
+    }
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+
+    &__header {
+      display: flex;
+      align-items: center;
+      max-height: var(--header-height);
+      width: 100%;
+      background-color: var(--block);
+
+      &-menu-tgl {
+        margin-left: 0.5rem;
+      }
+    }
+
+    &__main {
+      padding-inline: 16px;
+      margin-top: 16px;
+
+      flex: 1 0 auto;
+      max-height: calc(100vh - var(--header-height) - 16px);
+      width: calc(100% - 32px);
+    }
+  }
+}
+
+.application-logo {
+  display: flex;
+  justify-content: start;
+  align-items: start;
+
+  padding-left: 16px;
+  padding-block: 16px;
+
+  width: 104px;
+  height: 32px;
+  background-image: var(--logo-image);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+}

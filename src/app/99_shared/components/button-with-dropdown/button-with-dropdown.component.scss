@@ -1,0 +1,38 @@
+@use '@angular/material' as mat;
+.btns-dropdown {
+  display: flex;
+  gap: 2px;
+
+  $b-radius: var(--mat-sys-corner-small);
+
+  &__btn {
+    @include mat.button-overrides(
+      (
+        filled-container-shape: $b-radius 0 0 $b-radius,
+      )
+    );
+  }
+  &__dropdown {
+    background-color: var(--input) !important;
+    color: var(--mat-sys-on-primary) !important;
+    border: none !important;
+    @include mat.icon-button-overrides(
+      (
+        container-shape: 0 $b-radius $b-radius 0,
+        state-layer-color: var(--mat-sys-on-primary),
+        ripple-color: color-mix(
+            in srgb,
+            var(--mat-sys-on-primary) calc(var(--mat-sys-pressed-state-layer-opacity) * 100%),
+            transparent
+          ),
+        state-layer-size: 48px,
+        touch-target-size: 48px,
+      )
+    );
+
+    &[disabled] {
+      background-color: color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent) !important;
+      color: color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent) !important;
+    }
+  }
+}

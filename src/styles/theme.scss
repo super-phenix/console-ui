@@ -1,0 +1,99 @@
+/*
+ ┌──────────────────────────────────────────────────────────────┐
+ │                          THEME FILE                          │
+ ├──────────────────────────────────────────────────────────────┤
+ │  If you want to modify the Console UI theme,                 │
+ │  do not directly edit this file.                             │
+ │  Declare all overrides in `public/styles/theme-override.css` │
+ └──────────────────────────────────────────────────────────────┘
+*/
+@use 'theme-variables' as theme;
+
+@font-face {
+  font-family: 'Material Symbols Rounded';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/material-symbols-rounded.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrainsMono';
+  src: url('./fonts/JetBrainsMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('./fonts/Sora-Regular.ttf') format('truetype');
+}
+
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+.symbols-fill {
+  font-variation-settings: 'FILL' 1;
+}
+
+html {
+  //// Primitives
+  // Font
+  --headline-font: JetBrainsMono;
+  --body-font: Sora;
+  // Accent
+  --red-20: #f1d1ce;
+  --red-20-opacity: color-mix(in srgb, var(--red-20) 8%, transparent);
+  --red-30: #e16c62;
+  --red-50: #c23c34;
+  --green-20: #c7e6d3;
+  --green-20-opacity: color-mix(in srgb, var(--green-20) 8%, transparent);
+  --green-30: #95c0a6;
+  --green-50: #5c816c;
+  --blue-20: #c8c7e6;
+  --blue-20-opacity: color-mix(in srgb, var(--blue-20) 8%, transparent);
+  --blue-30: #959ac0;
+  --blue-50: #5c5d81;
+  // Neutral
+  --neutral-0: #ffffff;
+  --neutral-0-opacity: color-mix(in srgb, var(--neutral-0) 20%, transparent);
+  --neutral-10: #f4f4f4;
+  --neutral-20: #dddddd;
+  --neutral-30: #c7c4c3;
+  --neutral-40: #b0aca9;
+  --neutral-50: #999491;
+  --neutral-60: #837d79;
+  --neutral-70: #6c6662;
+  --neutral-80: #554f4c;
+  --neutral-90: #3f3a37;
+  --neutral-100: #2a2623;
+  // Primary
+  --primary-10: #fff3ed;
+  --primary-20: #ffd7c5;
+  --primary-20-opacity: color-mix(in srgb, var(--primary-20) 8%, transparent);
+  --primary-30: #ffbb9e;
+  --primary-40: #ffa076;
+  --primary-50: #ff844e;
+  --primary-60: #ea703a;
+  --primary-70: #c85725;
+  --primary-80: #a64115;
+  --primary-90: #842e08;
+  --primary-100: #621e00;
+
+  // Background and logo
+  --background-image: url('/assets/images/background.svg');
+  --logo-image: url('/assets/images/logo.svg');
+
+  @include theme.state-color();
+  @include theme.custom-color();
+}

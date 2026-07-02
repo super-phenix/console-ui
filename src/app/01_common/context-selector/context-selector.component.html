@@ -1,0 +1,43 @@
+<div class="context-selector" [class.context-selector--inverted]="background() === 'inverted'">
+  <div class="context-selector__organization">
+    <mat-form-field subscriptSizing="dynamic" appearance="outline">
+      <div matPrefix class="context-selector__organization-prefix">
+        <mat-icon>
+          {{ stateSvc.organization()?.ownerId === auth.user()?.id ? 'person' : 'public' }}
+        </mat-icon>
+        Organization
+      </div>
+      <mat-select
+        id="orgSelect"
+        #orgSelect
+        [value]="stateSvc.organization()?.id"
+        (selectionChange)="orgChanged(orgSelect.value)">
+        <mat-select-trigger>
+          <div class="context-selector__organization-selection">
+            <span> {{ stateSvc.organization()?.name }} </span>
+          </div>
+        </mat-select-trigger>
+        @for (org of orgList(); track org.id) {
+          <mat-option [value]="org.id">
+            <mat-icon>{{ org.ownerId === auth.user()?.id ? 'person' : 'public' }}</mat-icon>
+            {{ org.name }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="context-selector__project">
+    <mat-form-field subscriptSizing="dynamic" appearance="outline">
+      <span matPrefix class="context-selector__project-prefix">Project</span>
+      <mat-select
+        id="projectSelect"
+        #projectSelect
+        [value]="stateSvc.project()?.id"
+        (selectionChange)="projectChanged(projectSelect.value)">
+        @for (p of stateSvc.organization()?.projects; track p.id) {
+          <mat-option [value]="p.id">{{ p.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>

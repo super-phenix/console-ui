@@ -1,0 +1,78 @@
+<div class="d-flex flex-column">
+  <div class="d-flex justify-content-between align-items-center">
+    <h3>Pod Selection</h3>
+    <mat-slide-toggle
+      [checked]="podSelection()"
+      (toggleChange)="podSelection.set(!podSelection()); updateOutput()"></mat-slide-toggle>
+  </div>
+
+  @if (podSelection()) {
+    <div class="d-flex align-items-center gap-1">
+      <i> Labels must follow the naming convention </i>
+      <button type="button" class="color-primary" mat-icon-button matSuffix (click)="openHelper()">
+        <mat-icon>help</mat-icon>
+      </button>
+    </div>
+    <spx-match-label [(matchLabels)]="podMatchLabels" (matchLabelsChange)="updateOutput()"></spx-match-label>
+    <spx-match-expression
+      [(matchExpressions)]="podMatchExpressions"
+      (matchExpressionsChange)="updateOutput()"></spx-match-expression>
+  }
+
+  <div class="d-flex justify-content-between align-items-center">
+    <h3>Ip Block</h3>
+    <mat-slide-toggle [checked]="ipBlock()" (toggleChange)="ipBlock.set(!ipBlock())"></mat-slide-toggle>
+  </div>
+  @if (ipBlock()) {
+    <mat-form-field>
+      <mat-label>CIDR</mat-label>
+      <input
+        matInput
+        required
+        [value]="cidr()"
+        (blur)="updateCidr($event.target.value)"
+        type="text"
+        autocomplete="off"
+        placeholder="192.168.0.0/16" />
+    </mat-form-field>
+    <div class="d-flex align-items-center gap-2">
+      <mat-form-field class="flex-grow">
+        <mat-label>Exception</mat-label>
+        <input matInput [formControl]="exceptControl" type="text" autocomplete="off" placeholder="192.168.0.0" />
+        @if (exceptControl.errors?.['ip']) {
+          <mat-error>Invalid IP address</mat-error>
+        } @else if (exceptControl.errors?.['ipRange']) {
+          <mat-error>IP not in subnet range</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="d-flex">
+        <button
+          matIconButton
+          [class.color-primary]="exceptControl.valid"
+          [disabled]="!exceptControl.valid"
+          (click)="addValue()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+    <div>
+      @if (exceptions().length > 0) {
+        <div class="exception-list">
+          @for (exception of exceptions(); track $index) {
+            <div class="exception-list__item">
+              <div class="exception-list__item-content">
+                <span>{{ exception }}</span>
+              </div>
+              <div class="exception-list__item-actions">
+                <button class="color-primary" mat-icon-button (click)="removeItemByIndex($index, exceptions())">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

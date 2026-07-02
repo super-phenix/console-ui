@@ -1,0 +1,14 @@
+<div class="main-content__header">
+  @if (subtitle()) {
+    <h2 class="main-content__header-subtitle">{{ subtitle() }}</h2>
+  }
+
+  <div class="d-flex align-items-center gap-2">
+    @if (navBack() !== undefined) {
+      <button class="main-content__header-navBack" matIconButton (click)="navigateBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    }
+    <h1 class="main-content__header-title">{{ title() ? title() : stateSvc.project()?.name }}</h1>
+  </div>
+</div>

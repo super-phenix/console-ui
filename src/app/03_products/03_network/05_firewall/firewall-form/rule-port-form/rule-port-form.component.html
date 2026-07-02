@@ -1,0 +1,63 @@
+<div class="d-flex gap-2 align-items-center" [formGroup]="portForm">
+  <mat-form-field subscriptSizing="dynamic">
+    <mat-label>Port Start</mat-label>
+    <input matInput type="number" autocomplete="off" min="1" max="65535" formControlName="port" placeholder="8080" />
+  </mat-form-field>
+
+  <div class="d-flex">
+    <mat-icon>arrow_right_alt</mat-icon>
+  </div>
+
+  <mat-form-field subscriptSizing="dynamic">
+    <mat-label>Port End</mat-label>
+    <input
+      matInput
+      type="number"
+      autocomplete="off"
+      [min]="portForm.get('port')?.value || 1"
+      max="65535"
+      formControlName="endPort"
+      placeholder="8080" />
+  </mat-form-field>
+
+  <mat-form-field subscriptSizing="dynamic">
+    <mat-label>Protocol</mat-label>
+    <mat-select formControlName="protocol">
+      <mat-option value="TCP"> TCP </mat-option>
+      <mat-option value="UDP"> UDP </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div class="d-flex">
+    <button
+      matIconButton
+      type="button"
+      [class.color-primary]="portForm.valid"
+      [disabled]="!portForm.valid"
+      (click)="addPort()">
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
+</div>
+
+<div>
+  @if (rulePorts().length > 0) {
+    <div class="rule-port-list">
+      @for (port of rulePorts(); track $index) {
+        <div class="rule-port-list__item">
+          <div class="rule-port-list__item-content">
+            <span>{{ port.port }}</span>
+            <mat-icon>arrow_right_alt</mat-icon>
+            <span>{{ port.endPort }} </span>
+            <span>[{{ port.protocol }}] </span>
+          </div>
+          <div class="rule-port-list__item-actions">
+            <button class="color-primary" mat-icon-button (click)="removeItemByIndex($index, rulePorts())">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

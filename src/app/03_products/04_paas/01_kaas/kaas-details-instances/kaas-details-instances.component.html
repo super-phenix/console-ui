@@ -1,0 +1,140 @@
+<div class="product-list">
+  <div class="mt-2 d-flex justify-content-end">
+    <spx-auto-refresh (refresh)="reloadData()"></spx-auto-refresh>
+  </div>
+
+  <div class="product-list__table">
+    @if (instancesResource.isLoading() || instancesResource.status() === 'error') {
+      <div class="product-list__table-loading-shade">
+        @if (instancesResource.isLoading()) {
+          <mat-spinner></mat-spinner>
+        }
+        @if (instancesResource.status() === 'error') {
+          <div class="product-list__table-error">Failed to retrieve products</div>
+        }
+      </div>
+    }
+
+    <mat-table [dataSource]="dataSource()">
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef>ID</mat-header-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.eid }} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.productName }} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="ip">
+        <mat-header-cell *matHeaderCellDef>Internal IP</mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.data.vmi?.status) {
+            <div class="d-flex gap-1 flex-wrap">
+              @for (item of el.data.vmi.status.interfaces; track $index) {
+                @if (item.name) {
+                  @for (ip of item.ipAddresses; track $index) {
+                    <mat-chip-set [aria-label]="'ip address ' + ip">
+                      <mat-chip class="status-chip--info" disabled="true">
+                        {{ ip }}
+                      </mat-chip>
+                    </mat-chip-set>
+                  }
+                }
+              }
+            </div>
+          }
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="gitops">
+        <mat-header-cell *matHeaderCellDef>GitOps</mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.data.gitops === 'true') {
+            <mat-icon>check</mat-icon>
+          }
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          <mat-chip-set aria-label="instance status">
+            @let status = el.data.vm?.status.printableStatus || 'unknown';
+            <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+              {{ status }}
+            </mat-chip>
+          </mat-chip-set>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions" stickyEnd>
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+            <mat-icon>more_horiz</mat-icon>
+          </button>
+
+          <mat-menu #menu="matMenu">
+            @if (el.data.vm) {
+              @if (el.data.vm.status.printableStatus === 'Stopped' && el.data.vmi.kind === undefined) {
+                <button
+                  mat-menu-item
+                  [disabled]="!canProjectInstanceControl()"
+                  aria-label="Start button"
+                  (click)="start(el.data)">
+                  <mat-icon fontSet="symbols-fill">play_arrow</mat-icon>
+                  Start
+                </button>
+              } @else if (el.data.vm.status.printableStatus === 'Running' && el.data.vmi.kind !== undefined) {
+                <button
+                  mat-menu-item
+                  [disabled]="!canProjectInstanceControl()"
+                  aria-label="Stop button"
+                  (click)="stop(el.data)">
+                  <mat-icon fontSet="symbols-fill">stop</mat-icon>
+                  Stop
+                </button>
+              } @else {
+                <button class="as-div" mat-menu-item disabled aria-label="Refreshing">
+                  <mat-icon fontSet="symbols-fill">sync</mat-icon>
+                  Actualisation
+                </button>
+              }
+            }
+
+            @if (el.data.vmi) {
+              <button
+                mat-menu-item
+                [disabled]="!canProjectInstanceTerminal()"
+                aria-label="Open Console button"
+                (click)="openConsole(el)">
+                <mat-icon fontSet="symbols-fill">terminal</mat-icon>
+                Console
+              </button>
+            }
+
+            <a
+              mat-menu-item
+              [routerLink]="['/products', 'compute', 'instance', 'details', az(), el.data.eid]"
+              aria-label="Go to subnet"
+              target="_blank">
+              <mat-icon>open_in_new</mat-icon>
+              Details
+            </a>
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <tr class="d-flex mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+          No data for this product type
+        </td>
+        <td class="mat-mdc-cell mat-column-actions mat-column-actions--empty"></td>
+      </tr>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </mat-table>
+  </div>
+</div>

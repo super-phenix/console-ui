@@ -1,0 +1,138 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.table-overrides(
+    (
+      background-color: var(--mat-sys-background),
+      row-item-outline-color: var(--mat-sys-outline),
+      header-headline-color: var(--mat-sys-on-surface),
+      header-container-height: 40px,
+    )
+  );
+}
+
+mat-table {
+  --col-min-width: 100px;
+
+  .mat-mdc-row {
+    background-color: var(--mat-sys-surface);
+  }
+
+  .mat-mdc-header-row {
+    background-color: var(--mat-sys-surface-bright);
+  }
+
+  .mat-mdc-row {
+    min-height: 70px;
+    .mat-mdc-cell {
+      min-width: var(--col-min-width);
+    }
+
+    &:last-child {
+      border-radius: var(--mat-sys-corner-small-bottom);
+      .mat-mdc-cell:first-child {
+        border-bottom-left-radius: var(--mat-sys-corner-small);
+      }
+      .mat-mdc-cell:last-child {
+        border-bottom-right-radius: var(--mat-sys-corner-small);
+      }
+    }
+  }
+
+  .mat-mdc-header-row {
+    // height: 50px !important;
+    border-radius: var(--mat-sys-corner-small-top);
+
+    .mat-mdc-header-cell:first-child {
+      border-top-left-radius: var(--mat-sys-corner-small);
+    }
+    .mat-mdc-header-cell:last-child {
+      border-top-right-radius: var(--mat-sys-corner-small);
+    }
+
+    .mat-mdc-header-cell {
+      border-top: 1px solid var(--mat-sys-surface);
+      min-width: var(--col-min-width);
+    }
+  }
+
+  // COLUMN SPECIFICATIONS
+  .mat-column-actions {
+    justify-content: center;
+    --col-min-width: 80px;
+    max-width: var(--col-min-width);
+    padding: 0 16px;
+
+    background-color: var(--mat-sys-surface-bright) !important;
+    border-left: 1px solid var(--stroke-default);
+
+    &--empty {
+      padding: 0;
+    }
+
+    &--double-btn {
+      --col-min-width: 100px;
+    }
+
+    .mdc-icon-button {
+      border: none !important;
+    }
+  }
+
+  .mat-column-az {
+    &--pra {
+      border-left: 8px solid var(--pra-banner);
+      padding-left: calc(24px - 8px); // 24px is the default material value
+    }
+  }
+
+  .mat-mdc-cell {
+    .text-truncate {
+      display: -webkit-box;
+      --nb-line: 3;
+      line-clamp: var(--nb-line);
+      -webkit-line-clamp: var(--nb-line);
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  .mat-column-id {
+    --col-min-width: 150px;
+  }
+
+  .mat-column-name {
+    --col-min-width: 250px;
+  }
+
+  .mat-column-az {
+    --col-min-width: 100px;
+    max-width: var(--col-min-width);
+  }
+
+  .mat-column-gitops {
+    justify-content: center;
+    --col-min-width: 80px;
+    max-width: var(--col-min-width);
+  }
+
+  .mat-column-status {
+    justify-content: center;
+    max-width: 225px;
+  }
+
+  .mat-mdc-row:hover {
+    background-color: var(--component-hover);
+
+    .mat-column-actions {
+      background-color: var(--component-hover) !important;
+    }
+  }
+}
+
+.mat-table--full-size {
+  height: fit-content !important;
+  mat-table {
+    overflow: visible;
+  }
+}

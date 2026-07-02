@@ -1,0 +1,300 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Disk details"></spx-content-header>
+
+    @if (diskProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        @let disk = diskProduct.value();
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        @if (
+          (runningStatus()?.reason !== 'Error' &&
+            canProjectSnapshotWrite() &&
+            diskProduct.value().gitops !== 'true' &&
+            !isClusterInstance()) ||
+          (disk?.mountStatus?.isMounted && (instanceStatus() === 'Stopped' || instanceStatus() === 'Succeeded')) ||
+          (canProjectSnapshotWrite() &&
+            (disk?.disk?.status?.progress === '100.0%' || disk?.pvc?.status?.phase === 'Bound')) ||
+          (canProjectArgoCdRead() && diskProduct.value().gitops === 'true' && !isClusterInstance()) ||
+          (disk.gitops !== 'true' && canProjectDiskWrite())
+        ) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (
+              runningStatus()?.reason !== 'Error' &&
+              canProjectSnapshotWrite() &&
+              diskProduct.value().gitops !== 'true' &&
+              !isClusterInstance()
+            ) {
+              <button
+                mat-menu-item
+                aria-label="Edit disk button"
+                [routerLink]="['/products/storage/disk', 'update', disk.codeAZ, disk.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (
+              canProjectSnapshotWrite() &&
+              (disk?.disk?.status?.progress === '100.0%' || disk?.pvc?.status?.phase === 'Bound')
+            ) {
+              <button mat-menu-item aria-label="Create Snapshot button" (click)="createSnapshot()">
+                <mat-icon>camera_alt</mat-icon>
+                Create Snapshot
+              </button>
+            }
+
+            @if (disk?.mountStatus?.isMounted && (instanceStatus() === 'Stopped' || instanceStatus() === 'Succeeded')) {
+              <button mat-menu-item (click)="unmount()">
+                <mat-icon>eject</mat-icon>
+                Unmount
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && diskProduct.value().gitops === 'true' && !isClusterInstance()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (disk.gitops !== 'true' && canProjectDiskWrite()) {
+              <mat-divider></mat-divider>
+              <button
+                mat-menu-item
+                aria-label="Delete disk button"
+                (click)="deleteDisk()"
+                [disabled]="disk?.mountStatus?.isMounted !== false || isClusterInstance()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (
+    diskProduct.hasValue() &&
+    diskProduct.value().gitops !== 'true' &&
+    !diskProduct.value().productTypeId &&
+    !isClusterInstance()
+  ) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (diskProduct.hasValue() && diskStatus().isPRA) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (instanceProduct.hasValue() && isClusterInstance()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created by a KaaS Product. You cannot modify it.
+    </spx-banner>
+  }
+
+  @if (diskProduct.hasValue() && runningStatus()?.reason === 'Error') {
+    @if (runningStatus()?.message === DataVolumeTooSmall) {
+      <spx-banner [level]="BannerLevelEnum.Error" multiline>
+        <span>Failed to initialize the disk.</span>
+        <span>The disk size doesn't allow to initialise the source. </span>
+      </spx-banner>
+    } @else {
+      <spx-banner [level]="BannerLevelEnum.Error" multiline>
+        <span>Error on the disk.</span>
+        <span>Context: {{ runningStatus()?.message }}</span>
+      </spx-banner>
+    }
+  }
+
+  @if (diskProduct.hasValue() && !diskProduct.value().disk) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the snapshot on the AZ.</spx-banner>
+  }
+
+  @if (
+    diskProduct.hasValue() &&
+    diskProduct.value().pvc &&
+    diskProduct.value().pvc?.spec?.storageClassName === 'undefined-storage-class'
+  ) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>The storage class cannot be retrieved.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  <div class="product-details__content">
+    @if (diskProduct.hasValue()) {
+      <h2>General Information</h2>
+      @let disk = diskProduct.value()!;
+      <div spxGrid>
+        <div class="product-details__card sg-r2 sg-c2">
+          <h3 class="text-break-all mt-0 mb-1">{{ disk.productName }}</h3>
+
+          <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="disk.eid" />
+
+          <div class="product-details__card-line">
+            <strong>Status: </strong>
+            <mat-chip-set aria-label="disk status">
+              @if (runningStatus()?.reason === 'Error') {
+                <mat-chip class="status-chip--error" disabled="true"> Error </mat-chip>
+              } @else if (disk?.disk?.status?.progress) {
+                @let status = disk?.disk?.status?.progress === '100.0%' ? 'completed' : 'pending';
+                <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                  {{ disk?.disk?.status?.progress === '100.0%' ? 'Ready' : disk?.disk?.status?.progress }}
+                </mat-chip>
+              } @else {
+                @let status = disk?.pvc?.status?.phase === 'Bound' ? 'ready' : 'error';
+                <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                  {{ status === 'ready' ? 'Ready' : 'Error' }}
+                </mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+
+          <spx-span-copy class="product-details__card-line" key="Local ID" [value]="disk.id" />
+          <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+          <spx-span-copy
+            class="product-details__card-line"
+            key="Organization ID"
+            [value]="productLabelInfo().organizationId" />
+        </div>
+
+        <div class="product-details__card sg-r1 sg-c1">
+          <div class="product-details__card-line product-details__card-line--split flex-grow">
+            <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+            <span class="product-details__card-line-right"> {{ disk.codeAZ?.toUpperCase() }} </span>
+
+            <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+            <span class="product-details__card-line-right">
+              {{ disk.gitops === 'true' ? 'Yes' : 'No' }}
+            </span>
+
+            <span class="product-details__card-line-left"><strong>Replication: </strong></span>
+            <div class="product-details__card-line-right">
+              <mat-chip-set aria-label="disk status">
+                @let matChipStatus = diskStatus().isReplicated ? 'ready' : 'deactivated';
+                <mat-chip [class]="'status-chip--' + matChipStatus" disabled="true">
+                  {{ diskStatus().isReplicated ? 'Ready' : 'None' }}
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Specifications</h2>
+
+      @let sourceSpec = disk?.disk?.spec?.source;
+      @let storageSpec = disk?.disk?.spec?.storage;
+      @let storageClassName = disk?.pvc?.spec?.storageClassName;
+
+      <div spxGrid>
+        <div class="product-details__card sg-r1 sg-c2">
+          <h3 class="mt-0">Storage</h3>
+          <span class="product-details__card-line">
+            <strong>Size: </strong>
+            {{ disk?.pvc?.status?.capacity?.storage || storageSpec?.resources?.requests?.['storage'] }}
+          </span>
+
+          <span class="product-details__card-line">
+            <strong>Mode: </strong> {{ storageSpec?.volumeMode || disk?.pvc?.spec?.volumeMode }}
+          </span>
+
+          <span class="product-details__card-line"> <strong>Storage Class: </strong> {{ storageClassName }} </span>
+        </div>
+
+        <div class="product-details__card sg-r1" [class]="sourceSpec?.blank ? 'sg-c1' : 'sg-c2'">
+          <h3 class="mt-0">Source</h3>
+
+          @if (sourceSpec?.blank) {
+            <span class="product-details__card-line"><strong>Type: </strong> Blank </span>
+          } @else if (sourceSpec?.registry) {
+            <span class="product-details__card-line"><strong>Type: </strong> Registry </span>
+            <spx-span-copy class="product-details__card-line" key="Url" [value]="sourceSpec?.registry.url" />
+          } @else if (sourceSpec?.http) {
+            <span class="product-details__card-line"><strong>Type: </strong> Http </span>
+            <spx-span-copy class="product-details__card-line" key="Url" [value]="sourceSpec?.http.url" />
+          } @else if (sourceSpec?.pvc) {
+            <span class="product-details__card-line"><strong>Type: </strong> Clone </span>
+            <spx-span-copy class="product-details__card-line" key="Origine" [value]="sourceSpec?.pvc.name" />
+          } @else if (sourceSpec?.snapshot) {
+            <span class="product-details__card-line"><strong>Type: </strong> Snapshot </span>
+            <spx-span-copy class="product-details__card-line" key="Origine" [value]="sourceSpec?.snapshot.name" />
+          } @else if (disk?.pvc?.spec?.dataSource) {
+            <span class="product-details__card-line"><strong>Type: </strong> Snapshot </span>
+            <spx-span-copy
+              class="product-details__card-line"
+              key="Origine"
+              [value]="disk?.pvc?.spec?.dataSource.name" />
+          }
+        </div>
+
+        @if (disk?.mountStatus?.isMounted) {
+          <div class="product-details__card sg-r1 sg-c2">
+            <span class="product-details__card-line">
+              <strong>Used by: </strong>
+              {{ disk.mountStatus.by }}
+              <a
+                class="ml-1 color-primary"
+                mat-icon-button
+                [routerLink]="['/products', 'compute', 'instance', 'details', az(), disk.mountStatus.by]"
+                aria-label="Go to instance"
+                target="_blank">
+                <mat-icon> open_in_new</mat-icon>
+              </a>
+            </span>
+
+            <span class="product-details__card-line">
+              <strong>Status: </strong>
+              <mat-chip-set aria-label="instance status">
+                <mat-chip [class]="'status-chip--' + instanceStatus()!.toLowerCase()" disabled="true">
+                  {{ instanceStatus() }}
+                </mat-chip>
+              </mat-chip-set>
+            </span>
+
+            <span class="product-details__card-line">
+              @if (instanceStatus() !== 'Stopped' || instanceStatus() !== 'Succeeded') {
+                <i>To unmount the disk the instance must be stopped!</i>
+              }
+            </span>
+          </div>
+        }
+      </div>
+
+      <h2>Labels</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c-all">
+          <mat-chip-set class="product-details__labels" aria-label="Labels">
+            @for (labels of disk?.pvc?.metadata?.labels | keyvalue; track $index) {
+              <mat-chip (click)="copy(labels.value)">
+                <div class="d-flex flex-wrap gap-x-1">
+                  <span>{{ labels.key }}:</span>
+                  <span>{{ labels.value }}</span>
+                </div>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+    }
+  </div>
+</div>

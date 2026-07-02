@@ -1,0 +1,88 @@
+<div class="org-settings main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header title="Organization Settings"></spx-content-header>
+
+    @if (
+      canOrganizationWrite() ||
+      (stateSvc.organization()?.ownerId && auth.user() && auth.user()?.id === stateSvc.organization()?.ownerId)
+    ) {
+      <div class="d-flex gap-3">
+        @if (canOrganizationWrite()) {
+          <button matButton="filled" (click)="edit()"><mat-icon class="symbols-fill">edit</mat-icon> Edit</button>
+        }
+
+        @if (stateSvc.organization()?.ownerId && auth.user() && auth.user()?.id === stateSvc.organization()?.ownerId) {
+          <button
+            matButton="outlined"
+            [disabled]="auth.user()?.personalOrg && auth.user()!.personalOrg.length <= 1"
+            (click)="deleteOrg()">
+            <mat-icon class="symbols-fill">delete</mat-icon> Delete
+          </button>
+          <button
+            matButton="outlined"
+            [disabled]="auth.user()?.personalOrg && auth.user()!.personalOrg.length <= 1"
+            (click)="transferOrg()">
+            <mat-icon>arrow_upload_progress</mat-icon> Transfer
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="info-card my-3">
+    <div class="info-card__content info-card__content--space-evenly">
+      <div class="info-card__item info-card__item--fixed">
+        <div class="info-card__item-label">Name</div>
+        <div class="info-card__item-text">{{ stateSvc.organization()?.name }}</div>
+      </div>
+
+      <div class="info-card__item info-card__item--fixed">
+        <div class="info-card__item-label">Id</div>
+        <div class="info-card__item-text">
+          <spx-span-copy [value]="stateSvc.organization()?.id"> </spx-span-copy>
+        </div>
+      </div>
+
+      <div class="info-card__item info-card__item--fixed info-card__item--small">
+        <div class="info-card__item-label">Projects</div>
+        <div class="info-card__item-text text-title-large-prominent">
+          {{ stateSvc.organization()?.projects?.length || 0 | number: '2.0-3' }}
+        </div>
+      </div>
+
+      <div class="info-card__item info-card__item--fixed info-card__item--small">
+        <div class="info-card__item-label">Users</div>
+        <div class="info-card__item-text text-title-large-prominent">
+          <!-- Add the owner to the user count -->
+          {{ (stateSvc.organization()?.users?.length || 0) + 1 | number: '2.0-3' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <mat-tab-group
+    class="org-settings__tabs mat-tab-fill-height"
+    mat-stretch-tabs="false"
+    mat-align-tabs="start"
+    (selectedIndexChange)="updateFragment($event)"
+    [selectedIndex]="initialIndex()">
+    <mat-tab label="General">
+      <ng-template matTabContent> <spx-organization-details></spx-organization-details></ng-template>
+    </mat-tab>
+    @if (canOrganizationProjectManagement()) {
+      <mat-tab label="Projects">
+        <ng-template matTabContent> <spx-organization-projects></spx-organization-projects></ng-template>
+      </mat-tab>
+    }
+    @if (canOrganizationIAMRead()) {
+      <mat-tab label="Users">
+        <ng-template matTabContent> <spx-organization-users></spx-organization-users></ng-template>
+      </mat-tab>
+    }
+    @if (canOrganizationIAMRead()) {
+      <mat-tab label="Roles">
+        <ng-template matTabContent> <spx-organization-iam></spx-organization-iam></ng-template>
+      </mat-tab>
+    }
+  </mat-tab-group>
+</div>

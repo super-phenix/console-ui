@@ -1,0 +1,71 @@
+<div class="org-users">
+  @if (canOrganizationWrite()) {
+    <div class="org-users__header">
+      <mat-form-field class="org-users__header-search" subscriptSizing="dynamic">
+        <mat-label>Search</mat-label>
+        <input matInput #searchInput (input)="updateFilter(searchInput.value)" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <div class="org-users__header-create-btn">
+        <button matButton="filled" class="btn--large" ariaLabel="Button to invite a user" (click)="invite()">
+          <mat-icon>add</mat-icon>
+          Invite a user
+        </button>
+      </div>
+    </div>
+  }
+
+  <mat-table [dataSource]="dataSource()" class="org-users__table">
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{ element.user.firstname }} {{ element.user.lastname }} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <mat-header-cell *matHeaderCellDef> Email </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{ element.user.email }} </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="group">
+      <mat-header-cell *matHeaderCellDef> Group </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        @if (!element.owner) {
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-select
+              [disabled]="!canOrganizationIAMWrite()"
+              multiple
+              #groupSelect
+              [value]="element.groups"
+              (closed)="updateGroup(element.user.inviteCode, groupSelect.value, element.groups)">
+              @for (group of groups.value(); track $index) {
+                <mat-option
+                  [value]="group.id"
+                  [disabled]="groupSelect.value.length <= 1 && groupSelect.value.includes(group.id)"
+                  >{{ group.name }}</mat-option
+                >
+              }
+            </mat-select>
+          </mat-form-field>
+        } @else {
+          <span class="pl-3">Owner</span>
+        }
+      </mat-cell>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+      <mat-cell *matCellDef="let element" class="org-users__table-actions">
+        @if (!element.owner && canOrganizationIAMWrite()) {
+          <button mat-icon-button class="color-primary" (click)="removeUser(element.user.id)">
+            <mat-icon>person_remove</mat-icon>
+          </button>
+        }
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+  </mat-table>
+</div>

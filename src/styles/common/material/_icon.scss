@@ -1,0 +1,49 @@
+@use '@angular/material' as mat;
+
+.mat-icon--normal-size {
+  height: 24px !important;
+  width: 24px !important;
+  font-size: 24px !important;
+}
+
+// Apply this class to a div around the mat-icon
+.mat-icon--with-bg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 24px;
+  height: 24px;
+
+  background-color: var(--accent) !important;
+  color: var(--icon-accent) !important;
+
+  border-radius: var(--mat-sys-corner-extra-small);
+
+  .mat-icon {
+    width: 16px !important;
+    height: 16px !important;
+    font-size: 16px !important;
+  }
+}
+
+// Apply this class to a div around the mat-icon
+.mat-icon--with-bg--large {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 32px;
+  height: 32px;
+
+  background-color: var(--accent) !important;
+  color: var(--icon-accent) !important;
+
+  border-radius: var(--mat-sys-corner-extra-small);
+
+  .mat-icon {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 24px !important;
+  }
+}

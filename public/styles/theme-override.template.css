@@ -1,0 +1,324 @@
+/*
+ ┌──────────────────────────────────────────────────────────────────────────┐
+ │                     THEME OVERRIDE TEMPLATE                              │
+ ├──────────────────────────────────────────────────────────────────────────┤
+ │  Copy this file to `public/styles/theme-override.css` and uncomment      │
+ │  only the variables you want to customize.                               │
+ │                                                                          │
+ │  Variables defined here will override the default theme.                 │
+ │  All color tokens support automatic light/dark mode via `light-dark()`.  │
+ │  Delete or leave commented any variable you do not need to change.       │
+ └──────────────────────────────────────────────────────────────────────────┘
+*/
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════════════
+   * PRIMITIVES
+   * Base-level design tokens consumed by semantic tokens below.
+   * Changing a primitive will cascade to every semantic token that
+   * references it.
+   * ═══════════════════════════════════════════════════════════════════════ */
+
+  /* ── Fonts ──────────────────────────────────────────────────────────────
+   * --headline-font : Font family used for headlines and titles.
+   * --body-font     : Font family used for body text, labels, and UI copy.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --headline-font: JetBrainsMono; */
+  /* --body-font: Sora; */
+
+  /* ── Accent · Red ───────────────────────────────────────────────────────
+   * Used for error states, destructive actions, and alert-error tokens.
+   *
+   * --red-20         : Lightest red — backgrounds, subtle highlights.
+   * --red-20-opacity : Semi-transparent red-20 (8%) — light alert fills.
+   * --red-30         : Mid-tone red — error text, error icons.
+   * --red-50         : Deep red — strong error indicators, badges.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --red-20: #f1d1ce; */
+  /* --red-20-opacity: color-mix(in srgb, var(--red-20) 8%, transparent); */
+  /* --red-30: #e16c62; */
+  /* --red-50: #c23c34; */
+
+  /* ── Accent · Green ─────────────────────────────────────────────────────
+   * Used for success states, confirmations, and alert-confirm tokens.
+   *
+   * --green-20         : Lightest green — success backgrounds.
+   * --green-20-opacity : Semi-transparent green-20 (8%) — light success fills.
+   * --green-30         : Mid-tone green — success indicators.
+   * --green-50         : Deep green — strong success badges.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --green-20: #c7e6d3; */
+  /* --green-20-opacity: color-mix(in srgb, var(--green-20) 8%, transparent); */
+  /* --green-30: #95c0a6; */
+  /* --green-50: #5c816c; */
+
+  /* ── Accent · Blue ──────────────────────────────────────────────────────
+   * Used for informational states and alert-info tokens.
+   *
+   * --blue-20         : Lightest blue — info backgrounds.
+   * --blue-20-opacity : Semi-transparent blue-20 (8%) — light info fills.
+   * --blue-30         : Mid-tone blue — info indicators.
+   * --blue-50         : Deep blue — strong info badges.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --blue-20: #c8c7e6; */
+  /* --blue-20-opacity: color-mix(in srgb, var(--blue-20) 8%, transparent); */
+  /* --blue-30: #959ac0; */
+  /* --blue-50: #5c5d81; */
+
+  /* ── Neutral ────────────────────────────────────────────────────────────
+   * Grayscale ramp from white (0) to near-black (100).
+   * Used for backgrounds, surfaces, borders, text, and disabled states.
+   *
+   * --neutral-0           : Pure white — light-mode card backgrounds.
+   * --neutral-0-opacity   : Semi-transparent white (20%) — glass overlays.
+   * --neutral-10          : Off-white — light-mode page background.
+   * --neutral-20          : Light gray — borders, dividers.
+   * --neutral-30 … 50    : Mid grays — disabled text, secondary borders.
+   * --neutral-60 … 70    : Dark grays — icons, label text.
+   * --neutral-80 … 90    : Near-black — title text, dark-mode surfaces.
+   * --neutral-100         : Darkest — dark-mode page background.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --neutral-0: #ffffff; */
+  /* --neutral-0-opacity: color-mix(in srgb, var(--neutral-0) 20%, transparent); */
+  /* --neutral-10: #f4f4f4; */
+  /* --neutral-20: #dddddd; */
+  /* --neutral-30: #c7c4c3; */
+  /* --neutral-40: #b0aca9; */
+  /* --neutral-50: #999491; */
+  /* --neutral-60: #837d79; */
+  /* --neutral-70: #6c6662; */
+  /* --neutral-80: #554f4c; */
+  /* --neutral-90: #3f3a37; */
+  /* --neutral-100: #2a2623; */
+
+  /* ── Primary ────────────────────────────────────────────────────────────
+   * Brand color ramp from lightest (10) to darkest (100).
+   * Drives the main accent, buttons, links, and interactive elements.
+   *
+   * --primary-10          : Palest tint — hover backgrounds (light mode).
+   * --primary-20          : Light tint — accent surfaces, chip backgrounds.
+   * --primary-20-opacity  : Semi-transparent primary-20 (8%) — subtle fills.
+   * --primary-30 … 40    : Warm mid-tones — secondary accents.
+   * --primary-50          : Core brand orange — primary buttons, links.
+   * --primary-60 … 70    : Darker accents — text accent, icon accent.
+   * --primary-80 … 90    : Deep tones — hover/pressed states.
+   * --primary-100         : Darkest — high-contrast accent.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --primary-10: #fff3ed; */
+  /* --primary-20: #ffd7c5; */
+  /* --primary-20-opacity: color-mix(in srgb, var(--primary-20) 8%, transparent); */
+  /* --primary-30: #ffbb9e; */
+  /* --primary-40: #ffa076; */
+  /* --primary-50: #ff844e; */
+  /* --primary-60: #ea703a; */
+  /* --primary-70: #c85725; */
+  /* --primary-80: #a64115; */
+  /* --primary-90: #842e08; */
+  /* --primary-100: #621e00; */
+
+  /* ── Background & Logo ────────────────────────────────────────────────
+   * Configurable images for branding.
+   *
+   * --background-image : Full-page background image (login, inactive-account pages).
+   *                      Recommended size: 1920×1080 px (or larger), SVG preferred.
+   * --logo-image       : Application logo displayed in the header and login pages.
+   *                      Recommended size: 200×60 px (or larger with same aspect ratio), SVG preferred.
+   *
+   * Values must be valid CSS `url()` expressions.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --background-image: url('/assets/images/background.svg'); */
+  /* --logo-image: url('/assets/images/logo.svg'); */
+
+  /* ═══════════════════════════════════════════════════════════════════════
+   * SEMANTIC TOKENS
+   * Higher-level tokens that map primitives to UI purposes.
+   * These use `light-dark(light-value, dark-value)` for automatic
+   * light/dark mode support.
+   * ═══════════════════════════════════════════════════════════════════════ */
+
+  /* ── Border Radius ──────────────────────────────────────────────────────
+   * Controls the roundness of UI elements (cards, buttons, inputs, etc.).
+   *
+   * --br-none        : 0        — sharp corners.
+   * --br-extra-small : 4px      — subtle rounding (inputs, chips).
+   * --br-small       : 8px      — cards, dialogs.
+   * --br-medium      : 12px     — medium containers.
+   * --br-large       : 16px     — large panels.
+   * --br-extra-large : 32px     — pills, floating action buttons.
+   * --br-full        : 9999px   — fully circular (avatars, round buttons).
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --br-none: 0; */
+  /* --br-extra-small: 4px; */
+  /* --br-small: 8px; */
+  /* --br-medium: 12px; */
+  /* --br-large: 16px; */
+  /* --br-extra-large: 32px; */
+  /* --br-full: 9999px; */
+
+  /* ── Alerts ─────────────────────────────────────────────────────────────
+   * Colors for alert banners and notification badges.
+   * Each alert type has a solid variant and a `-light` (subtle fill) variant.
+   *
+   * --alert-confirm       : Success alert background (green).
+   * --alert-confirm-light : Subtle success fill.
+   * --alert-info           : Informational alert background (blue).
+   * --alert-info-light     : Subtle info fill.
+   * --alert-warning        : Warning alert background (orange/primary).
+   * --alert-warning-light  : Subtle warning fill.
+   * --alert-error          : Error alert background (red).
+   * --alert-error-light    : Subtle error fill.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --alert-confirm: light-dark(var(--green-20), var(--green-50)); */
+  /* --alert-confirm-light: light-dark(var(--green-20-opacity), var(--green-20-opacity)); */
+  /* --alert-info: light-dark(var(--blue-20), var(--blue-50)); */
+  /* --alert-info-light: light-dark(var(--blue-20-opacity), var(--blue-20-opacity)); */
+  /* --alert-warning: light-dark(var(--primary-20), var(--primary-70)); */
+  /* --alert-warning-light: light-dark(var(--primary-20-opacity), var(--primary-20-opacity)); */
+  /* --alert-error: light-dark(var(--red-20), var(--red-50)); */
+  /* --alert-error-light: light-dark(var(--red-20-opacity), var(--red-20-opacity)); */
+
+  /* ── Icons ──────────────────────────────────────────────────────────────
+   * Icon fill colors for different states.
+   *
+   * --icon-default  : Standard icon color.
+   * --icon-light    : Icon on dark/accent backgrounds.
+   * --icon-accent   : Highlighted/active icon (brand color).
+   * --icon-error    : Error-state icon.
+   * --icon-disabled : Disabled/inactive icon.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --icon-default: light-dark(var(--neutral-70), var(--neutral-10)); */
+  /* --icon-light: light-dark(var(--neutral-0), var(--neutral-0)); */
+  /* --icon-accent: light-dark(var(--primary-70), var(--primary-60)); */
+  /* --icon-error: light-dark(var(--red-30), var(--red-30)); */
+  /* --icon-disabled: light-dark(var(--neutral-40), var(--neutral-40)); */
+
+  /* ── Strokes / Borders ──────────────────────────────────────────────────
+   * Border and outline colors.
+   *
+   * --stroke-default : Standard border (dividers, card outlines).
+   * --stroke-error   : Error-state border (form validation).
+   * --stroke-accent  : Accent border (focused inputs, active tabs).
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --stroke-default: light-dark(var(--neutral-20), var(--neutral-60)); */
+  /* --stroke-error: light-dark(var(--red-50), var(--red-50)); */
+  /* --stroke-accent: light-dark(var(--primary-70), var(--primary-60)); */
+
+  /* ── Surfaces ───────────────────────────────────────────────────────────
+   * Background colors for the application shell, cards, and components.
+   *
+   * --background      : Page-level background.
+   * --block           : Card / panel background.
+   * --component-light : Light component surface (inputs, dropdowns).
+   * --component-dark  : Slightly darker component surface (table headers).
+   * --component-hover : Hovered component surface.
+   * --input           : Active input element fill (e.g., toggle, checkbox).
+   * --input-light     : Light input accent.
+   * --input-hover     : Hovered input element fill.
+   * --disabled        : Disabled element background.
+   * --accent          : Accent surface (selected rows, active tabs).
+   * --bright-accent   : Semi-transparent accent overlay.
+   * --bright          : Semi-transparent white overlay (glass effect).
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --background: light-dark(var(--neutral-10), var(--neutral-100)); */
+  /* --block: light-dark(var(--neutral-0), var(--neutral-90)); */
+  /* --component-light: light-dark(var(--neutral-0), var(--neutral-80)); */
+  /* --component-dark: light-dark(var(--neutral-10), var(--neutral-80)); */
+  /* --component-hover: light-dark(var(--primary-10), var(--neutral-70)); */
+  /* --input: light-dark(var(--primary-70), var(--primary-70)); */
+  /* --input-light: light-dark(var(--primary-20), var(--primary-20)); */
+  /* --input-hover: light-dark(var(--primary-80), var(--primary-80)); */
+  /* --disabled: light-dark(var(--neutral-20), var(--neutral-70)); */
+  /* --accent: light-dark(var(--primary-10), var(--neutral-80)); */
+  /* --bright-accent: light-dark(var(--primary-20-opacity), var(--primary-20-opacity)); */
+  /* --bright: light-dark(var(--neutral-0-opacity), var(--neutral-0-opacity)); */
+
+  /* ── Text ───────────────────────────────────────────────────────────────
+   * Text colors for different contexts.
+   *
+   * --text-title       : Page and section titles.
+   * --text-content     : Body / paragraph text.
+   * --text-input-light : Text on dark/accent backgrounds (e.g., buttons).
+   * --text-input-dark  : Text on light backgrounds (e.g., chip labels).
+   * --text-dark        : Always-dark text (regardless of theme).
+   * --text-label       : Secondary text (labels, captions, hints).
+   * --text-error       : Error message text.
+   * --text-accent      : Accent-colored text (links, highlights).
+   * --text-disabled    : Disabled / placeholder text.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --text-title: light-dark(var(--neutral-80), var(--neutral-0)); */
+  /* --text-content: light-dark(var(--neutral-80), var(--neutral-0)); */
+  /* --text-input-light: light-dark(var(--neutral-0), var(--neutral-0)); */
+  /* --text-input-dark: light-dark(var(--neutral-80), var(--neutral-0)); */
+  /* --text-dark: light-dark(var(--neutral-80), var(--neutral-80)); */
+  /* --text-label: light-dark(var(--neutral-70), var(--neutral-20)); */
+  /* --text-error: light-dark(var(--red-30), var(--red-30)); */
+  /* --text-accent: light-dark(var(--primary-60), var(--primary-60)); */
+  /* --text-disabled: light-dark(var(--neutral-40), var(--neutral-40)); */
+
+  /* ── Config-Drift Warning Strip ─────────────────────────────────────────
+   * Colors for the configuration-drift warning banner displayed when
+   * a resource's live state differs from its declared configuration.
+   *
+   * --drift-bg   : Banner background.
+   * --drift-line : Banner border / separator line.
+   * --drift-ink  : Banner text color.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --drift-bg: light-dark(#fdeede, rgba(200, 87, 37, 0.16)); */
+  /* --drift-line: light-dark(#f4d3b0, rgba(255, 160, 118, 0.32)); */
+  /* --drift-ink: light-dark(#b15b16, var(--primary-40)); */
+
+  /* ── Source Badges ──────────────────────────────────────────────────────
+   * Colors for badges indicating the origin of a configuration value
+   * (e.g., set by VM, by user preference, or by default).
+   *
+   * --badge-vm-bg           : VM-source badge background.
+   * --badge-vm-ink          : VM-source badge text.
+   * --badge-vm-line         : VM-source badge border.
+   * --badge-preference-bg   : Preference-source badge background.
+   * --badge-preference-ink  : Preference-source badge text.
+   * --badge-preference-line : Preference-source badge border.
+   * --badge-default-bg      : Default-source badge background.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --badge-vm-bg: light-dark(#dde9fb, rgba(47, 108, 207, 0.22)); */
+  /* --badge-vm-ink: light-dark(#2f6ccf, #9cc0f5); */
+  /* --badge-vm-line: light-dark(#c8dcf7, rgba(47, 108, 207, 0.38)); */
+  /* --badge-preference-bg: light-dark(#efe4fb, rgba(123, 70, 196, 0.24)); */
+  /* --badge-preference-ink: light-dark(#7b46c4, #c8a9f2); */
+  /* --badge-preference-line: light-dark(#e0cdf7, rgba(123, 70, 196, 0.4)); */
+  /* --badge-default-bg: light-dark(#eeece9, rgba(255, 255, 255, 0.08)); */
+
+  /* ── Status Colors ──────────────────────────────────────────────────────
+   * Semantic status colors used for inline indicators (not alerts).
+   *
+   * --success : Green for positive status (e.g., "running", "healthy").
+   * --warn    : Amber for cautionary status (e.g., "degraded").
+   * --error   : Red for negative status (e.g., "failed", "stopped").
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --success: light-dark(#0d6a2c, #0d6a2c); */
+  /* --warn: light-dark(#925d00, #925d00); */
+  /* --error: light-dark(#9e0000, #9e0000); */
+
+  /* ── Chips ──────────────────────────────────────────────────────────────
+   * Background and text colors for status chips (small colored labels).
+   * Each chip type has a background (`--custom-chips-*`) and a
+   * foreground text color (`--custom-chips-on-*`).
+   *
+   * --custom-chips-success    / --custom-chips-on-success
+   * --custom-chips-warning    / --custom-chips-on-warning
+   * --custom-chips-error      / --custom-chips-on-error
+   * --custom-chips-info       / --custom-chips-on-info
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --custom-chips-success: var(--alert-confirm); */
+  /* --custom-chips-on-success: var(--text-input-dark); */
+  /* --custom-chips-warning: var(--alert-warning); */
+  /* --custom-chips-on-warning: var(--text-input-dark); */
+  /* --custom-chips-error: var(--alert-error); */
+  /* --custom-chips-on-error: var(--text-input-dark); */
+  /* --custom-chips-info: var(--alert-info); */
+  /* --custom-chips-on-info: var(--text-input-dark); */
+
+  /* ── PRA Banner ─────────────────────────────────────────────────────────
+   * Background color for the PRA (Privileged Remote Access) banner.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --pra-banner: light-dark(#fff2c6, #fff2c6); */
+}

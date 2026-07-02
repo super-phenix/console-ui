@@ -1,0 +1,45 @@
+.banner {
+  display: flex;
+  align-items: center;
+  width: calc(100% - 32px);
+
+  padding: 8px 16px;
+  gap: 0.5rem;
+
+  border: 1px solid;
+  border-radius: var(--mat-sys-corner-large);
+
+  &__content {
+    display: flex;
+    flex: 1 0 auto;
+    max-width: 100%;
+
+    &--multiline {
+      flex-direction: column;
+    }
+  }
+
+  &--success {
+    background-color: var(--alert-confirm);
+    color: var(--text-input-dark);
+    border-color: var(--green-30);
+  }
+
+  &--info {
+    background-color: var(--alert-info);
+    color: var(--text-input-dark);
+    border-color: var(--blue-30);
+  }
+
+  &--warn {
+    background-color: var(--alert-warning);
+    color: var(--text-input-dark);
+    border-color: var(--primary-30);
+  }
+
+  &--error {
+    background-color: var(--alert-error);
+    color: var(--text-input-dark);
+    border-color: var(--red-30);
+  }
+}

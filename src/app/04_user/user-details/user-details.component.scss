@@ -1,0 +1,73 @@
+@use '@angular/material' as mat;
+
+.user-details {
+  &__header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+
+  &__tabs {
+    margin-top: 1rem;
+    flex: 1 0 auto;
+    height: 1%;
+  }
+
+  &__organizations {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  &__token-banner {
+    margin-right: 0.5rem;
+    margin-block: 0.5rem;
+
+    &-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    &-code {
+      word-break: break-all;
+      white-space: pre-wrap;
+      background: var(--mat-sys-surface-container);
+      padding: 8px 12px;
+      border-radius: 4px;
+      flex: 1;
+    }
+  }
+
+  &__organizations,
+  &__token {
+    margin-top: 16px;
+
+    &-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 16px;
+
+      &-search {
+        flex: 1 0 400px;
+
+        @include mat.form-field-overrides(
+          (
+            outlined-outline-color: var(--mat-sys-outline-variant),
+            outlined-container-shape: var(--mat-sys-corner-medium),
+          )
+        );
+      }
+
+      &-create-btn {
+        margin-left: auto;
+      }
+    }
+  }
+}

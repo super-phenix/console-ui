@@ -1,0 +1,14 @@
+<div class="vnc">
+  <div class="vnc__header">
+    <div class="vnc__header-status">
+      <button matIconButton class="vnc__header-paste" (click)="refreshSession()"><mat-icon>refresh</mat-icon></button>
+      <span #status></span>
+    </div>
+    <div class="vnc__header-actions">
+      <button matButton="outlined" class="vnc__header-paste" (click)="paste()">Coller</button>
+      <button matButton="outlined" class="vnc__header-ctrlAltDel" (click)="sendCtrlAltDel()">Ctrl+Alt+Del</button>
+    </div>
+  </div>
+
+  <div class="vnc__screen" id="screen"></div>
+</div>

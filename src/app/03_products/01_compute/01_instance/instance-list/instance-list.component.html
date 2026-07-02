@@ -1,0 +1,188 @@
+<div class="product-list main-content">
+  <div class="product-list__header">
+    <spx-content-header titleOnly title="Instance"></spx-content-header>
+
+    <div class="product-list__header-create-btn">
+      <a matButton="filled" ariaLabel="Button to create an Instance" [routerLink]="['create']">
+        <mat-icon class="symbols-fill">add_box</mat-icon>
+        Create
+      </a>
+    </div>
+  </div>
+
+  <spx-product-list-filter
+    [refreshInterval]="refreshInterval()"
+    (refreshIntervalChange)="lss.setValue(INSTANCE_REFRESH_KEY, $event.toString())"
+    (needReload)="reloadData()"
+    (filter)="filterValue.set($event)"
+    [showCluster]="showClusterInstance()"
+    (showClusterChange)="lss.setValue(INSTANCE_SHOW_CLUSTER_KEY, $event.toString())">
+    ></spx-product-list-filter
+  >
+
+  <div class="product-list__table">
+    @if (instanceResource.isLoading() || instanceResource.status() === 'error') {
+      <div class="product-list__table-loading-shade">
+        @if (instanceResource.isLoading()) {
+          <mat-spinner></mat-spinner>
+        }
+        @if (instanceResource.status() === 'error') {
+          <div class="product-list__table-error">Failed to retrieve products</div>
+        }
+      </div>
+    }
+
+    <spx-product-table-wrapper [dataSource]="dataSource()" [columns]="displayedColumns">
+      <ng-container matColumnDef="ip">
+        <mat-header-cell *matHeaderCellDef>Internal IP</mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.data.vmi?.status) {
+            <div class="d-flex gap-1 flex-wrap">
+              @for (item of el.data.vmi.status.interfaces; track $index) {
+                @if (item.name) {
+                  @for (ip of item.ipAddresses; track $index) {
+                    <mat-chip-set [aria-label]="'ip address ' + ip">
+                      <mat-chip class="status-chip--info" disabled="true">
+                        {{ ip }}
+                      </mat-chip>
+                    </mat-chip-set>
+                  }
+                }
+              }
+            </div>
+          }
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          <mat-chip-set aria-label="instance status">
+            @let status = el.data.vm?.status.printableStatus || 'unknown';
+            <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+              {{ status }}
+            </mat-chip>
+          </mat-chip-set>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions" stickyEnd>
+        <mat-header-cell *matHeaderCellDef class="mat-column-actions--double-btn"></mat-header-cell>
+        <mat-cell *matCellDef="let el" class="mat-column-actions--double-btn">
+          <a matIconButton [routerLink]="['details', el.data.codeAZ, el.data.eid]" aria-label="Open Details button">
+            <mat-icon class="icon-accent">visibility</mat-icon>
+          </a>
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Open action menu">
+            <mat-icon>more_horiz</mat-icon>
+          </button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectInstanceWrite() && el.data.gitops !== 'true' && !el.isClusterInstance) {
+              <button
+                mat-menu-item
+                aria-label="Edit instance button"
+                [routerLink]="['update', el.data.codeAZ, el.data.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectSnapshotWrite()) {
+              <button mat-menu-item aria-label="Create Snapshot button" (click)="createSnapshot(el.data)">
+                <mat-icon>camera_alt</mat-icon>
+                Create Snapshot
+              </button>
+            }
+
+            <mat-divider></mat-divider>
+
+            @if (canProjectInstanceTerminal()) {
+              <button
+                mat-menu-item
+                aria-label="Open Terminal button"
+                [disabled]="el.data.vm?.status?.printableStatus !== 'Running'"
+                (click)="openSerial(el.data)">
+                <mat-icon>terminal</mat-icon>
+                Serial
+              </button>
+
+              <button
+                mat-menu-item
+                aria-label="Open VNC button"
+                [disabled]="el.data.vm?.status?.printableStatus !== 'Running'"
+                (click)="openVNC(el.data)">
+                <mat-icon>connected_tv</mat-icon>
+                Console
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && el.data.gitops === 'true' && !el.isClusterInstance) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD(el.data)">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (el.data.vm) {
+              <mat-divider></mat-divider>
+              @if (el.data.vm.status.printableStatus === 'Stopped' || el.data.vmi?.status?.phase === 'Succeeded') {
+                <button
+                  mat-menu-item
+                  [disabled]="!canProjectInstanceControl()"
+                  aria-label="Start button"
+                  (click)="start(el.data)">
+                  <mat-icon fontSet="symbols-fill">play_arrow</mat-icon>
+                  Start
+                </button>
+              } @else {
+                <button
+                  mat-menu-item
+                  [disabled]="!canProjectInstanceControl()"
+                  aria-label="Stop button"
+                  (click)="stop(el.data)">
+                  <mat-icon fontSet="symbols-fill">stop</mat-icon>
+                  Stop
+                </button>
+                <button
+                  mat-menu-item
+                  [disabled]="!canProjectInstanceControl()"
+                  aria-label="Force shutdown"
+                  (click)="stopForce(el.data)">
+                  <mat-icon fontSet="symbols-fill">power_settings_new</mat-icon>
+                  Force Shutdown
+                </button>
+                <button
+                  mat-menu-item
+                  [disabled]="!canProjectInstanceControl()"
+                  aria-label="Restart"
+                  (click)="restart(el.data)">
+                  <mat-icon fontSet="symbols-fill">restart_alt</mat-icon>
+                  Restart
+                </button>
+              }
+            }
+
+            @if (el.data.gitops !== 'true' && canProjectInstanceWrite() && !el.isClusterInstance) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete VM button" (click)="deleteVM(el.data)">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <tr class="d-flex mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+          No data for this product type
+        </td>
+        <td class="mat-mdc-cell mat-column-actions mat-column-actions--empty mat-column-actions--double-btn"></td>
+      </tr>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </spx-product-table-wrapper>
+  </div>
+</div>

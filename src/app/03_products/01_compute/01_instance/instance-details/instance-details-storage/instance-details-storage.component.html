@@ -1,0 +1,187 @@
+<div class="product-details">
+  @if (cloudInit() && cloudInit()!.cloudInitData) {
+    <h2>Cloud Init</h2>
+    @if (cloudInit()?.legacy) {
+      <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+        <span>This cloud init uses the legacy implementation.</span>
+        <span>To switch to the new implementation just update the instance and restart it. </span>
+      </spx-banner>
+    }
+
+    <div spxGrid>
+      <div class="product-details__card sg-r1 sg-c-all">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <h3 class="m-0">UserData :</h3>
+          <button matButton (click)="showUserData = !showUserData">
+            <mat-icon>{{ !showUserData ? 'visibility' : 'visibility_off' }}</mat-icon>
+            {{ !showUserData ? 'Show' : 'Hide' }}
+          </button>
+        </div>
+
+        @if (showUserData) {
+          <pre class="product-details__cloud-init">
+            @let userData = cloudInit()!.cloudInitData;
+            @if (userData) {
+              @for( line of userData.split('\n'); track $index) {
+                <span>{{line}}</span>
+              }
+            }
+          </pre>
+        } @else {
+          <span class="product-details__cloud-init-hidden-message"> Hidden content </span>
+          <pre class="product-details__cloud-init product-details__cloud-init--hidden">
+            <span>#cloud-config</span>
+            <span>chpasswd:</span>
+            <span>  </span>
+          </pre>
+        }
+
+        <div class="mt-2">
+          <span> <strong>Mount type:</strong> {{ cloudInit()!.bus }} </span>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (
+    instanceVolumes().length > 0 ||
+    mountedContainerDisks().length > 0 ||
+    (canProjectInstanceWrite() && availableContainerDisks().length > 0)
+  ) {
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="m-0">Disks</h2>
+      @if (canProjectInstanceWrite() && availableContainerDisks().length > 0) {
+        <button matButton="outlined" [matMenuTriggerFor]="addDiskMenu" aria-label="Manage disks">
+          <mat-icon>tune</mat-icon>
+          Manage
+          <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+        </button>
+        <mat-menu #addDiskMenu="matMenu" xPosition="before">
+          <button mat-menu-item (click)="openManageContainerDisksDialog()">
+            <mat-icon>album</mat-icon>
+            Container disks
+          </button>
+        </mat-menu>
+      }
+    </div>
+
+    @if (disksProduct.status() !== 'error' && disksProduct.value()) {
+      <div class="product-list__table">
+        <mat-table [dataSource]="dataSource()">
+          <ng-container matColumnDef="id">
+            <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
+            <mat-cell *matCellDef="let el"> {{ el.product?.eid }} </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+            <mat-cell *matCellDef="let el"> {{ el.name }} </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="type">
+            <mat-header-cell *matHeaderCellDef> Type </mat-header-cell>
+            <mat-cell *matCellDef="let el"> {{ el?.type }} </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="mountType">
+            <mat-header-cell *matHeaderCellDef> Mount Type </mat-header-cell>
+            <mat-cell *matCellDef="let el"> {{ el?.bus }} </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="size">
+            <mat-header-cell *matHeaderCellDef> Size </mat-header-cell>
+            <mat-cell *matCellDef="let el">
+              {{
+                el?.product?.pvc?.status?.capacity?.storage ||
+                  el?.product?.disk?.spec?.storage?.resources?.requests?.storage
+              }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="progress">
+            <mat-header-cell *matHeaderCellDef> Progress </mat-header-cell>
+            <mat-cell *matCellDef="let el">
+              @if (el.product) {
+                @if (el?.product?.mountStatus?.isMounted) {
+                  @if (el.product?.disk?.status?.progress) {
+                    @let status = el.product?.disk?.status?.progress === '100.0%' ? 'completed' : 'pending';
+                    <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                      {{
+                        el.product?.disk?.status?.progress === '100.0%' ? 'Ready' : el.product?.disk?.status?.progress
+                      }}
+                    </mat-chip>
+                  } @else {
+                    @let status = el.product?.pvc?.status?.phase === 'Bound' ? 'ready' : 'error';
+                    <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                      {{ status === 'ready' ? 'Ready' : 'Error' }}
+                    </mat-chip>
+                  }
+                } @else {
+                  <mat-chip-set aria-label="instance status">
+                    <mat-chip class="status-chip--warning" disabled="true">
+                      <div class="d-flex align-items-center gap-1">
+                        <mat-icon>warning</mat-icon>
+                        Restart required
+                      </div>
+                    </mat-chip>
+                  </mat-chip-set>
+                }
+              } @else if (el.containerDisk) {
+                <mat-chip [class]="'status-chip--' + (el.containerDiskMounted ? 'ready' : 'warning')" disabled="true">
+                  {{ el.containerDiskMounted ? 'Mounted' : 'Not mounted' }}
+                </mat-chip>
+              }
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="actions" stickyEnd>
+            <mat-header-cell *matHeaderCellDef></mat-header-cell>
+            <mat-cell *matCellDef="let el">
+              @if (el.product) {
+                <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Action menu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+
+                <mat-menu #menu="matMenu">
+                  @if (
+                    el?.product.mountStatus?.isMounted &&
+                    (instanceStatus() === 'Stopped' || instanceStatus() === 'Succeeded')
+                  ) {
+                    <button mat-menu-item (click)="unmount(el.product.eid, el.product.productName)">
+                      <mat-icon>eject</mat-icon> Unmount
+                    </button>
+                  }
+                  <a
+                    mat-menu-item
+                    [routerLink]="['/products', 'storage', 'disk', 'details', az(), el.product.eid]"
+                    aria-label="Open Details button"
+                    target="_blank">
+                    <mat-icon>settings</mat-icon>
+                    Details
+                  </a>
+                </mat-menu>
+              } @else if (el.containerDisk && canProjectInstanceWrite()) {
+                <button mat-icon-button [matMenuTriggerFor]="cdMenu" aria-label="Action menu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+
+                <mat-menu #cdMenu="matMenu">
+                  <button mat-menu-item (click)="unmountContainerDisk(el.containerDisk)">
+                    <mat-icon>eject</mat-icon> Unmount
+                  </button>
+                </mat-menu>
+              }
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+        </mat-table>
+      </div>
+    } @else {
+      <div class="pl-2 pr-5">
+        <spx-banner [level]="BannerLevelEnum.Error">Problem fetching disks associated with the instance.</spx-banner>
+      </div>
+    }
+  }
+</div>

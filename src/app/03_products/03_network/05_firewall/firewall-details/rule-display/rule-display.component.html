@@ -1,0 +1,72 @@
+<ul class="network-rule__rules">
+  @let ports = ingress()?.ports || egress()?.ports;
+  @if (ports && ports.length > 0) {
+    <strong>Ports</strong>
+    <ul class="network-rule__ports">
+      @for (port of ports; track $index) {
+        <li class="network-rule__ports-item">
+          <span>
+            {{ port.port }}
+            <mat-icon>arrow_right_alt</mat-icon>
+            {{ port.endPort }}
+            [{{ port.protocol }}]
+          </span>
+        </li>
+      }
+    </ul>
+  }
+
+  @let peerRules = ingress()?.from || egress()?.to;
+  @for (peer of peerRules; track $index; let idx = $index) {
+    <li class="network-rule__rules-item">
+      <div class="d-flex align-items-center justify-content-between">
+        <strong>Condition {{ idx + 1 }}</strong>
+      </div>
+
+      @if (peer.podSelector) {
+        @if (peer.podSelector.matchLabels) {
+          <div class="d-flex gap-2">
+            <span>Match Labels</span>
+
+            <div class="d-flex flex-column">
+              @for (item of peer.podSelector.matchLabels | keyvalue; track $index) {
+                <span>- {{ item.key }}: {{ item.value }}</span>
+              }
+            </div>
+          </div>
+        }
+        @if (peer.podSelector.matchExpressions && peer.podSelector.matchExpressions.length > 0) {
+          <div class="d-flex gap-2">
+            <span>Match Expressions</span>
+            <div class="d-flex flex-column">
+              @for (item of peer.podSelector.matchExpressions; track $index) {
+                <span>
+                  - {{ item.key }} {{ item.operator }}
+                  @if (item.values && item.values.length > 0) {
+                    ["{{ item.values.join('","') }}"]
+                  }
+                </span>
+              }
+            </div>
+          </div>
+        }
+      }
+      @if (peer.ipBlock && peer.ipBlock.cidr) {
+        <span>IP Block</span>
+        <div class="d-flex gap-2">
+          <span>CIDR: {{ peer.ipBlock.cidr }}</span>
+        </div>
+        @if (peer.ipBlock.except && peer.ipBlock.except.length > 0) {
+          <div class="d-flex gap-2">
+            <span>Exceptions</span>
+            <div class="d-flex flex-column">
+              @for (item of peer.ipBlock.except; track $index) {
+                <span>- {{ item }}</span>
+              }
+            </div>
+          </div>
+        }
+      }
+    </li>
+  }
+</ul>

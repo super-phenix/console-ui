@@ -1,0 +1,135 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Snapshot Details"></spx-content-header>
+
+    <div class="d-flex align-items-center gap-2">
+      <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+        <mat-icon>share</mat-icon>
+      </button>
+
+      @if (
+        (canProjectSnapshotWrite() &&
+          snapshotProduct.hasValue() &&
+          snapshotProduct.value().gitops !== 'true' &&
+          snapshotSchedule()) ||
+        (canProjectArgoCdRead() && snapshotProduct.hasValue() && snapshotProduct.value().gitops === 'true') ||
+        (canProjectSnapshotWrite() && snapshotProduct.hasValue() && snapshotProduct.value().gitops !== 'true')
+      ) {
+        <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+        <mat-menu #menu="matMenu">
+          @if (
+            canProjectSnapshotWrite() &&
+            snapshotProduct.hasValue() &&
+            snapshotProduct.value().gitops !== 'true' &&
+            (snapshot() || snapshotSchedule())
+          ) {
+            @if (snapshotProduct.hasValue()) {
+              <button
+                mat-menu-item
+                aria-label="Edit snapshot button"
+                [routerLink]="[
+                  '/products/storage/snapshot',
+                  'update',
+                  snapshotProduct.value().codeAZ,
+                  snapshotProduct.value().eid,
+                ]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+          }
+          @if (canProjectArgoCdRead() && snapshotProduct.hasValue() && snapshotProduct.value().gitops === 'true') {
+            <mat-divider></mat-divider>
+            <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+              <mat-icon>open_in_new</mat-icon>
+              See in ArgoCD
+            </button>
+          }
+
+          @if (canProjectSnapshotWrite() && snapshotProduct.hasValue() && snapshotProduct.value().gitops !== 'true') {
+            <mat-divider></mat-divider>
+            <button mat-menu-item aria-label="Delete snapshot button" (click)="deleteSnapshot()">
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          }
+        </mat-menu>
+      }
+    </div>
+  </div>
+
+  @if (
+    snapshotProduct.hasValue() && snapshotProduct.value().gitops !== 'true' && !snapshotProduct.value().productTypeId
+  ) {
+    @if (!snapshot()?.metadata?.ownerReferences) {
+      <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+        <span>Product not synchronized with the database.</span>
+        <span>
+          Please contact support at
+          <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+        </span>
+      </spx-banner>
+    } @else {
+      <spx-banner [level]="BannerLevelEnum.Warn">
+        @if (snapshot()?.metadata?.ownerReferences?.[0]?.kind === 'VirtualMachineSnapshotContent') {
+          This snapshot is linked to a Instance Snapshot. It's not possible to edit or delete it.
+        } @else if (snapshot()?.metadata?.ownerReferences?.[0]?.kind === 'SnapshotSchedule') {
+          This snapshot is linked to a Scheduled Snapshot.
+        }
+      </spx-banner>
+    }
+  }
+
+  @if (snapshotProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (snapshotProduct.hasValue() && !snapshot() && !snapshotSchedule()) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the snapshot on the AZ.</spx-banner>
+  }
+
+  @if (snapshotProduct.hasValue() && snapshot()?.status?.error) {
+    <spx-banner [level]="BannerLevelEnum.Error" multiline>
+      <span>Error on the snapshot</span>
+      <span>{{ snapshot()?.status?.error?.message }}</span>
+    </spx-banner>
+  }
+
+  @if (snapshotProduct.hasValue()) {
+    <mat-tab-group
+      class="product-details__tabs mat-tab-fill-height"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      preserveContent
+      (selectedIndexChange)="updateFragment($event)"
+      [selectedIndex]="initialIndex()">
+      @if (snapshot()) {
+        <mat-tab label="General">
+          <ng-template matTabContent>
+            <spx-snapshot-details-single
+              [az]="az()"
+              [snapshotResource]="snapshotProduct.value()"></spx-snapshot-details-single>
+          </ng-template>
+        </mat-tab>
+      }
+
+      @if (snapshotSchedule()) {
+        <mat-tab label="General">
+          <ng-template matTabContent>
+            <spx-snapshot-details-schedule
+              [az]="az()"
+              [snapshotResource]="snapshotProduct.value()"></spx-snapshot-details-schedule>
+          </ng-template>
+        </mat-tab>
+        <mat-tab label="Linked Snapshots">
+          <ng-template matTabContent>
+            <spx-snapshot-details-linked-snap
+              [snapshots]="snapshotSchedule()?.children || []"></spx-snapshot-details-linked-snap>
+          </ng-template>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  }
+</div>

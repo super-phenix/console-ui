@@ -1,0 +1,37 @@
+@use '@angular/material' as mat;
+
+// Flatten the Material expansion panel into the standard .info-card look:
+// .info-card supplies the border, mat-elevation-z0 drops the shadow, and these
+// overrides align the radius/background and strip Material's own padding so the
+// title bar and projected body sit flush like a normal card.
+.collapsible-card {
+  @include mat.expansion-overrides(
+    (
+      container-shape: var(--br-medium),
+      container-background-color: var(--block),
+    )
+  );
+
+  ::ng-deep .mat-expansion-panel-header {
+    padding: 12px 16px;
+    height: auto;
+
+    // Divider under the title, shown only when expanded (matches .info-card__title).
+    // Square the bottom corners so the divider stays a straight, full-width line.
+    &.mat-expanded {
+      border-bottom: 1px solid var(--stroke-default);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  ::ng-deep .mat-expansion-panel-header-title {
+    font: var(--mat-sys-title-medium-prominent);
+    color: var(--text-title);
+  }
+
+  // Projected body holds its own padding/dividers; remove Material's.
+  ::ng-deep .mat-expansion-panel-body {
+    padding: 0;
+  }
+}

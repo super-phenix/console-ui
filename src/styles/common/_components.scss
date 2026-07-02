@@ -1,0 +1,129 @@
+:is(h1, h2, h3, h4, h5, h6).label {
+  color: var(--mat-sys-tertiary);
+  font-weight: var(--mat-sys-label-large-weight);
+  margin-block: 0.25rem;
+}
+
+button.as-div {
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: unset;
+}
+
+.info-card {
+  display: flex;
+  flex-direction: column;
+
+  border: 1px solid var(--stroke-default);
+  border-radius: var(--br-medium);
+  background-color: var(--block);
+
+  &__title {
+    display: flex;
+    padding: 12px 16px;
+
+    justify-content: space-between;
+    font: var(--mat-sys-title-medium-prominent);
+    border-bottom: 1px solid var(--stroke-default);
+  }
+
+  // remove the bottom border if no content
+  &:not(:has(.info-card__content)) {
+    .info-card__title {
+      border-bottom: none;
+    }
+  }
+
+  &__content {
+    display: flex;
+
+    padding: 16px 20px;
+
+    &--multi-block {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    &--space-evenly {
+      justify-content: space-evenly;
+      gap: 16px;
+      .info-card__item {
+        flex: 1 0 1%;
+        width: 100%;
+      }
+    }
+
+    &--space-between {
+      justify-content: space-between;
+    }
+
+    &--fullsize {
+      .info-card__item {
+        flex: 1 0 1%;
+      }
+    }
+  }
+
+  &__block {
+    display: flex;
+    gap: 16px;
+
+    .info-card__item {
+      flex: 1 0 1%;
+    }
+
+    &--space-evenly {
+      justify-content: space-evenly;
+      gap: 16px;
+      .info-card__item {
+        flex: 1 0 1%;
+        width: 100%;
+      }
+    }
+
+    &--space-between {
+      justify-content: space-between;
+    }
+  }
+
+  &__hr {
+    height: 0;
+    border-top: 1px solid var(--stroke-default);
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    gap: 0.5rem;
+
+    &-label {
+      font: var(--mat-sys-label-small);
+    }
+
+    &-text {
+      font: var(--mat-sys-body-medium);
+    }
+
+    &--fixed {
+      height: 52px;
+    }
+
+    &--small {
+      max-width: 150px;
+    }
+
+    &--form {
+      flex: 1 0 auto;
+      gap: 0;
+    }
+  }
+
+  &__field {
+    display: flex;
+  }
+}

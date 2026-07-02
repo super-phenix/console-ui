@@ -1,0 +1,62 @@
+<div class="d-flex flex-column gap-2">
+  <span>Group of Nodes n°{{ index() + 1 }}</span>
+  <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex gap-2 align-items-center flex-wrap" [formGroup]="formGroup()">
+      <mat-form-field>
+        <mat-label>Number of Replicas</mat-label>
+        <input matInput formControlName="replicas" type="number" pattern="[0-9]+" [max]="MaxReplicas" />
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Cores</mat-label>
+        <mat-select formControlName="cpu">
+          @for (unit of CpuValueList; track unit) {
+            <mat-option [value]="unit">{{ unit }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>RAM</mat-label>
+        <mat-select formControlName="memory">
+          @for (unit of MemoryValueList; track unit) {
+            <mat-option [value]="unit">{{ unit }}</mat-option>
+          }
+        </mat-select>
+        <span matTextSuffix class="ml-2">GB</span>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Storage Class</mat-label>
+        <mat-select formControlName="storageClass">
+          @for (storageClass of storageClassList(); track $index) {
+            <mat-option [value]="storageClass">
+              <span> {{ storageClass | titlecase }} </span>
+            </mat-option>
+          }
+        </mat-select>
+        @if (group().get('storageClass')?.hasError('required')) {
+          <mat-error>This field is required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Boot disk size</mat-label>
+        <input type="number" matInput pattern="[0-9]+" min="1" max="5000" formControlName="bootDiskSize" />
+        <span matSuffix class="pr-2">Gi</span>
+        @if (group().get('bootDiskSize')?.hasError('required')) {
+          <mat-error>This field is required</mat-error>
+        }
+        @if (group().get('bootDiskSize')?.hasError('min')) {
+          <mat-error>
+            <span>The minimum value is {{ group().get('bootDiskSize')?.getError('min').min }}.</span>
+          </mat-error>
+        }
+        @if (group().get('bootDiskSize')?.hasError('max')) {
+          <mat-error>
+            <span>The maximum value is {{ group().get('bootDiskSize')?.getError('max').max }}.</span>
+          </mat-error>
+        }
+      </mat-form-field>
+    </div>
+    <button mat-icon-button (click)="removeGroup.emit(index())"><mat-icon>delete</mat-icon></button>
+  </div>
+</div>

@@ -1,0 +1,57 @@
+<div class="org-projects">
+  <div class="org-projects__header">
+    <mat-form-field class="org-projects__header-search" subscriptSizing="dynamic">
+      <mat-label>Search</mat-label>
+      <input matInput #searchInput (input)="updateFilter(searchInput.value)" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <div class="org-projects__header-create-btn">
+      <button matButton="filled" class="btn--large" ariaLabel="Button to create a project" (click)="createProject()">
+        <mat-icon>add</mat-icon>
+        Create a project
+      </button>
+    </div>
+  </div>
+
+  <mat-table [dataSource]="dataSource()" class="org-projects__table">
+    <!-- Position Column -->
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{ element.name }} </mat-cell>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="id">
+      <mat-header-cell *matHeaderCellDef> ID </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        {{ element.id }}
+        <button mat-icon-button (click)="copy(element.id)">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <button mat-icon-button [matMenuTriggerFor]="menu">
+          <mat-icon>more_horiz</mat-icon>
+        </button>
+
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="updateProject(element)">
+            <span>Edit</span>
+          </button>
+          <button mat-menu-item (click)="deleteProject(element)">
+            <span>Delete</span>
+          </button>
+        </mat-menu>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+  </mat-table>
+</div>

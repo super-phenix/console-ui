@@ -1,0 +1,155 @@
+<form [formGroup]="createForm">
+  <div class="product-create__form-section" formGroupName="general">
+    <h2>General</h2>
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="productName" [maxlength]="maxLength" placeholder="Product name" />
+      <mat-hint align="end">
+        {{ createForm.get('general.productName')?.getRawValue().length }} / {{ maxLength }}
+      </mat-hint>
+      @if (createForm.get('general.productName')?.hasError('required')) {
+        <mat-error>This field is required</mat-error>
+      }
+    </mat-form-field>
+
+    @if (!this.az()) {
+      <mat-form-field>
+        <mat-label>AZ Selection</mat-label>
+        <mat-select formControlName="az">
+          @for (az of stateSvc.azList(); track $index) {
+            <mat-option [value]="az.code">
+              <div class="d-flex align-items-center gap-2">
+                <img
+                  class="product-create__az-icon"
+                  [src]="az.logoUrl"
+                  [alt]="az.code + 'icon'" />
+                <span> {{ az.name }} </span>
+              </div>
+            </mat-option>
+          }
+        </mat-select>
+        @if (createForm.get('general.az')?.hasError('required')) {
+          <mat-error>This field is required.</mat-error>
+        }
+      </mat-form-field>
+    }
+  </div>
+
+  <div class="product-create__form-section" formGroupName="general">
+    <h2>Storage Size</h2>
+
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>Disk size</mat-label>
+      <input type="number" matInput pattern="[0-9]+" [min]="minStorageSize()" max="5000" formControlName="storage" />
+      <span matSuffix class="pr-2">Gi</span>
+      @if (createForm.get('general.storage')?.hasError('required')) {
+        <mat-error>This field is required</mat-error>
+      }
+      @if (createForm.get('general.storage')?.hasError('min')) {
+        <mat-error>
+          <span>The minimum value is {{ createForm.get('general.storage')?.getError('min').min }}.</span>
+        </mat-error>
+      }
+      @if (createForm.get('general.storage')?.hasError('max')) {
+        <mat-error>
+          <span>The maximum value is {{ createForm.get('general.storage')?.getError('max').max }}.</span>
+        </mat-error>
+      }
+      @if (
+        createForm.get('general.source.type')?.value === 'clone' ||
+        createForm.get('general.source.type')?.value === 'snapshot'
+      ) {
+        <mat-hint>
+          <span>
+            <i> The storage size must be equal to or greater than the source size. </i>
+          </span>
+        </mat-hint>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="product-create__form-section" formGroupName="general">
+    <h2>Source</h2>
+
+    <mat-form-field>
+      <mat-label>Storage class</mat-label>
+      <mat-select formControlName="storageClass">
+        @for (storageClass of storageClassList(); track $index) {
+          <mat-option [value]="storageClass">
+            <span> {{ storageClass | titlecase }} </span>
+          </mat-option>
+        }
+      </mat-select>
+      @if (createForm.get('general.storageClass')?.hasError('required')) {
+        <mat-error>This field is required</mat-error>
+      }
+    </mat-form-field>
+
+    <ng-container formGroupName="source">
+      <mat-form-field>
+        <mat-label>Source type selection</mat-label>
+        <mat-select formControlName="type">
+          @for (type of DiskSourceTypes; track $index) {
+            <mat-option [value]="type">
+              <span> {{ type | titlecase }} </span>
+            </mat-option>
+          }
+        </mat-select>
+        @if (createForm.get('general.az')?.hasError('required')) {
+          <mat-error>This field is required</mat-error>
+        }
+      </mat-form-field>
+
+      @if (
+        createForm.get('general.source.type')?.value === 'http' ||
+        createForm.get('general.source.type')?.value === 'registry'
+      ) {
+        <mat-form-field>
+          <mat-label>Url</mat-label>
+          <input matInput formControlName="url" placeholder="Url source" />
+        </mat-form-field>
+      }
+
+      @if (createForm.get('general.source.type')?.value === 'clone') {
+        <mat-form-field class="product-create__form-select" subscriptSizing="dynamic">
+          <mat-label>Select a disk</mat-label>
+          <mat-select formControlName="clone">
+            @for (option of disksProduct(); track $index) {
+              @if (option.mountStatus) {
+                <mat-option [value]="option.eid">
+                  {{ option.productName || option.eid }} {{ option.mountStatus.isMounted ? ' - In use' : '' }}
+                  <br />
+                  ({{ option.disk?.spec?.storage?.resources?.requests?.['storage'] }})
+                </mat-option>
+              }
+            }
+          </mat-select>
+          <mat-hint>
+            <span>
+              <i> Warning, cloning a disk that is in use may cause errors during the cloning process! </i>
+              <br />
+              <i>It is recommended to shut down the instance using the disk before cloning</i>
+            </span>
+          </mat-hint>
+        </mat-form-field>
+      }
+
+      @if (createForm.get('general.source.type')?.value === 'snapshot') {
+        <mat-form-field class="product-create__form-select" subscriptSizing="dynamic">
+          <mat-label>Select a snapshot</mat-label>
+          <mat-select formControlName="snapshot">
+            @for (option of snapshotsProduct(); track $index) {
+              @if (!option.snapshot?.status?.error) {
+                <mat-option [value]="option.eid">
+                  {{ option.productName || option.eid }}
+                  <br />
+                  ({{ option.snapshot?.status?.restoreSize }})
+                </mat-option>
+              }
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+    </ng-container>
+  </div>
+</form>

@@ -1,0 +1,37 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.menu-overrides(
+    (
+      container-shape: var(--mat-sys-corner-medium),
+      divider-color: var(--stroke-default),
+      item-label-text-color: var(--text-content),
+      item-label-text-font: var(--mat-sys-body-medium-font),
+      item-label-text-line-height: var(--mat-sys-body-medium-line-height),
+      item-label-text-size: var(--mat-sys-body-medium-size),
+      item-label-text-tracking: var(--mat-sys-body-medium-tracking),
+      item-label-text-weight: var(--mat-sys-body-medium-weight),
+      item-icon-color: var(--icon-accent),
+      divider-bottom-spacing: 4px,
+      divider-top-spacing: 4px,
+      item-leading-spacing: 16px,
+      item-trailing-spacing: 16px,
+    )
+  );
+}
+
+.small-divider {
+  margin-inline: 16px !important;
+}
+
+.mat-mdc-menu-panel {
+  border: 1px solid var(--stroke-default);
+}
+
+.cdk-overlay-popover:has(.cdk-overlay-pane .web-menu-panel) {
+  inset: auto auto 16px 260px !important;
+}
+
+.cdk-overlay-popover:has(.cdk-overlay-pane .mobile-menu-panel) {
+  inset: auto auto 65px auto !important;
+}

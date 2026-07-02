@@ -1,0 +1,124 @@
+@use '@angular/material' as mat;
+
+.sidenav {
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  @include mat.icon-overrides(
+    (
+      color: var(--icon-accent),
+    )
+  );
+
+  @include mat.button-overrides(
+    (
+      text-label-text-color: var(--mat-sys-on-surface),
+      text-container-shape: var(--mat-sys-corner-extra-large),
+      text-label-text-font: var(--mat-sys-title-small-font),
+      text-label-text-size: var(--mat-sys-title-small-size),
+      text-label-text-tracking: var(--mat-sys-title-small-tracking),
+      text-label-text-weight: var(--mat-sys-title-small-weight-prominent),
+    )
+  );
+
+  @include mat.expansion-overrides(
+    (
+      container-shape: 0px,
+      header-expanded-state-height: 48px,
+      header-text-font: var(--mat-sys-title-small-font),
+      header-text-size: var(--mat-sys-title-small-size),
+      header-text-tracking: var(--mat-sys-title-small-tracking),
+      header-text-weight: var(--mat-sys-title-small-weight-prominent),
+    )
+  );
+
+  &__menu {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0px;
+
+    scrollbar-color: auto transparent;
+
+    &-dashboard {
+      margin-left: 0.75rem;
+      margin-bottom: 0.5rem;
+      width: calc(100% - 32px);
+      justify-content: flex-start;
+    }
+
+    &-link-btn {
+      width: 100%;
+
+      &--active {
+        background-color: var(--accent);
+        @include mat.button-overrides(
+          (
+            text-label-text-color: var(--mat-sys-on-primary-container),
+          )
+        );
+      }
+    }
+
+    &-hr {
+      margin-inline: 20px;
+      border-bottom: 1px solid var(--stroke-default);
+    }
+  }
+
+  &__footer {
+    display: flex;
+    flex-direction: column;
+
+    padding: 16px 24px;
+    gap: 8px;
+
+    @include mat.button-overrides(
+      (
+        outlined-label-text-color: var(--text-title),
+        outlined-outline-color: var(--stroke-default),
+        outlined-label-text-font: var(--mat-sys-body-medium-font),
+        outlined-label-text-size: var(--mat-sys-body-medium-size),
+        outlined-label-text-tracking: var(--mat-sys-body-medium-tracking),
+        outlined-label-text-weight: var(--mat-sys-body-medium-weight-prominent),
+      )
+    );
+  }
+}
+
+.menu {
+  &__panel,
+  &__uncategorized,
+  &__settings {
+    &-title {
+      gap: 8px;
+    }
+
+    &-content {
+      display: flex;
+      flex-direction: column;
+
+      margin-left: 0.25rem;
+      padding-left: 0.5rem;
+      gap: 0.5rem;
+
+      & a {
+        justify-content: start;
+      }
+    }
+  }
+
+  &__uncategorized-content {
+    margin-block: 1rem;
+    padding-right: 1rem;
+    margin-right: 0.5rem;
+  }
+
+  &__settings-content {
+    margin-block: 1rem;
+    padding-right: 1rem;
+    margin-right: 0.5rem;
+  }
+}

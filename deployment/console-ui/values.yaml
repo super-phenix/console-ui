@@ -1,0 +1,137 @@
+replicaCount: 1
+
+image:
+  repository: xxx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Nginx listen port need to match with service.port value
+consoleUi:
+  config: |-
+    # Sample config
+    # the events block is required
+    events{}
+
+    http {
+        # include the default mime.types to map file extensions to MIME types
+        include /etc/nginx/mime.types;
+
+        server {
+          listen 80;
+            # set the root directory for the server (we need to copy our
+            # application files here)
+            root /usr/share/nginx/html;
+
+            # set the default index file for the server (Angular generates the
+            # index.html file for us and it will be in the above directory)
+            index index.html;
+
+            location ~* \.js$ {
+              types { }
+              default_type "text/javascript; charset=utf-8";
+            }
+
+            # specify the configuration for the '/' location
+            location / {
+                # try to serve the requested URI. if that fails then try to
+                # serve the URI with a trailing slash. if that fails, then
+                # serve the index.html file; this is needed in order to serve
+                # Angular routes--e.g.,'localhost:8080/customer' will serve
+                # the index.html file
+                try_files $uri $uri/ /index.html;
+            }
+        }
+    }
+  environment: |-
+    API_URL = 'api.example.org';
+
+    // environment.js
+    window.$environment = {
+      production: false,
+      appName: 'Console UI',
+      url: {
+        base: 'https://' + API_URL,
+        token: 'https://' + API_URL + '/v1/session',
+        kubevirt: 'https://' + API_URL + '/api/kubevirt',
+        ws: 'wss://' + API_URL + '/api/kubevirt/vmi',
+        auth: 'https://auth.example.org',
+      },
+    };
+
+  # Optional: Override the built-in theme-override.css
+  # If empty, the built-in theme-override.css from the Docker image is used.
+  # If set, it replaces the built-in file via configmap mount.
+  # Example:
+  #   themeOverride: |-
+  #     :root {
+  #       --accent-blue-500: #1e88e5;
+  #     }
+  themeOverride: ""
+
+ingress:
+  enabled: false
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  #hosts:
+  #  - host: chart-example.local
+  #    paths:
+  #    - path: /
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

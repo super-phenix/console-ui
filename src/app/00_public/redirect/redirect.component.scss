@@ -1,0 +1,11 @@
+.redirect {
+  min-width: 100vw;
+  min-height: 100vh;
+  overflow: hidden;
+  background-color: var(--background);
+
+  background-position-x: center;
+  background-position-y: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}

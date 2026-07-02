@@ -1,0 +1,24 @@
+@use '@angular/material' as mat;
+
+@include mat.form-field-overrides(
+  (
+    filled-active-indicator-height: 1px,
+    filled-container-shape: var(--mat-sys-corner-extra-small-top),
+    filled-container-color: var(--component-light),
+    filled-active-indicator-color: var(--stroke-default),
+  )
+);
+
+.mdc-text-field--filled {
+  border-radius: var(--mat-form-field-filled-container-shape, var(--mat-sys-corner-extra-small)) !important;
+}
+
+.mat-mdc-form-field--large-prefix {
+  .mat-mdc-form-field-flex {
+    align-items: start !important;
+
+    .mat-mdc-form-field-text-prefix {
+      padding-top: 16px;
+    }
+  }
+}

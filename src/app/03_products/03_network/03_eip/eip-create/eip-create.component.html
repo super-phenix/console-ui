@@ -1,0 +1,77 @@
+<div class="product-create main-content">
+  <spx-content-header navBack titleOnly title="Create EIP"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" (azChange)="selectedAz.set($event)"></spx-step-general>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>network_manage</mat-icon>
+                  </div>
+                  Subnet
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span><i>Choose the subnet to attach the EIP to.</i></span>
+                </div>
+
+                @if (!this.selectedAz()) {
+                  <div class="info-card__block">
+                    <span class="color-warn"><i>You need to select an AZ first.</i></span>
+                  </div>
+                }
+                <div class="info-card__block">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Subnet</mat-label>
+                    <mat-select formControlName="subnetEid">
+                      @for (subnet of subnetsProduct.value(); track subnet.eid) {
+                        <mat-option [value]="subnet.eid">
+                          {{ subnet.productName || subnet.eid }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                    @if (firstFormGroup.get('subnetEid')?.hasError('required')) {
+                      <mat-error>Subnet is required.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext [disabled]="firstFormGroup.invalid">Next</button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="secondFormGroup">
+          <ng-template matStepLabel>Specifications</ng-template>
+          <ng-template matStepContent>
+            <spx-eip-second-step [formGroup]="secondFormGroup"></spx-eip-second-step>
+
+            <div class="product-create__step-buttons">
+              <button matButton="text" matStepperPrevious>Back</button>
+              <button
+                matButton="filled"
+                [disabled]="firstFormGroup.invalid || secondFormGroup.invalid"
+                (click)="create()">
+                Create
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

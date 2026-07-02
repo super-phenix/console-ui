@@ -1,0 +1,87 @@
+@mixin sg-grid($col-width, $col-height, $grid-gap) {
+  display: grid;
+
+  grid-template-columns: repeat(auto-fill, minmax($col-width, 1fr));
+  grid-auto-rows: minmax($col-height, auto);
+
+  justify-content: center;
+
+  gap: $grid-gap;
+
+  --max-col: 100;
+
+  .sg-r1 {
+    display: flex;
+    grid-row: span 1;
+    min-height: calc($col-height * 1);
+  }
+  .sg-r2 {
+    display: flex;
+    grid-row: span 2;
+    min-height: calc($col-height * 2 + $grid-gap * 1);
+  }
+  .sg-r3 {
+    display: flex;
+    grid-row: span 3;
+    min-height: calc($col-height * 3 + $grid-gap * 2);
+  }
+  .sg-r4 {
+    display: flex;
+    grid-row: span 4;
+    min-height: calc($col-height * 4 + $grid-gap * 3);
+  }
+
+  .sg-r-all {
+    display: flex;
+    grid-row: 1 / -1;
+  }
+
+  .sg-c1 {
+    display: flex;
+    grid-column: span min(1, var(--max-col));
+  }
+  .sg-c2 {
+    display: flex;
+    grid-column: span min(2, var(--max-col));
+  }
+  .sg-c3 {
+    display: flex;
+    grid-column: span min(3, var(--max-col));
+  }
+  .sg-c4 {
+    display: flex;
+    grid-column: span min(4, var(--max-col));
+  }
+
+  .sg-c-all {
+    display: flex;
+    grid-column: 1 / -1;
+  }
+
+  .sg-lb {
+    display: flex;
+    grid-column: 1 / -1;
+    height: 0 !important;
+  }
+
+  .sg-max-c1 {
+    --max-col: 1;
+  }
+  .sg-max-c2 {
+    --max-col: 2;
+  }
+  .sg-max-c3 {
+    --max-col: 3;
+  }
+  .sg-max-c4 {
+    --max-col: 4;
+  }
+}
+
+.spx-grid {
+  @include sg-grid(275px, 100px, 1rem);
+}
+
+.spx-grid--small {
+  @include sg-grid(200px, 32px, 1rem);
+}

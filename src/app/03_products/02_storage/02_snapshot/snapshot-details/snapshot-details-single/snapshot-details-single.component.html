@@ -1,0 +1,111 @@
+<div class="product-details">
+  @if (snapshotResource()) {
+    <h2>General Information</h2>
+    @let snapshot = snapshotResource().snapshot;
+
+    <div spxGrid>
+      <div class="product-details__card sg-r2 sg-c2">
+        @if (!snapshotResource().productName && snapshotResource().eid.startsWith('vmsnapshot')) {
+          <h3 class="text-break-all mt-0 mb-1">VM Snapshot</h3>
+        } @else {
+          <h3 class="text-break-all mt-0 mb-1">{{ snapshotResource().productName }}</h3>
+        }
+
+        <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="snapshotResource().eid" />
+
+        <div class="product-details__card-line">
+          <strong>Status: </strong>
+          <mat-chip-set aria-label="snapshot status">
+            @if (!snapshot?.status?.error) {
+              @let status = snapshot?.status?.readyToUse ? 'ready' : 'pending';
+              <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                {{ snapshot?.status?.readyToUse ? 'Ready' : 'Not Ready' }}
+              </mat-chip>
+            } @else {
+              <mat-chip class="status-chip--error" disabled="true">Error</mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+
+        <spx-span-copy class="product-details__card-line" key="Local ID" [value]="snapshotResource().id" />
+        <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+        <spx-span-copy class="product-details__card-line" key="Organization ID" [value]="productLabelInfo().organizationId" />
+      </div>
+
+      <div class="product-details__card sg-r1 sg-c1">
+        <div class="product-details__card-line product-details__card-line--split flex-grow">
+          <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+          <span class="product-details__card-line-right"> {{ snapshotResource().codeAZ?.toUpperCase() }} </span>
+
+          <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ snapshotResource().gitops === 'true' ? 'Yes' : 'No' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Specifications</h2>
+
+    <div spxGrid>
+      <div class="product-details__card sg-r1 sg-c1">
+        <h3 class="mt-0">General</h3>
+        <div class="product-details__card-line product-details__card-line--split flex-grow">
+          <span class="product-details__card-line-left"> <strong>Created on :</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ snapshot?.status?.creationTime | date: 'short' }}
+          </span>
+
+          <span class="product-details__card-line-left"> <strong>Size:</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ snapshot?.status?.restoreSize }}
+          </span>
+        </div>
+      </div>
+
+      <div class="product-details__card sg-r1 sg-c2">
+        <h3 class="mt-0">
+          Source
+          @if (diskProduct.status() !== 'error' && diskProduct.value()) {
+            <a
+              mat-icon-button
+              class="color-primary"
+              [routerLink]="['/products', 'storage', 'disk', 'details', az(), diskProduct.value()?.eid]"
+              target="_blank">
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          }
+        </h3>
+        @if (diskProduct.status() !== 'error' && diskProduct.value()) {
+          <span class="product-details__card-line">
+            <strong>Name : </strong>{{ diskProduct.value()?.productName }}
+          </span>
+          <spx-span-copy class="product-details__card-line" key="Effective ID" [value]="diskProduct.value()?.eid" />
+        } @else {
+          <spx-span-copy
+            class="product-details__card-line"
+            key="Effective ID"
+            [value]="snapshot?.spec?.source?.persistentVolumeClaimName" />
+
+          <span class="color-warn"><i>The source disk of the snapshot no longer exists.</i></span>
+        }
+      </div>
+    </div>
+
+    @let labels = snapshotResource().snapshot?.metadata?.labels | keyvalue;
+    @if (labels && labels.length > 0) {
+      <h2>Labels</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c-all">
+          <mat-chip-set class="product-details__labels" aria-label="Labels">
+            @for (label of labels; track $index) {
+              <mat-chip (click)="copy(label.value)">{{ label.key }}: {{ label.value }}</mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+    }
+
+  }
+</div>

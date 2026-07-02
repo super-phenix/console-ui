@@ -1,0 +1,30 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.tabs-overrides(
+    (
+      active-indicator-height: 3px,
+      label-text-font: var(--mat-sys-title-small-font),
+      label-text-line-height: var(--mat-sys-title-small-line-height),
+      label-text-size: var(--mat-sys-title-small-size),
+      label-text-tracking: var(--mat-sys-title-small-tracking),
+      label-text-weight: var(--mat-sys-title-small-weight),
+    )
+  );
+}
+
+.mdc-tab--active {
+  font-weight: var(--mat-sys-title-small-weight-prominent) !important;
+}
+
+.mat-mdc-tab-header {
+  background-color: var(--component-light);
+  border-top-left-radius: var(--mat-sys-corner-small);
+  border-top-right-radius: var(--mat-sys-corner-small);
+}
+
+// Allow material tab to take full height by default
+.mat-mdc-tab-group.mat-tab-fill-height .mat-mdc-tab-body-wrapper {
+  // 100% - header size
+  height: calc(100% - 49px);
+}

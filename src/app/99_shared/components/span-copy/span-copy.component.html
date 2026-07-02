@@ -1,0 +1,11 @@
+<div class="span-copy">
+  @if (key()) {
+    <strong>{{ key() }}:</strong>
+  }
+  <span>{{ value() }}</span>
+  @if (value()) {
+    <button matIconButton class="icon-btn--with-bg icon-btn--small" (click)="copy()">
+      <mat-icon class="">content_copy</mat-icon>
+    </button>
+  }
+</div>

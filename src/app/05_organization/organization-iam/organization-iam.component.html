@@ -1,0 +1,99 @@
+<div class="org-iam">
+  <div class="org-iam-menu">
+    <h2>Groups</h2>
+
+    <mat-button-toggle-group
+      class="org-iam-menu__group"
+      name="group"
+      aria-label="Group selection"
+      [vertical]="true"
+      [hideSingleSelectionIndicator]="true"
+      (valueChange)="groupSelected($event)">
+      @for (group of groups.value(); track $index) {
+        <mat-button-toggle class="org-iam-menu__group-btn" [value]="group.id" [checked]="$index === selectedGroupIndex">
+          <div class="d-flex">{{ group.name || 'New group' }}</div>
+        </mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+
+    @if (canOrganizationIAMWrite()) {
+      <button
+        class="org-iam-content__actions-save-btn"
+        matButton="filled"
+        color="primary"
+        (click)="createGroup()"
+        aria-label="Create group button">
+        <mat-icon>add</mat-icon>
+        Create a group
+      </button>
+    }
+  </div>
+
+  <div class="org-iam-content">
+    <div class="org-iam-content__permissions">
+      @if (currentGroup()) {
+        <div class="org-iam-content__permissions-group">
+          @if (canOrganizationIAMWrite()) {
+            <mat-form-field class="org-iam-content__permissions-group-name" subscriptSizing="dynamic">
+              <mat-label>Name</mat-label>
+              <input matInput [formControl]="nameInput" [maxlength]="maxLength" placeholder="Group name" />
+              <mat-hint align="end"> {{ nameInput.getRawValue()?.length }} / {{ maxLength }} </mat-hint>
+            </mat-form-field>
+
+            <button
+              class="org-iam-content__actions-delete-btn"
+              mat-stroked-button
+              aria-label="Delete button"
+              (click)="deleteGroup()">
+              Delete
+            </button>
+          } @else {
+            <h1>{{ currentGroup()!.name }}</h1>
+          }
+        </div>
+
+        <!-- Organization -->
+        <h2>Organization Scope</h2>
+
+        <div class="d-flex flex-column">
+          @for (fc of formControlMap.get(EntityTypeEnum.Organization); track $index) {
+            <mat-checkbox [name]="fc.name" [formControl]="fc.formControl">{{ fc.name }}</mat-checkbox>
+          }
+        </div>
+        <!-- Project -->
+        <h2>Project Scope</h2>
+
+        <!-- Project selections -->
+        <div class="org-iam-content__permissions-projects">
+          <spx-tag-selector
+            [options]="projects"
+            [selection]="groupProjects"
+            [readOnly]="!canOrganizationIAMWrite()"
+            (selectionChange)="groupProjectsChange($event)"></spx-tag-selector>
+        </div>
+
+        <div class="d-flex flex-column">
+          @for (fc of formControlMap.get(EntityTypeEnum.Project); track $index) {
+            <mat-checkbox [name]="fc.name" [formControl]="fc.formControl">{{ fc.name }}</mat-checkbox>
+          }
+        </div>
+      }
+    </div>
+
+    @if (!formArray.pristine || !nameInput.pristine || groupProjectsChanged) {
+      <div class="org-iam-content__actions">
+        <button class="org-iam-content__actions-cancel-btn" mat-button aria-label="Cancel button" (click)="cancel()">
+          Cancel
+        </button>
+        <button
+          class="org-iam-content__actions-save-btn"
+          matButton="filled"
+          aria-label="Save button"
+          [disabled]="!nameInput.valid"
+          (click)="save()">
+          Save
+        </button>
+      </div>
+    }
+  </div>
+</div>

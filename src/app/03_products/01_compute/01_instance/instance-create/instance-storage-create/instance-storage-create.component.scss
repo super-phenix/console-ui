@@ -1,0 +1,12 @@
+.container-disk-filter {
+  align-self: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.container-disk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: calc(3 * 4.25rem + 2 * 0.5rem);
+  overflow-y: auto;
+}

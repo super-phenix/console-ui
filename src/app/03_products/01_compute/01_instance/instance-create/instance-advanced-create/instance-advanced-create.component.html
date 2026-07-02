@@ -1,0 +1,24 @@
+<spx-collapsible-card icon="build" title="Advanced options">
+  <div class="ao-card">
+    <div class="ao-section-head">
+      <div class="ao-section-headings">
+        <span class="ao-section-title">Device &amp; firmware</span>
+        <span class="ao-section-sub">Leave a block on "Auto" to use the instance type default</span>
+      </div>
+      <button
+        matButton
+        type="button"
+        class="ao-section-pref"
+        [disabled]="!instanceTypeName() || !az()"
+        (click)="openInstanceTypeSettings()">
+        <mat-icon>tune</mat-icon> View instance type settings
+      </button>
+    </div>
+
+    <spx-advanced-blocks
+      [resolved]="initial()"
+      [inherited]="inherited()"
+      [editable]="true"
+      (advancedChange)="advancedChange.emit($event)" />
+  </div>
+</spx-collapsible-card>

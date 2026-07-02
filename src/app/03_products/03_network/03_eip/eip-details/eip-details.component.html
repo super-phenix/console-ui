@@ -1,0 +1,246 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="EIP Details"></spx-content-header>
+
+    @if (eipProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+        @let eip = eipProduct.value()!;
+
+        @if ((canProjectEipWrite() && eip.gitops !== 'true') || (canProjectArgoCdRead() && eip.gitops === 'true')) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectEipWrite() && eip.gitops !== 'true') {
+              <button
+                mat-menu-item
+                aria-label="Edit EIP button"
+                [routerLink]="['/products/network/eip', 'update', eip.codeAZ, eip.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && eip.gitops === 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectEipWrite() && eip.gitops !== 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete EIP button" (click)="deleteEIP()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (eipProduct.hasValue() && eipProduct.value().gitops !== 'true' && !eipProduct.value().productTypeId) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (eipProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (eipProduct.hasValue() && !eipProduct.value().eip) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the EIP on the AZ.</spx-banner>
+  }
+
+  @if (subnetProduct.error()) {
+    <spx-banner [level]="BannerLevelEnum.Error" multiline>
+      <span>Problem while fetching linked Subnet.</span>
+      <span>id: {{ eipProduct.value()?.eip?.spec?.natGwDp }}</span>
+    </spx-banner>
+  }
+
+  <div class="product-details__content">
+    @if (eipProduct.hasValue()) {
+      <h2>General Information</h2>
+      @let eip = eipProduct.value()!;
+
+      <div spxGrid>
+        <div class="product-details__card sg-r2 sg-c2">
+          <h3 class="text-break-all mt-0 mb-1">{{ eip.productName }}</h3>
+
+          <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="eip.eid" />
+          <spx-span-copy class="product-details__card-line" key="Local ID" [value]="eip.id" />
+          <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+          <spx-span-copy
+            class="product-details__card-line"
+            key="Organization ID"
+            [value]="productLabelInfo().organizationId" />
+        </div>
+
+        <div class="product-details__card sg-r1 sg-c1">
+          <div class="product-details__card-line product-details__card-line--split flex-grow">
+            <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+            <span class="product-details__card-line-right"> {{ eip.codeAZ?.toUpperCase() }} </span>
+
+            <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+            <span class="product-details__card-line-right">
+              {{ eip.gitops === 'true' ? 'Yes' : 'No' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <h2>Specifications</h2>
+
+      <div spxGrid>
+        @if (eip.fip) {
+          <div class="product-details__card sg-r1 sg-c1">
+            <h3 class="mt-0">FIP</h3>
+
+            <div class="product-details__card-line product-details__card-line--split">
+              <span class="product-details__card-line-left"> <strong>Ready: </strong> </span>
+              <span class="product-details__card-line-right"> {{ eip.fip.status.ready ? 'Oui' : 'Non' }} </span>
+
+              <span class="product-details__card-line-left"> <strong>Internal IP: </strong> </span>
+              <span class="product-details__card-line-right">
+                {{ eip.fip.status.internalIp ? eip.fip.status.internalIp : eip.fip.spec.internalIp }}
+              </span>
+
+              <span class="product-details__card-line-left"> <strong>External IP:</strong> </span>
+              <span class="product-details__card-line-right"> {{ eip.fip.status.v4ip }} </span>
+            </div>
+          </div>
+        }
+
+        @if (subnetProduct.hasValue()) {
+          @let subnet = subnetProduct.value();
+          <div class="product-details__card sg-r1 sg-c2">
+            <h3 class="mt-0">
+              Linked Subnet:
+              <a
+                mat-icon-button
+                class="color-primary"
+                [routerLink]="['/products', 'network', 'subnet', 'details', az(), subnet?.eid]"
+                target="_blank">
+                <mat-icon>open_in_new</mat-icon>
+              </a>
+            </h3>
+            <span class="product-details__card-line"><strong>Name: </strong>{{ subnet?.productName }}</span>
+            <spx-span-copy class="product-details__card-line" key="Effective ID" [value]="subnet?.eid" />
+
+            @if (subnet!.natGateway) {
+              <span class="product-details__card-line">
+                <strong>NatGateway LanIP: </strong>{{ subnet!.natGateway!.spec.lanIp }}
+              </span>
+            } @else {
+              <span class="product-details__card-line">NatGateway deactivated</span>
+            }
+          </div>
+        }
+      </div>
+
+      @if (eip.snat && eip.snat.length) {
+        <h2>SNAT Rules</h2>
+
+        @if (isSnatLegacy()) {
+          <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+            <span>This EIP uses the legacy SNAT implementation.</span>
+            <span>To switch to the new implementation just update the EIP. </span>
+          </spx-banner>
+        }
+
+        <div class="product-list__table mat-table--full-size">
+          <mat-table [dataSource]="eip.snat">
+            <ng-container matColumnDef="cidr">
+              <mat-header-cell *matHeaderCellDef> Internal CIDR </mat-header-cell>
+              <mat-cell *matCellDef="let el"> {{ el.spec.internalCIDR }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="ip">
+              <mat-header-cell *matHeaderCellDef> External IP </mat-header-cell>
+              <mat-cell *matCellDef="let el"> {{ el.status.v4ip }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="ready">
+              <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
+              <mat-cell *matCellDef="let el">
+                @let status = el.status.ready ? 'ready' : 'error';
+                <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                  {{ el.status.ready ? 'Ready' : 'Not Ready' }}
+                </mat-chip>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumnsSNAT; sticky: true"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumnsSNAT"></mat-row>
+          </mat-table>
+        </div>
+      }
+
+      @if (eip.dnat && eip.dnat.length) {
+        <h2>DNAT Rules</h2>
+
+        <div class="product-list__table mat-table--full-size">
+          <mat-table [dataSource]="eip.dnat">
+            <ng-container matColumnDef="external">
+              <mat-header-cell *matHeaderCellDef> External </mat-header-cell>
+              <mat-cell *matCellDef="let el"> :{{ el.spec.externalPort }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="internal">
+              <mat-header-cell *matHeaderCellDef> Internal </mat-header-cell>
+              <mat-cell *matCellDef="let el"> {{ el.spec.internalIp }}:{{ el.spec.internalPort }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="protocol">
+              <mat-header-cell *matHeaderCellDef> Protocol </mat-header-cell>
+              <mat-cell *matCellDef="let el"> {{ el.spec.protocol }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="ready">
+              <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
+              <mat-cell *matCellDef="let el">
+                @let status = el.status.ready ? 'ready' : 'error';
+                <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                  {{ el.status.ready ? 'Ready' : 'Not Ready' }}
+                </mat-chip>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumnsDNAT; sticky: true"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumnsDNAT"></mat-row>
+          </mat-table>
+        </div>
+      }
+
+      <h2>Labels</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c-all">
+          <mat-chip-set class="product-details__labels" aria-label="Labels">
+            @for (labels of eip.eip?.metadata?.labels | keyvalue; track $index) {
+              <mat-chip (click)="copy(labels.value)">
+                <div class="d-flex flex-wrap gap-x-1">
+                  <span>{{ labels.key }}:</span>
+                  <span>{{ labels.value }}</span>
+                </div>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+    }
+  </div>
+</div>

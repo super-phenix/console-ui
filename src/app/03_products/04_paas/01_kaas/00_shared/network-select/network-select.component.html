@@ -1,0 +1,34 @@
+<div class="d-flex flex-column flex-grow">
+  <mat-form-field subscriptSizing="dynamic">
+    <mat-label>Add a subnet</mat-label>
+    <mat-select [formControl]="subnetSelected()" (selectionChange)="addItem()">
+      @for (subnet of subnetsList(); track $index) {
+        <mat-option [value]="subnet">
+          {{ subnet.productName }} <br />
+          ({{ subnet.subnet?.spec?.cidrBlock }})
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+@if (networkList.length > 0) {
+  <div cdkDropList class="product-create__network-list" (cdkDropListDropped)="drop($event)">
+    @for (network of networkList; track network.eid) {
+      <div class="product-create__network-drag d-flex flex-grow" cdkDrag>
+        <div class="product-create__network-item">
+          <h4 class="label">
+            <span>Interface {{ $index }} - {{ network.productName }} </span>
+            <br />
+            <span> ({{ network.subnet?.spec?.cidrBlock }}) </span>
+          </h4>
+          <div class="product-network__network-item-btns">
+            <button class="color-primary" mat-icon-button (click)="removeItemByIndex($index)">
+              <mat-icon>delete</mat-icon>
+            </button>
+            <mat-icon cdkDragHandle>swap_vert</mat-icon>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}

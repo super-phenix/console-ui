@@ -1,0 +1,75 @@
+<div class="product-details">
+  <h2>Snapshots</h2>
+
+  <div class="product-list__table">
+    <mat-table
+      [dataSource]="datasource()"
+      (matSortChange)="sortData($event)"
+      matSort
+      #matSort
+      matSortDisableClear
+      [matSortActive]="defaultSort.active"
+      [matSortDirection]="defaultSort.direction"
+      [trackBy]="trackBy">
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> ID </mat-header-cell>
+        <mat-cell *matCellDef="let el"> {{ el.metadata.name }} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="date">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Snapshot Date </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          {{ el.status.creationTime | date: 'short' }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="size">
+        <mat-header-cell *matHeaderCellDef> Snapshot Size </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          {{ el?.status?.restoreSize }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="ready">
+        <mat-header-cell *matHeaderCellDef> Statut </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          <mat-chip-set aria-label="snapshot status">
+            @if (!el.status.error) {
+              @let status = el.status.readyToUse ? 'ready' : 'pending';
+              <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
+                {{ el.status.readyToUse ? 'Ready' : 'Not Ready' }}
+              </mat-chip>
+            } @else {
+              <mat-chip class="status-chip--error" disabled="true">Error</mat-chip>
+            }
+          </mat-chip-set>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions" stickyEnd>
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.metadata.name) {
+            <a
+              mat-icon-button
+              class="color-primary"
+              [routerLink]="['..', el.metadata.name]"
+              aria-label="Go to subnet"
+              target="_blank">
+              <mat-icon>open_in_new</mat-icon>
+            </a>
+          }
+        </mat-cell>
+      </ng-container>
+
+      <tr class="d-flex mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+          No snapshot for this schedule.
+        </td>
+      </tr>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </mat-table>
+  </div>
+</div>

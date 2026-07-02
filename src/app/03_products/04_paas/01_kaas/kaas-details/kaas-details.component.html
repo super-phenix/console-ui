@@ -1,0 +1,219 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Cluster Details"></spx-content-header>
+
+    @if (kaasProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        @let kaas = kaasProduct.value()!;
+        @if (canProjectKaaSWrite() || canProjectKaaSKubeConfig() || canProjectArgoCdRead()) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectKaaSWrite() && kaasProduct.value().gitops !== 'true') {
+              <button
+                mat-menu-item
+                aria-label="Edit cluster button"
+                [routerLink]="['/products', 'paas', 'kaas', 'update', kaas.codeAZ, kaas.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+            @if (canProjectKaaSKubeConfig()) {
+              <button mat-menu-item aria-label="Download Kubeconfig" (click)="downloadKubeconfig()">
+                <mat-icon>download</mat-icon>
+                Download kubeconfig
+              </button>
+            }
+
+            @if (canProjectKaaSWrite()) {
+              <button mat-menu-item aria-label="Reinstall Essentials" (click)="reinstallEssentials()">
+                <mat-icon>rule_settings</mat-icon>
+                Reinstall KaaS Essentials
+              </button>
+            }
+
+            @if (canProjectArgoCdRead()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectKaaSWrite() && kaasProduct.value().gitops !== 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete cluster button" (click)="deleteKaaS()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (kaasProduct.hasValue() && kaasProduct.value().gitops !== 'true' && !kaasProduct.value().productTypeId) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (kaasProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (kaasProduct.hasValue() && !kaasProduct.value().cluster) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the kaas cluster on the AZ.</spx-banner>
+  }
+
+  @if (kaasProduct.hasValue()) {
+    @let kaas = kaasProduct.value()!;
+    <mat-tab-group
+      class="product-details__tabs mat-tab-fill-height"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      preserveContent
+      (selectedIndexChange)="updateFragment($event)"
+      [selectedIndex]="initialIndex()">
+      <!-- GENERAL -->
+      <mat-tab label="General">
+        <ng-template matTabContent>
+          <div class="product-details">
+            <div class="product-details__content">
+              <h2>General Information</h2>
+
+              <div spxGrid>
+                <div class="product-details__card sg-r2 sg-c2">
+                  <h3 class="text-break-all mt-0 mb-1">{{ kaas.productName }}</h3>
+
+                  <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="eid()" />
+                  <spx-span-copy class="product-details__card-line" key="Local ID" [value]="kaas.id" />
+                  <spx-span-copy
+                    class="product-details__card-line"
+                    key="Project ID"
+                    [value]="productLabelInfo().projectId" />
+                  <spx-span-copy
+                    class="product-details__card-line"
+                    key="Organization ID"
+                    [value]="productLabelInfo().organizationId" />
+                </div>
+
+                <div class="product-details__card sg-r1 sg-c1">
+                  <div class="product-details__card-line product-details__card-line--split flex-grow">
+                    <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+                    <span class="product-details__card-line-right"> {{ kaas.codeAZ?.toUpperCase() }} </span>
+
+                    <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+                    <span class="product-details__card-line-right">
+                      {{ kaas.gitops === 'true' ? 'Yes' : 'No' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <h2>Specifications</h2>
+
+              <div spxGrid>
+                @for (item of sortedMachineDeployments() || []; track $index) {
+                  @let mt = item.machineTemplate.machineTemplate;
+                  <div class="product-details__card sg-r1 sg-c1 gap-1">
+                    <h3 class="mt-0 mb-1">
+                      Group {{ $index + 1 }} - {{ item.machineDeployment.spec.replicas }} replicas
+                    </h3>
+
+                    <h4 class="label">Kube Version</h4>
+
+                    <div class="product-details__card-line gap-4">
+                      <span>{{ item.machineDeployment.spec.template.spec.version }}</span>
+                    </div>
+
+                    <h4 class="label">Status</h4>
+                    <div class="product-details__card-line product-details__card-line--split flex-grow">
+                      <span class="product-details__card-line-left"> <strong>Replicas:</strong> </span>
+                      <span class="product-details__card-line-right">{{ item.machineDeployment.status.replicas }}</span>
+                    </div>
+                    <div class="product-details__card-line product-details__card-line--split flex-grow">
+                      <span class="product-details__card-line-left"> <strong>Available replicas:</strong> </span>
+                      <span class="product-details__card-line-right">
+                        {{ item.machineDeployment.status.availableReplicas }}
+                      </span>
+                    </div>
+                    <div class="product-details__card-line product-details__card-line--split flex-grow">
+                      <span class="product-details__card-line-left"> <strong>Ready replicas:</strong> </span>
+                      <span class="product-details__card-line-right">{{
+                        item.machineDeployment.status.readyReplicas
+                      }}</span>
+                    </div>
+                    <div class="product-details__card-line product-details__card-line--split flex-grow">
+                      <span class="product-details__card-line-left"> <strong>Up To Date replicas:</strong> </span>
+                      <span class="product-details__card-line-right">{{
+                        item.machineDeployment.status.upToDateReplicas
+                      }}</span>
+                    </div>
+
+                    <h4 class="label">Requests</h4>
+
+                    <h5 class="label">CPU</h5>
+
+                    <div class="product-details__card-line gap-4">
+                      <span> <strong>Sockets:</strong> {{ mt.cpu.sockets }}</span>
+                      <span> <strong>Cores:</strong> {{ mt.cpu.cores }}</span>
+                      <span> <strong>Threads:</strong> {{ mt.cpu.threads }}</span>
+                    </div>
+
+                    <h5 class="label">Memory</h5>
+
+                    <div class="product-details__card-line gap-4">
+                      <span> <strong>Guest:</strong> {{ mt.memory.guest }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <h2>Labels</h2>
+
+              <div spxGrid>
+                <div class="product-details__card sg-r-all sg-c-all">
+                  <mat-chip-set class="product-details__labels" aria-label="Labels">
+                    @for (labels of kaas.cluster?.cluster?.metadata?.labels | keyvalue; track $index) {
+                      <mat-chip (click)="copy(labels.value)">{{ labels.key }}: {{ labels.value }}</mat-chip>
+                    }
+                  </mat-chip-set>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      <!-- INSTANCES -->
+      @if (canProjectInstanceRead()) {
+        <mat-tab label="Instances">
+          <ng-template matTabContent>
+            <spx-kaas-details-instances [az]="this.az()" [cluster]="kaas"></spx-kaas-details-instances>
+          </ng-template>
+        </mat-tab>
+      }
+
+      <!-- INSTANCES -->
+      @if (canProjectFirewallRead()) {
+        <mat-tab label="Network Policies">
+          <ng-template matTabContent>
+            <spx-kaas-details-netpols [az]="this.az()" [cluster]="kaas"></spx-kaas-details-netpols>
+          </ng-template>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  }
+</div>

@@ -1,0 +1,37 @@
+<div class="product-details">
+  @if (advancedResource.isLoading()) {
+    <mat-spinner diameter="32"></mat-spinner>
+  }
+
+  @if (advancedResource.error()) {
+    <spx-banner [level]="BannerLevelEnum.Error">Failed to load advanced options.</spx-banner>
+  }
+
+  @if (advancedResource.hasValue() && advancedResource.value()) {
+    <div class="ao-head">
+      <h2>Advanced options</h2>
+      <div class="ao-head__actions">
+        @if (staleCount() > 0) {
+          <button type="button" class="ao-restart-cta" (click)="restart()">
+            <mat-icon>restart_alt</mat-icon>
+            <span>{{ staleCount() }} pending restart</span>
+          </button>
+        }
+        @if (instanceTypeName()) {
+          <button matButton type="button" (click)="openInstanceTypeSettings()">
+            <mat-icon>tune</mat-icon> View instance type settings
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="ao-card">
+      <div class="ao-section-head">
+        <span class="ao-section-title">Device &amp; firmware</span>
+        <span class="ao-section-sub">Showing the effective value and where it resolves from</span>
+      </div>
+
+      <spx-advanced-blocks [resolved]="advancedResource.value()" [editable]="false" />
+    </div>
+  }
+</div>

@@ -1,0 +1,42 @@
+<div class="product-create main-content">
+  <spx-content-header navBack titleOnly title="Create SSH Key"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" (azChange)="selectedAz.set($event)"></spx-step-general>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>key</mat-icon>
+                  </div>
+                  Public Key
+                </div>
+              </div>
+
+              <div class="info-card__content">
+                <mat-form-field class="info-card__item info-card__item--form" subscriptSizing="dynamic">
+                  <mat-label>Public key</mat-label>
+                  <textarea matInput rows="10" formControlName="publicKey"></textarea>
+                  @if (firstFormGroup.get('publicKey')?.getError('required')) {
+                    <mat-error>Public key is required.</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" [disabled]="firstFormGroup.invalid" (click)="create()">Create</button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

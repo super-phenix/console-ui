@@ -1,0 +1,19 @@
+ARG PROJECT=console-ui
+
+# Stage 1: Build
+FROM node:26-alpine AS build
+WORKDIR /usr/src/app
+
+# Install dependencies first to leverage Docker layer caching
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy the rest of the application code and build
+COPY . .
+RUN npm run build:local
+
+# Stage 2: Serve with Nginx
+FROM nginx:1.30-alpine
+ARG PROJECT
+COPY ./config/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /usr/src/app/dist/$PROJECT/browser /usr/share/nginx/html

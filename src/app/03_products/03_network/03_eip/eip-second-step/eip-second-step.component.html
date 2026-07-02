@@ -1,0 +1,193 @@
+<form [formGroup]="formGroup()">
+  <div class="info-card">
+    <div class="info-card__title">
+      <div class="d-flex align-items-center gap-2">
+        <div class="mat-icon--with-bg">
+          <mat-icon>network_manage</mat-icon>
+        </div>
+        EIP Type
+      </div>
+    </div>
+    <div class="info-card__content info-card__content--multi-block">
+      <div class="info-card__block">
+        <span><i>Choose the type of EIP to create: </i></span>
+      </div>
+      <div class="info-card__block">
+        <div class="info-card__item">
+          <mat-radio-group class="w-100 d-flex gap-4" formControlName="type" aria-label="Select type of EIP">
+            <mat-radio-button value="ip">Internal IP</mat-radio-button>
+            <mat-radio-button value="cidr">Internal CIDR</mat-radio-button>
+          </mat-radio-group>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (formGroup().get('type')?.value === 'ip') {
+    <div class="info-card">
+      <div class="info-card__title">
+        <div class="d-flex align-items-center gap-2">
+          <div class="mat-icon--with-bg">
+            <mat-icon>network_manage</mat-icon>
+          </div>
+          Internal IP
+        </div>
+      </div>
+      <div class="info-card__content info-card__content--multi-block">
+        <div class="info-card__block">
+          <span><i>Please specify the internal IP to expose: </i></span>
+        </div>
+        <div class="info-card__block">
+          <mat-form-field class="info-card__item">
+            <mat-label>Internal IP</mat-label>
+            <input matInput type="text" autocomplete="off" formControlName="ip" />
+            @if (formGroup().get('ip')?.hasError('required')) {
+              <mat-error>This field is required</mat-error>
+            }
+            @if (formGroup().get('ip')?.hasError('ip')) {
+              <mat-error>Invalid IP address</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (formGroup().get('type')?.value === 'cidr') {
+    <!-- SNAT SETTINGS -->
+    <div class="info-card">
+      <div class="info-card__title">
+        <div class="d-flex align-items-center gap-2">
+          <div class="mat-icon--with-bg">
+            <mat-icon>network_manage</mat-icon>
+          </div>
+          SNAT
+        </div>
+      </div>
+      <div class="info-card__content info-card__content--multi-block">
+        <div class="info-card__block info-card__block--space-between align-items-center">
+          <div class="d-flex flex-column gap-2">
+            <span><i>Please specify the SNAT ranges to expose.</i></span>
+
+            @if (formGroup().get('snat')?.hasError('required')) {
+              <mat-error class="mt-1">At least one CIDR is required.</mat-error>
+            }
+          </div>
+          <button matButton="tonal" (click)="addCidr()"><mat-icon>add</mat-icon> Add CIDR</button>
+        </div>
+        <div class="d-flex flex-column gap-2" formArrayName="snat">
+          @for (cidr of snat.controls; track cidr; let i = $index) {
+            <div class="info-card__block align-items-center">
+              <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+                <mat-label>SNAT</mat-label>
+                <input matInput type="text" autocomplete="off" [formControlName]="i" placeholder="10.0.1.0/24" />
+              </mat-form-field>
+              <button mat-icon-button (click)="removeCidr(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- DNAT SETTINGS -->
+    <div class="info-card">
+      <div class="info-card__title">
+        <div class="d-flex align-items-center gap-2">
+          <div class="mat-icon--with-bg">
+            <mat-icon>graph_2</mat-icon>
+          </div>
+          DNAT Routing
+        </div>
+      </div>
+      <div class="info-card__content info-card__content--multi-block">
+        <div class="info-card__block info-card__block--space-between align-items-center">
+          <span><i>Define DNAT rules for the new EIP.</i></span>
+          <button matButton="tonal" (click)="addDnat()"><mat-icon>add</mat-icon> Add DNAT</button>
+        </div>
+        <div class="d-flex flex-column gap-2" formArrayName="dnat">
+          @for (rule of dnat.controls; track rule; let i = $index) {
+            <div class="info-card__block info-card__block--space-evenly align-items-center" [formGroupName]="i">
+              <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+                <mat-label>External port</mat-label>
+                <input matInput type="text" autocomplete="off" formControlName="externalPort" placeholder="8080" />
+              </mat-form-field>
+
+              <mat-icon>arrow_right_alt</mat-icon>
+
+              <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+                <mat-label>Internal IP</mat-label>
+                <input matInput type="text" autocomplete="off" formControlName="internalIP" placeholder="10.0.1.0" />
+              </mat-form-field>
+
+              <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+                <mat-label>Internal Port</mat-label>
+                <input matInput type="text" autocomplete="off" formControlName="internalPort" placeholder="8080" />
+              </mat-form-field>
+
+              <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+                <mat-label>Protocol</mat-label>
+                <mat-select formControlName="protocol">
+                  <mat-option value="tcp"> TCP </mat-option>
+                  <mat-option value="udp"> UDP </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <button mat-icon-button (click)="removeDnat(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="product-create__step-section">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex flex-column">
+          <h2 class="mb-1">DNAT Routing</h2>
+          <span class="mb-4"><i>Define DNAT rules for the new EIP.</i></span>
+        </div>
+        <button matButton="tonal" (click)="addDnat()"><mat-icon>add</mat-icon> Add DNAT</button>
+      </div>
+
+      <div>
+        <div formArrayName="dnat" class="d-flex flex-column gap-2">
+          @for (rule of dnat.controls; track rule; let i = $index) {
+            <div class="d-flex gap-2 align-items-center" [formGroupName]="i">
+              <mat-form-field class="info-card__item" subscriptSizing="dynamic">
+                <mat-label>External port</mat-label>
+                <input matInput type="text" autocomplete="off" formControlName="externalPort" placeholder="8080" />
+              </mat-form-field>
+
+              <mat-icon>arrow_right_alt</mat-icon>
+
+              <mat-form-field subscriptSizing="dynamic">
+                <mat-label>Internal IP</mat-label>
+                <input matInput type="text" autocomplete="off" formControlName="internalIP" placeholder="10.0.1.0" />
+              </mat-form-field>
+
+              <mat-form-field subscriptSizing="dynamic">
+                <mat-label>Internal Port</mat-label>
+                <input matInput type="text" autocomplete="off" formControlName="internalPort" placeholder="8080" />
+              </mat-form-field>
+
+              <mat-form-field subscriptSizing="dynamic">
+                <mat-label>Protocol</mat-label>
+                <mat-select formControlName="protocol">
+                  <mat-option value="tcp"> TCP </mat-option>
+                  <mat-option value="udp"> UDP </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <button mat-icon-button (click)="removeDnat(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div> -->
+  }
+</form>

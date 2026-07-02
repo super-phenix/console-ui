@@ -1,0 +1,47 @@
+<div class="info-card">
+  <div class="info-card__title">
+    <div class="d-flex align-items-center gap-2">
+      <div class="mat-icon--with-bg">
+        <mat-icon>label</mat-icon>
+      </div>
+      {{ titleText() }}
+    </div>
+  </div>
+
+  <div class="info-card__content info-card__content--multi-block">
+    <div class="info-card__block">
+      <span>
+        <i>{{ subtitleText() }}</i>
+      </span>
+    </div>
+
+    <div class="info-card__block">
+      <mat-chip-grid #chipGrid aria-label="Labels selection">
+        @for (label of labels(); track $index; let i = $index) {
+          <mat-chip-row (removed)="removeLabel(i)" class="chip--with-edit chip--large">
+            <span class="chip-text--with-wrap">
+              {{ label }}
+            </span>
+
+            <button
+              role="button"
+              (click)="editLabel(i, label)"
+              class="mat-mdc-chip-edit mat-mdc-chip-avatar mat-focus-indicator mdc-evolution-chip__icon mdc-evolution-chip__icon--primary mat-mdc-chip-action mdc-evolution-chip__action mdc-evolution-chip__action--secondary"
+              type="button"
+              [attr.aria-label]="'edit ' + label"
+              tabindex="-1">
+              <mat-icon> edit </mat-icon>
+            </button>
+
+            <button matChipRemove [attr.aria-label]="'remove ' + label">
+              <mat-icon>close</mat-icon>
+            </button>
+          </mat-chip-row>
+        }
+        <button class="step-label__add-btn btn--small" matButton="outlined" (click)="addLabel()">
+          <mat-icon>add</mat-icon> Add
+        </button>
+      </mat-chip-grid>
+    </div>
+  </div>
+</div>

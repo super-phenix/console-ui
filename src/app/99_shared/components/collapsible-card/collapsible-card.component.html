@@ -1,0 +1,12 @@
+<mat-expansion-panel class="info-card mat-elevation-z0 collapsible-card" [expanded]="expanded()">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="d-flex align-items-center gap-2">
+        <div class="mat-icon--with-bg"><mat-icon>{{ icon() }}</mat-icon></div>
+        {{ title() }}
+      </div>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+
+  <ng-content></ng-content>
+</mat-expansion-panel>

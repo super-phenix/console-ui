@@ -1,0 +1,158 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Load Balancer Details"></spx-content-header>
+
+    @if (lbProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        @if (
+          (canProjectLoadBalancerWrite() && lbProduct.value().gitops !== 'true') ||
+          (canProjectArgoCdRead() && lbProduct.value().gitops === 'true')
+        ) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectLoadBalancerWrite() && lbProduct.value().gitops !== 'true') {
+              <button
+                mat-menu-item
+                aria-label="Edit loab balancer button"
+                [routerLink]="[
+                  '/products/network/load-balancer',
+                  'update',
+                  lbProduct.value().codeAZ,
+                  lbProduct.value().eid,
+                ]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && lbProduct.value().gitops === 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectLoadBalancerWrite() && lbProduct.value().gitops !== 'true') {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete load balancer button" (click)="deleteLoadBalancer()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (lbProduct.hasValue() && lbProduct.value().gitops !== 'true' && !lbProduct.value().productTypeId) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (lbProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (lbProduct.hasValue() && !lbProduct.value().loadBalancer) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the load balancer on the AZ.</spx-banner>
+  }
+
+  <div class="product-details__content">
+    @if (lbProduct.hasValue()) {
+      <h2>General Information</h2>
+      @let lb = lbProduct.value()!;
+
+      <div spxGrid>
+        <div class="product-details__card sg-r2 sg-c2">
+          <h3 class="text-break-all mt-0 mb-1">{{ lb.productName }}</h3>
+
+          <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="lb.eid" />
+          <spx-span-copy class="product-details__card-line" key="Local ID" [value]="lb.id" />
+          <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+          <spx-span-copy
+            class="product-details__card-line"
+            key="Organization ID"
+            [value]="productLabelInfo().organizationId" />
+        </div>
+
+        <div class="product-details__card sg-r1 sg-c1">
+          <div class="product-details__card-line product-details__card-line--split flex-grow">
+            <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+            <span class="product-details__card-line-right"> {{ lb.codeAZ?.toUpperCase() }} </span>
+
+            <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+            <span class="product-details__card-line-right">
+              {{ lb.gitops === 'true' ? 'Yes' : 'No' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <h2>Specifications</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c1">
+          <span class="product-details__card-line">
+            <strong>Virtual IP: </strong> {{ lb.loadBalancer?.spec?.vip }}
+          </span>
+          <div class="product-details__card-line">
+            <div class="d-flex flex-column my-1">
+              <strong>{{ lb.loadBalancer?.spec?.selector ? 'Selectors' : 'Endpoints' }}</strong>
+              <div class="pl-3 d-flex flex-column gap-2">
+                @for (item of lbTarget(); track $index) {
+                  <span>- {{ item }}</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="product-details__card-line">
+            <div class="d-flex flex-column my-1">
+              <strong>Port forwarding</strong>
+              <div class="pl-3 d-flex flex-column gap-2">
+                @for (item of lb.loadBalancer?.spec?.ports; track $index) {
+                  <div class="d-flex align-items-center">
+                    <span>- {{ item.port }}</span>
+                    <mat-icon>arrow_right_alt</mat-icon>
+                    <span>{{ item.targetPort }} [{{ item.protocol }}] </span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Labels</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c-all">
+          <mat-chip-set class="product-details__labels" aria-label="Labels">
+            @for (labels of lb.loadBalancer?.metadata?.labels | keyvalue; track $index) {
+              <mat-chip (click)="copy(labels.value)">
+                <div class="d-flex flex-wrap gap-x-1">
+                  <span>{{ labels.key }}:</span>
+                  <span>{{ labels.value }}</span>
+                </div>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+    }
+  </div>
+</div>

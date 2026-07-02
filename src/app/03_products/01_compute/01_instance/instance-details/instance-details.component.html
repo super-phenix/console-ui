@@ -1,0 +1,272 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Instance details"></spx-content-header>
+
+    @if (instanceProduct.hasValue()) {
+      @let instance = instanceProduct.value()!;
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+
+        @if (instance.vm?.status) {
+          @if (instance.vm!.status.printableStatus === 'Stopped' || instance.vmi?.status?.phase === 'Succeeded') {
+            <button
+              matButton="filled"
+              [disabled]="!canProjectInstanceControl()"
+              aria-label="Start button"
+              (click)="start(instance)">
+              Start
+            </button>
+          } @else {
+            <spx-button-with-dropdown
+              btnText="Shutdown"
+              [disabled]="!canProjectInstanceControl()"
+              (btnClicked)="stop(instance)">
+              <button mat-menu-item aria-label="Force shutdown" (click)="stopForce(instance)">Force Shutdown</button>
+              <button mat-menu-item aria-label="Restart" (click)="restart(instance)">Restart</button>
+            </spx-button-with-dropdown>
+          }
+        }
+
+        @if (
+          canProjectInstanceWrite() ||
+          canProjectInstanceTerminal() ||
+          (canProjectArgoCdRead() && instanceProduct.value().gitops === 'true' && !isClusterInstance())
+        ) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectInstanceWrite() && instanceProduct.value().gitops !== 'true' && !isClusterInstance()) {
+              <button
+                mat-menu-item
+                aria-label="Edit instance button"
+                [routerLink]="['/products/compute/instance', 'update', instance.codeAZ, instance.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectSnapshotWrite()) {
+              <button mat-menu-item aria-label="Create Snapshot button" (click)="createSnapshot()">
+                <mat-icon>camera_alt</mat-icon>
+                Create Snapshot
+              </button>
+            }
+
+            @if (canProjectInstanceTerminal()) {
+              <mat-divider></mat-divider>
+              <button
+                mat-menu-item
+                aria-label="Open Terminal button"
+                [disabled]="instance.vm?.status?.printableStatus !== 'Running'"
+                (click)="openSerial(instance)">
+                <mat-icon>terminal</mat-icon>
+                Serial
+              </button>
+
+              <button
+                mat-menu-item
+                aria-label="Open VNC button"
+                [disabled]="instance.vm?.status?.printableStatus !== 'Running'"
+                (click)="openVNC(instance)">
+                <mat-icon>connected_tv</mat-icon>
+                Console
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && instanceProduct.value().gitops === 'true' && !isClusterInstance()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (instance.gitops !== 'true' && canProjectInstanceWrite()) {
+              <mat-divider></mat-divider>
+              <button
+                mat-menu-item
+                aria-label="Delete instance button"
+                (click)="deleteInstance(instance)"
+                [disabled]="isClusterInstance()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (instanceProduct.hasValue() && !instanceProduct.value().vm) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the instance on the AZ.</spx-banner>
+  }
+
+  @if (
+    instanceProduct.hasValue() &&
+    instanceProduct.value().gitops !== 'true' &&
+    !instanceProduct.value().productTypeId &&
+    !isClusterInstance()
+  ) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (instanceProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (instanceProduct.hasValue() && isClusterInstance()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created by a KaaS Product. You cannot modify it.
+    </spx-banner>
+  }
+
+  @if (subnetsProduct.error()) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem fetching subnets associated with the instance.</spx-banner>
+  }
+
+  @if (instanceProduct.hasValue()) {
+    @let instance = instanceProduct.value()!;
+    <mat-tab-group
+      class="product-details__tabs mat-tab-fill-height"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      preserveContent
+      (selectedIndexChange)="updateFragment($event)"
+      [selectedIndex]="initialIndex()">
+      <!-- GENERAL -->
+      <mat-tab label="General">
+        <ng-template matTabContent>
+          <spx-instance-details-general [instance]="instance" [az]="az()"></spx-instance-details-general>
+        </ng-template>
+      </mat-tab>
+
+      <!-- VOLUMES -->
+      <mat-tab label="Storage">
+        <ng-template matTabContent>
+          <spx-instance-details-storage
+            [instance]="instance"
+            [az]="az()"
+            (dataChanged)="reload()"></spx-instance-details-storage>
+        </ng-template>
+      </mat-tab>
+
+      <!-- NETWORK -->
+      <mat-tab label="Network">
+        <ng-template matTabContent>
+          <h2>Network</h2>
+
+          <div spxGrid>
+            @let networks =
+              instance.vmi?.spec?.networks ? instance.vmi!.spec.networks : instance.vm?.spec?.template?.spec?.networks;
+
+            @for (network of networks; track $index) {
+              <div class="product-details__card sg-r2 sg-c2">
+                @let subnet = networkSubnetsMap().get(network.name);
+                <div class="d-flex align-items-center">
+                  <h3>{{ network.name }}</h3>
+                  <span class="ml-2"> {{ subnet ? '(linked to a subnet)' : '' }} </span>
+                  @if (subnet) {
+                    <a
+                      class="ml-1 color-primary"
+                      matIconButton
+                      [routerLink]="['/products', 'network', 'subnet', 'details', az(), subnet.eid]"
+                      aria-label="Go to subnet"
+                      target="_blank">
+                      <mat-icon> open_in_new</mat-icon>
+                    </a>
+                  }
+                </div>
+                <div class="pl-2 d-flex flex-column">
+                  @if (subnet) {
+                    <div class="d-flex flex-column gap-2">
+                      <spx-span-copy key="Id" [value]="subnet.id" />
+                      <spx-span-copy key="Name" [value]="subnet.productName" />
+
+                      <span> <strong>CIDR Block:</strong> {{ subnet.subnet?.spec?.cidrBlock }} </span>
+                      <span>
+                        <strong>Assigned IP: </strong>
+                        {{ instance.vmi?.status?.interfaces?.[$index]?.ipAddresses?.join(',') }}
+                      </span>
+
+                      <span>
+                        <strong>Mount type: </strong>
+                        {{ instance.vm?.spec?.template?.spec?.domain?.devices?.interfaces?.[$index]?.model || 'auto' }}
+                      </span>
+                    </div>
+                  } @else {
+                    <div class="product-details__grid">
+                      <span class="product-details__left-col"> Network Name: {{ network.multus?.networkName }} </span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      <!-- SSH -->
+      @if (sshKeysProduct.status() !== 'error' && sshKeysProduct.value() && sshKeysProduct.value()!.length > 0) {
+        <mat-tab label="SSH Keys">
+          <ng-template matTabContent>
+            <div class="product-list">
+              <h2>SSH Keys</h2>
+              <div class="product-list__table">
+                <mat-table [dataSource]="sshKeysProduct.value()!">
+                  <ng-container matColumnDef="name">
+                    <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+                    <mat-cell *matCellDef="let el">
+                      @if (el.productName) {
+                        <spx-span-copy [value]="el.productName" />
+                      }
+                      @if (el.error) {
+                        <i>Key deleted</i>
+                      }
+                    </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="id">
+                    <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
+                    <!-- In case the ssh key have been deleted -->
+                    <mat-cell *matCellDef="let el">
+                      <spx-span-copy [value]="el.eid || el.error.context.effectiveId" />
+                    </mat-cell>
+                  </ng-container>
+
+                  <mat-header-row *matHeaderRowDef="['name', 'id']; sticky: true"></mat-header-row>
+                  <mat-row *matRowDef="let row; columns: ['name', 'id']"></mat-row>
+                </mat-table>
+              </div>
+            </div>
+          </ng-template>
+        </mat-tab>
+      }
+
+      <!-- ADVANCED OPTIONS -->
+      @if (instance.vm) {
+        <mat-tab label="Advanced options">
+          <ng-template matTabContent>
+            <spx-instance-details-advanced
+              [effectiveId]="instance.eid"
+              [az]="az()"
+              [instanceTypeName]="instanceTypeName()"></spx-instance-details-advanced>
+          </ng-template>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  }
+</div>

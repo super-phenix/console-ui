@@ -1,0 +1,178 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "console-ui": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "spx",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/console-ui",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": [],
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public",
+                "ignore": ["local/**", "styles/theme-override.template.css"]
+              }
+            ],
+            "styles": ["src/styles/static/xterm.css", "src/styles/styles.scss"],
+            "scripts": [],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src/styles/common"]
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2.5MB",
+                  "maximumError": "5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "5kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "local": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public",
+                  "ignore": ["environment.js", "local/**", "styles/theme-override.template.css"]
+                },
+                {
+                  "glob": "environment.js",
+                  "input": "public/local"
+                }
+              ]
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "console-ui:build:production"
+            },
+            "development": {
+              "buildTarget": "console-ui:build:development"
+            },
+            "local": {
+              "buildTarget": "console-ui:build:local"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular/build:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "polyfills": ["src/test-setup.ts"],
+            "tsConfig": "tsconfig.spec.json",
+            "exclude": [
+              "src/app/03_products/01_compute/01_instance/instance-create/instance-create.component.spec.ts",
+              "src/app/03_products/01_compute/01_instance/instance-create/instance-ssh-create/instance-ssh-create.component.spec.ts",
+              "src/app/03_products/01_compute/01_instance/instance-create/instance-storage-create/instance-storage-create.component.spec.ts",
+              "src/app/03_products/01_compute/01_instance/instance-details/instance-details.component.spec.ts",
+              "src/app/03_products/01_compute/01_instance/instance-details/instance-details-general/instance-details-general.component.spec.ts",
+              "src/app/03_products/01_compute/01_instance/instance-details/instance-details-storage/instance-details-storage.component.spec.ts",
+              "src/app/03_products/01_compute/01_instance/instance-list/instance-list.component.spec.ts",
+              "src/app/03_products/01_compute/01_instance/instance-update/instance-update.component.spec.ts",
+              "src/app/03_products/02_storage/02_snapshot/snapshot-create/snapshot-create.component.spec.ts",
+              "src/app/03_products/02_storage/02_snapshot/snapshot-details/snapshot-details.component.spec.ts",
+              "src/app/03_products/02_storage/02_snapshot/snapshot-details/snapshot-details-linked-snap/snapshot-details-linked-snap.component.spec.ts",
+              "src/app/03_products/02_storage/02_snapshot/snapshot-details/snapshot-details-schedule/snapshot-details-schedule.component.spec.ts",
+              "src/app/03_products/02_storage/02_snapshot/snapshot-details/snapshot-details-single/snapshot-details-single.component.spec.ts",
+              "src/app/03_products/02_storage/02_snapshot/snapshot-list/snapshot-list.component.spec.ts",
+              "src/app/03_products/02_storage/02_snapshot/snapshot-update/snapshot-update.component.spec.ts",
+              "src/app/05_organization/organization-details/organization-details.component.spec.ts",
+              "src/app/05_organization/organization-iam/organization-iam.component.spec.ts",
+              "src/app/05_organization/organization-projects/organization-projects.component.spec.ts",
+              "src/app/05_organization/organization-settings/organization-settings.component.spec.ts",
+              "src/app/05_organization/organization-users/organization-users.component.spec.ts"
+            ],
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public",
+                "ignore": ["local/**"]
+              }
+            ],
+            "styles": ["src/styles/styles.scss"],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src/styles/common"]
+            },
+            "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "schematicCollections": ["angular-eslint"],
+    "analytics": false
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
+    }
+  }
+}

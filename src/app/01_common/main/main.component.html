@@ -1,0 +1,36 @@
+<div class="app" [class.smallScreen]="!screenSvc.isWeb()">
+  <mat-sidenav-container class="w-100 h-100">
+    <mat-sidenav
+      class="sidenav"
+      #sidenav
+      [disableClose]="screenSvc.isWeb()"
+      [opened]="screenSvc.isWeb()"
+      [mode]="screenSvc.isWeb() ? 'side' : 'over'"
+      [class.sidenav--large]="!screenSvc.isWeb()"
+      [fixedInViewport]="true">
+      <div class="sidenav__content">
+        @if (!screenSvc.isWeb()) {
+          <spx-context-selector class="mb-2 mt-3" background="inverted"></spx-context-selector>
+        }
+
+        <spx-sidenav
+          class="sidenav__content-menu"
+          [class.sidenav__content-menu--over-mode]="!screenSvc.isWeb()"></spx-sidenav>
+      </div>
+    </mat-sidenav>
+    <mat-sidenav-content class="content">
+      <div class="content__header">
+        @if (!screenSvc.isWeb()) {
+          <button class="content__header-menu-tgl color-primary" mat-icon-button (click)="sidenav.toggle()">
+            <mat-icon>menu</mat-icon>
+          </button>
+        }
+        <div class="application-logo" [routerLink]="['/dashboard']" role="img" aria-label="SPX Logo"></div>
+        <spx-header class="w-100"></spx-header>
+      </div>
+      <div class="content__main">
+        <router-outlet />
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
