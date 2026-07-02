@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=tag
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ id.meta.outputs.tags }}
+          labels: ${{ id.meta.outputs.labels }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Package and Push Helm Chart
+        run: |
+          # Determine versions based on requirements
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            # GitHub tags are used as the Helm version
+            VERSION="${{ github.ref_name }}"
+            APP_VERSION="${{ github.ref_name }}"
+          else
+            # Casual commits on main are 0.0.0 for Helm and latest for appVersion
+            VERSION="0.0.0"
+            APP_VERSION="latest"
+          fi
+          
+          # Helm versions must be valid SemVer. Remove 'v' prefix if present.
+          HELM_VERSION=$(echo $VERSION | sed 's/^v//')
+          
+          echo "Packaging chart with version $HELM_VERSION and appVersion $APP_VERSION"
+          
+          helm package deployment/console-ui --version $HELM_VERSION --app-version $APP_VERSION
+          
+          # GHCR OCI requires lowercase repository paths
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          
+          # Login to Helm registry (OCI)
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+          
+          # Push to GHCR OCI registry
+          helm push "console-ui-${HELM_VERSION}.tgz" "oci://${{ env.REGISTRY }}/${OWNER_LOWER}/charts"
