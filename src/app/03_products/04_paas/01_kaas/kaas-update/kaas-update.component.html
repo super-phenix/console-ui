@@ -49,8 +49,8 @@
 
             <spx-step-disaster-recovery
               [(active)]="disasterRecovery"
-              [disabled]="!drSupported()"
-              disabledTooltip="Requires Kubernetes 1.35+"></spx-step-disaster-recovery>
+              [disabled]="drDisabled()"
+              [disabledTooltip]="drDisabledTooltip()"></spx-step-disaster-recovery>
 
             <div class="info-card">
               <div class="info-card__title">
