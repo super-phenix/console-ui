@@ -19,5 +19,14 @@
         <i>Run the control plane on a dedicated datastore so the cluster can be recovered after a disaster.</i>
       </span>
     </div>
+    @if (disabled() && disabledTooltip()) {
+      <div class="info-card__block">
+        <span class="color-warn">
+          <i>
+            <strong>Warning:</strong> {{ disabledTooltip() }}. The field has been reset to its original value.
+          </i>
+        </span>
+      </div>
+    }
   </div>
 </div>

@@ -104,6 +104,9 @@ export class KaasUpdateComponent {
 
   // Disaster Recovery (PRA) toggle + datastore overrides (advanced step). Defaults mirror the sfs-kaas chart.
   disasterRecovery = signal(false);
+  // Original values used to detect changes that Kamaji cannot handle simultaneously.
+  private originalKubeVersion = signal('');
+  private originalDisasterRecovery = signal(false);
   // Current DR storage size when editing; the input cannot be reduced below it.
   originalStorage = signal(1);
   dataStoreFormGroup = this.fb.nonNullable.group({
@@ -114,6 +117,18 @@ export class KaasUpdateComponent {
   // Disaster Recovery needs Kubernetes >= 1.35.
   private kubeVersionValue = toSignal(this.firstFormGroup.controls.kubeVersion.valueChanges, { initialValue: '' });
   protected drSupported = computed(() => isVersionAtLeast(this.kubeVersionValue(), 1, 35));
+
+  // Kamaji limitation: cannot change the dedicated datastore and the kube version at the same time.
+  private kubeVersionChanged = computed(() => {
+    const original = this.originalKubeVersion();
+    return original !== '' && this.kubeVersionValue() !== original;
+  });
+  protected drDisabled = computed(() => !this.drSupported() || this.kubeVersionChanged());
+  protected drDisabledTooltip = computed(() => {
+    if (!this.drSupported()) return 'Requires Kubernetes 1.35+';
+    if (this.kubeVersionChanged()) return 'Cannot change the dedicated datastore when the Kubernetes version is also changed';
+    return '';
+  });
 
   secondFormGroup = this.fb.group({
     groups: this.fb.array([this.newNodeGroup(generateShortId(), 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, '', 10)]),
@@ -182,9 +197,12 @@ export class KaasUpdateComponent {
     });
 
     // Clear the DR toggle if the selected version stops supporting it.
+    // Reset DR to its original value when the kube version changes (Kamaji limitation).
     effect(() => {
       if (!this.drSupported() && this.disasterRecovery()) {
         this.disasterRecovery.set(false);
+      } else if (this.kubeVersionChanged()) {
+        this.disasterRecovery.set(this.originalDisasterRecovery());
       }
     });
   }
@@ -244,6 +262,7 @@ export class KaasUpdateComponent {
       this.dataStoreFormGroup.controls.storage.updateValueAndValidity();
     }
     this.disasterRecovery.set(!!dataStore?.dedicated);
+    this.originalDisasterRecovery.set(!!dataStore?.dedicated);
 
     this.firstFormGroup.reset({
       az: this.selectedAz(),
@@ -253,6 +272,8 @@ export class KaasUpdateComponent {
       workersNetPol: kaas.spec?.workersNetPol,
       productName: kaas.productName,
     });
+
+    this.originalKubeVersion.set(kaas.spec?.kubeVersion ?? '');
 
     this.groups.controls = [];
     const groups = kaas.spec?.groups.sort((a, b) => a.name.localeCompare(b.name)) || [];
