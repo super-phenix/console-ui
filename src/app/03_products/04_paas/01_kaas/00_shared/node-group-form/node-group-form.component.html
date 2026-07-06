@@ -4,7 +4,7 @@
     <div class="d-flex gap-2 align-items-center flex-wrap" [formGroup]="formGroup()">
       <mat-form-field>
         <mat-label>Number of Replicas</mat-label>
-        <input matInput formControlName="replicas" type="number" pattern="[0-9]+" [max]="MaxReplicas" />
+        <input matInput formControlName="replicas" type="number" pattern="[0-9]+" min="1" [max]="MaxReplicas" />
       </mat-form-field>
       <mat-form-field>
         <mat-label>Cores</mat-label>
