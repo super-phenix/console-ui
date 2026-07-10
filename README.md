@@ -1,4 +1,3 @@
-
 <h1 align="center">Superphenix Console</h1>
 
 <p align="center">
@@ -38,7 +37,7 @@ To start a local development server, run:
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. 
+Once the server is running, open your browser and navigate to `http://localhost:4200/`.  
 The application will automatically reload whenever you modify any of the source files.
 
 ### Code scaffolding
@@ -80,6 +79,18 @@ For end-to-end (e2e) testing, run:
 ```bash
 ng e2e
 ```
+
+## Documentations
+
+| Document                                               | Description                                                                            |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| [Getting Started](docs/getting-started.md)             | Prerequisites, installation, environment setup, running locally, building, and Docker. |
+| [Architecture](docs/architecture.md)                   | Project structure, directory layout, routing, lazy loading, and build configurations.  |
+| [Development Practices](docs/development-practices.md) | Standalone components, signals, change detection, control flow, linting, and testing.  |
+| [Theming](docs/theming.md)                             | Theme system, CSS custom properties, override mechanism, fonts, and branding assets.   |
+| [Authentication](docs/authentication.md)               | Cookie-based session flow, JWT tokens, interceptors, and session recovery.             |
+| [API Patterns](docs/api-patterns.md)                   | BaseService, URL structure, custom RxJS handlers, and error handling.                  |
+| [Add a New Product](docs/add-new-product.md)           | Step-by-step guide to adding a new product to the Console UI.                          |
 
 ## License
 
