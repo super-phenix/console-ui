@@ -12,7 +12,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductListFilterComponent } from '@products/00_shared/components/product-list-filter/product-list-filter.component';
 import { InstanceSnapshotActions } from '../instance-snapshot-actions.utils';
-import { ProductSnapshot as ProductInstanceSnapshot } from '@products/00_shared/models/product.model';
+import { ProductInstance, ProductSnapshot as ProductInstanceSnapshot } from '@products/00_shared/models/product.model';
 import { InstanceSnapshotService } from '@products/00_shared/services/instance-snapshot.service';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { DEFAULT_REFRESH_INTERVAL, PRA_LABEL_KEYS } from '@shared/models/consts';
@@ -21,8 +21,10 @@ import { INSTANCE_SNAPSHOT_REFRESH_KEY, LocalStorageService } from '@shared/serv
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
 import { mapHandlerReplacer, mapHandlerReviver } from '@shared/utils/json-utils';
-import { catchError, of } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import { ProductTableWrapperComponent } from '@products/00_shared/components/product-table-wrapper/product-table-wrapper.component';
+import { InstanceService } from '@products/00_shared/services/instance.service';
+import { nonBlockingErrorHandler } from '@shared/http/customHandler';
 
 interface ProductInstanceSnapshotItem {
   data: ProductInstanceSnapshot;
@@ -53,6 +55,7 @@ export class InstanceSnapshotListComponent {
 
   protected stateSvc = inject(StateService);
   protected instanceSnapshotSvc = inject(InstanceSnapshotService);
+  protected instanceSvc = inject(InstanceService);
   protected permissionSvc = inject(PermissionService);
   protected router = inject(Router);
   protected route = inject(ActivatedRoute);
@@ -102,7 +105,6 @@ export class InstanceSnapshotListComponent {
     return dataSource;
   });
 
-
   private needReload = signal(0);
 
   constructor() {
@@ -144,14 +146,27 @@ export class InstanceSnapshotListComponent {
     });
   }
 
-  restoreSnapshot(snapshot: ProductInstanceSnapshot) {
+  async restoreSnapshot(snapshot: ProductInstanceSnapshot, instanceEid: string, instance?: ProductInstance) {
+    if (!instance) {
+      instance = await firstValueFrom(
+        this.instanceSvc
+          .get(this.stateSvc.organization()!.id, this.stateSvc.project()!.id, snapshot.codeAZ!, instanceEid)
+          .pipe(nonBlockingErrorHandler())
+      );
+    }
+
+    const instanceName = instance?.productName || undefined;
+    const instanceId = instance?.id || undefined;
+
     InstanceSnapshotActions.restoreSnapshot(
       this.instanceSnapshotSvc,
       this.stateSvc,
       this.dialog,
       this.router,
       snapshot.codeAZ!,
-      snapshot
+      snapshot,
+      instanceName,
+      instanceId
     );
   }
 

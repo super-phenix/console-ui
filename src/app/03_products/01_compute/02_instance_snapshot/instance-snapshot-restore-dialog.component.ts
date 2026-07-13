@@ -55,7 +55,8 @@ export interface InstanceSnapshotRestoreResultDialog {
       } @else {
         <div class="d-flex flex-column">
           <span>
-            The instance still exists. After the restore, it will be overwritten and replaced by the snapshot version.
+            The instance "{{ data.name }}" still exists. After the restore, it will be overwritten and replaced by the
+            snapshot version.
           </span>
           <br />
           <span>Are you sure you want to restore this snapshot?</span>
