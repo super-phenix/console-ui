@@ -131,7 +131,8 @@ export class DiskDetailsComponent {
 
   productLabelInfo = computed(() => {
     if (this.diskProduct.hasValue()) {
-      return getProductLabelInfo(this.diskProduct.value().disk?.metadata?.labels);
+      const product = this.diskProduct.value();
+      return getProductLabelInfo(product.disk?.metadata?.labels ?? product.pvc?.metadata?.labels);
     }
     return getProductLabelInfo();
   });
