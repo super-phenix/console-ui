@@ -72,13 +72,7 @@ export class InstanceSnapshotActions {
       ref.afterClosed().subscribe((res: InstanceSnapshotCloneResultDialog) => {
         if (res && res.name) {
           firstValueFrom(
-            instanceSnapshotSvc.clone(
-              stateSvc.organization()!.id,
-              stateSvc.project()!.id,
-              az,
-              snapshot.eid!,
-              res.name
-            )
+            instanceSnapshotSvc.clone(stateSvc.organization()!.id, stateSvc.project()!.id, az, snapshot.eid!, res.name)
           ).then(() => router.navigate(['/products', 'compute', 'instance']));
         }
       });
@@ -93,12 +87,7 @@ export class InstanceSnapshotActions {
   ) {
     if (az && snapshot.eid && snapshot.gitops === 'true') {
       const res = await firstValueFrom(
-        instanceSnapshotSvc.getArgoLink(
-          stateSvc.organization()!.id,
-          stateSvc.project()!.id,
-          az,
-          snapshot.eid
-        )
+        instanceSnapshotSvc.getArgoLink(stateSvc.organization()!.id, stateSvc.project()!.id, az, snapshot.eid)
       );
 
       if (res) {
@@ -129,12 +118,7 @@ export class InstanceSnapshotActions {
         ref.afterClosed().subscribe(res => {
           if (res == true) {
             firstValueFrom(
-              instanceSnapshotSvc.delete(
-                stateSvc.organization()!.id,
-                stateSvc.project()!.id,
-                az,
-                snapshot.eid!
-              )
+              instanceSnapshotSvc.delete(stateSvc.organization()!.id, stateSvc.project()!.id, az, snapshot.eid!)
             ).then(() => resolve(true));
           } else {
             resolve(false);

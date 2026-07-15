@@ -59,7 +59,10 @@
 
           <mat-menu #menu="matMenu">
             @if (canProjectInstanceWrite() && canProjectSnapshotWrite()) {
-              <button mat-menu-item aria-label="Restore snapshot button" (click)="restoreSnapshot(el.data)">
+              <button
+                mat-menu-item
+                aria-label="Restore snapshot button"
+                (click)="restoreSnapshot(el.data, el.data.vmSnapshot.spec.source.name)">
                 <mat-icon>settings_backup_restore</mat-icon>
                 Restore
               </button>
@@ -79,10 +82,7 @@
 
             @if (el.data.gitops !== 'true' && canProjectSnapshotWrite()) {
               <mat-divider></mat-divider>
-              <button
-                mat-menu-item
-                aria-label="Delete snapshot button"
-                (click)="deleteSnapshot(el.data)">
+              <button mat-menu-item aria-label="Delete snapshot button" (click)="deleteSnapshot(el.data)">
                 <mat-icon>delete</mat-icon>
                 Delete
               </button>

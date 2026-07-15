@@ -128,13 +128,13 @@ export class InstanceSnapshotDetailsComponent {
           ? this.instanceSnapshotProduct.value()?.vmSnapshot?.spec.source.name
           : undefined,
       stream: ({ params }) => {
-        const diskEid = params;
-        if (diskEid) {
+        const instanceEid = params;
+        if (instanceEid) {
           return this.instanceSvc.get(
             this.stateSvc.organization()!.id,
             this.stateSvc.project()!.id,
             this.az(),
-            diskEid
+            instanceEid
           );
         } else {
           return EMPTY;
