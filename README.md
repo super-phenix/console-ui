@@ -11,11 +11,11 @@
 
 <p align="center">
   <a href="https://github.com/super-phenix/console-ui/releases"><img
-    src="https://img.shields.io/github/v/release/super-phenix/superphenix.svg"
+    src="https://img.shields.io/github/v/release/super-phenix/console-ui.svg"
     alt="Releases"
   /></a>
   <a href="https://github.com/super-phenix/console-ui/actions"><img
-    src="https://github.com/super-phenix/console-ui/actions/workflows/build.yml/badge.svg"
+    src="https://github.com/super-phenix/console-ui/actions/workflows/release.yml/badge.svg"
     alt="Build"
   /></a>
   <a href="LICENSE"><img
