@@ -8,6 +8,7 @@ import { NatGateway, Subnet } from './network/subnet/subnet.model';
 import { VPC } from './network/vpc/vpc.model';
 import { Cluster } from './paas/kaas/cluster.model';
 import { BaaS } from './storage/baas/baas.model';
+import { BucketView } from './storage/bucket/bucket.model';
 import { Disk, MountStatus } from './storage/disk/disk.model';
 import { PVC } from './storage/disk/pvc.model';
 import { Snapshot, SnapshotSchedule } from './storage/snapshot/snapshot.model';
@@ -96,4 +97,8 @@ export interface ProductKaaS extends Product {
 
 export interface ProductBaaS extends Product {
   backup?: BaaS;
+}
+
+export interface ProductBucket extends Product {
+  bucket?: BucketView;
 }

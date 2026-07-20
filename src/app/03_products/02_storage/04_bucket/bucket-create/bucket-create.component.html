@@ -1,0 +1,197 @@
+<div class="product-create main-content">
+  <spx-content-header navBack title="Create Bucket"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="firstFormGroup" (azChange)="selectedAz.set($event)"></spx-step-general>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 2 - CONFIGURATION -->
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Form invalid.">
+        <ng-template matStepLabel>Configuration</ng-template>
+        <ng-template matStepContent>
+          <form [formGroup]="secondFormGroup">
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>storage</mat-icon>
+                  </div>
+                  Storage
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--space-evenly">
+                <mat-form-field class="info-card__item">
+                  <mat-label>Storage class</mat-label>
+                  <mat-select formControlName="storageClass">
+                    @for (storageClass of s3Config()?.storageClasses; track $index) {
+                      <mat-option [value]="storageClass">
+                        <span> {{ storageClass | titlecase }} </span>
+                      </mat-option>
+                    }
+                  </mat-select>
+                  @if (secondFormGroup.get('storageClass')?.hasError('required')) {
+                    <mat-error>This field is required</mat-error>
+                  }
+                  @if (s3Config() && s3Config()!.storageClasses.length === 0) {
+                    <mat-hint>
+                      <span> <i> Object storage is not available in this availability zone. </i> </span>
+                    </mat-hint>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>tune</mat-icon>
+                  </div>
+                  Advanced options
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block info-card__block--space-evenly">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Maximum objects</mat-label>
+                    <input type="number" matInput pattern="[0-9]+" min="1" formControlName="maxObjects" />
+                    @if (secondFormGroup.get('maxObjects')?.hasError('min')) {
+                      <mat-error>The minimum value is 1.</mat-error>
+                    }
+                    @if (secondFormGroup.get('maxObjects')?.hasError('max')) {
+                      <mat-error>
+                        The maximum value is {{ secondFormGroup.get('maxObjects')?.getError('max').max }}.
+                      </mat-error>
+                    }
+                    @if (s3Config()) {
+                      <mat-hint>Optional, max {{ s3Config()!.maxBucketObjects }}</mat-hint>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Maximum size</mat-label>
+                    <input type="number" matInput pattern="[0-9]+" min="1" formControlName="maxSizeValue" />
+                    @if (secondFormGroup.get('maxSizeValue')?.hasError('min')) {
+                      <mat-error>The minimum value is 1.</mat-error>
+                    }
+                    @if (s3Config()) {
+                      <mat-hint>Optional, max {{ s3Config()!.maxBucketSize }}</mat-hint>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Unit</mat-label>
+                    <mat-select formControlName="maxSizeUnit">
+                      @for (unit of BINARY_UNITS; track $index) {
+                        <mat-option [value]="unit">{{ unit }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                @if (secondFormGroup.hasError('maxSizeCap')) {
+                  <div class="info-card__block">
+                    <mat-error>
+                      The maximum size allowed in this availability zone is
+                      {{ secondFormGroup.getError('maxSizeCap').max }}.
+                    </mat-error>
+                  </div>
+                }
+
+                <div class="info-card__block info-card__block--space-evenly">
+                  <div class="info-card__item d-flex align-items-center gap-2">
+                    <strong>Bucket policy: </strong>
+                    <button type="button" matButton aria-label="Edit bucket policy" (click)="editJson('policy')">
+                      <mat-icon>edit</mat-icon>
+                      Edit
+                    </button>
+                    @if (secondFormGroup.get('policy')?.value) {
+                      <mat-chip-set aria-label="policy set">
+                        <mat-chip class="status-chip--ready" disabled="true">Set</mat-chip>
+                      </mat-chip-set>
+                      <button type="button" matIconButton aria-label="Clear bucket policy" (click)="clearJson('policy')">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    }
+                  </div>
+
+                  <div class="info-card__item d-flex align-items-center gap-2">
+                    <strong>Lifecycle: </strong>
+                    <button type="button" matButton aria-label="Edit bucket lifecycle" (click)="editJson('lifecycle')">
+                      <mat-icon>edit</mat-icon>
+                      Edit
+                    </button>
+                    @if (secondFormGroup.get('lifecycle')?.value) {
+                      <mat-chip-set aria-label="lifecycle set">
+                        <mat-chip class="status-chip--ready" disabled="true">Set</mat-chip>
+                      </mat-chip-set>
+                      <button
+                        type="button"
+                        matIconButton
+                        aria-label="Clear bucket lifecycle"
+                        (click)="clearJson('lifecycle')">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                @if (secondFormGroup.get('policy')?.hasError('json')) {
+                  <div class="info-card__block"><mat-error>The bucket policy is not valid JSON.</mat-error></div>
+                }
+                @if (secondFormGroup.get('policy')?.hasError('maxMinifiedLength')) {
+                  <div class="info-card__block">
+                    <mat-error>
+                      The bucket policy exceeds
+                      {{ secondFormGroup.get('policy')?.getError('maxMinifiedLength').max }} characters once minified
+                      ({{ secondFormGroup.get('policy')?.getError('maxMinifiedLength').actual }}).
+                    </mat-error>
+                  </div>
+                }
+                @if (secondFormGroup.get('lifecycle')?.hasError('json')) {
+                  <div class="info-card__block"><mat-error>The lifecycle is not valid JSON.</mat-error></div>
+                }
+                @if (secondFormGroup.get('lifecycle')?.hasError('maxMinifiedLength')) {
+                  <div class="info-card__block">
+                    <mat-error>
+                      The lifecycle exceeds
+                      {{ secondFormGroup.get('lifecycle')?.getError('maxMinifiedLength').max }} characters once minified
+                      ({{ secondFormGroup.get('lifecycle')?.getError('maxMinifiedLength').actual }}).
+                    </mat-error>
+                  </div>
+                }
+              </div>
+            </div>
+          </form>
+
+          <div class="product-create__step-buttons">
+            <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+            <button
+              matButton="filled"
+              [disabled]="!firstFormGroup.valid || !secondFormGroup.valid || submitting()"
+              (click)="create()">
+              @if (submitting()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              }
+              Create
+            </button>
+          </div>
+        </ng-template>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

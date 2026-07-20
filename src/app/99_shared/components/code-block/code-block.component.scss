@@ -1,0 +1,32 @@
+.code-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  &__label {
+    font: var(--mat-sys-label-small);
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    background-color: var(--block);
+    border: 1px solid var(--stroke-default);
+    border-radius: var(--mat-sys-corner-medium);
+    padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  }
+
+  &__code {
+    flex: 1 0 auto;
+    width: 1%;
+    margin: 0;
+    overflow-x: auto;
+
+    font-family: JetBrainsMono, monospace;
+    font-size: var(--mat-sys-body-small-size);
+    line-height: 20px;
+    white-space: pre;
+  }
+}

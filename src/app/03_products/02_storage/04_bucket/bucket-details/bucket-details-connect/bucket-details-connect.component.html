@@ -1,0 +1,97 @@
+<div class="product-details">
+  <mat-menu #downloadMenu="matMenu">
+    <button mat-menu-item aria-label="Download AWS CLI config" (click)="downloadAwsConfig()">AWS CLI config</button>
+    <button mat-menu-item aria-label="Download s3cmd config" (click)="downloadS3cmdConfig()">s3cmd config</button>
+  </mat-menu>
+
+  <h2>Connection</h2>
+  <div spxGrid>
+    <div class="product-details__card sg-r1 sg-c-all">
+      @if (bucket().bucket?.endpoint) {
+        <spx-span-copy class="product-details__card-line" key="Endpoint" [value]="bucket().bucket?.endpoint" />
+      }
+      <spx-span-copy class="product-details__card-line" key="Bucket name" [value]="bucket().bucket?.name || bucket().eid" />
+      <spx-span-copy class="product-details__card-line" key="Region" [value]="credentials()?.region || az()" />
+    </div>
+  </div>
+
+  @if (canProjectBucketCredentials()) {
+    <h2>Credentials</h2>
+    <div spxGrid>
+      <div class="product-details__card sg-c-all">
+        @if (!credentials()) {
+        <span class="product-details__card-line">The credentials give full admin access to this bucket.</span>
+        <span class="product-details__card-line d-flex gap-3">
+          <button
+            matButton="filled"
+            aria-label="Reveal credentials"
+            [disabled]="credentialsLoading()"
+            (click)="revealCredentials()">
+            @if (credentialsLoading()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              <mat-icon>key</mat-icon>
+            }
+            Reveal credentials
+          </button>
+          <button matButton [matMenuTriggerFor]="downloadMenu" [disabled]="credentialsLoading()" aria-label="Download config">
+            <mat-icon>download</mat-icon>
+            Download config
+          </button>
+        </span>
+      } @else {
+        @let creds = credentials()!;
+        <spx-span-copy class="product-details__card-line" key="Access key" [value]="creds.accessKeyId" />
+
+        <div class="product-details__card-line d-flex align-items-center">
+          <span>
+            <strong>Secret key: </strong>
+            <span class="text-break-all">{{ secretVisible() ? creds.secretAccessKey : '••••••••••••••••' }}</span>
+          </span>
+          <button matIconButton aria-label="Toggle secret visibility" (click)="secretVisible.set(!secretVisible())">
+            <mat-icon>{{ secretVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <button matIconButton aria-label="Copy secret key" (click)="copy(creds.secretAccessKey)">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+
+        <span class="product-details__card-line d-flex gap-3">
+          <button matButton aria-label="Hide credentials" (click)="hideCredentials()">
+            <mat-icon>lock</mat-icon>
+            Hide credentials
+          </button>
+          <button matButton [matMenuTriggerFor]="downloadMenu" aria-label="Download config">
+            <mat-icon>download</mat-icon>
+            Download config
+          </button>
+        </span>
+        }
+      </div>
+    </div>
+  }
+
+  <h2>Quick start</h2>
+  <div spxGrid>
+    <div class="product-details__card sg-c-all">
+      <div class="product-details__card-line">
+        <mat-button-toggle-group
+          [value]="cli()"
+          (change)="cli.set($event.value)"
+          aria-label="CLI flavour"
+          hideSingleSelectionIndicator>
+          <mat-button-toggle value="aws">AWS CLI</mat-button-toggle>
+          <mat-button-toggle value="s3cmd">s3cmd</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <span class="product-details__card-line">
+        Download the config above first, then run:
+      </span>
+
+      @for (snippet of snippets(); track snippet.label) {
+        <spx-code-block [label]="snippet.label" [code]="snippet.code" />
+      }
+    </div>
+  </div>
+</div>

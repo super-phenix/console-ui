@@ -1,0 +1,17 @@
+<div class="code-block">
+  @if (label()) {
+    <span class="code-block__label">{{ label() }}</span>
+  }
+
+  <div class="code-block__row">
+    <pre class="code-block__code"><code>{{ code() }}</code></pre>
+    <button
+      matIconButton
+      class="icon-btn--with-bg icon-btn--small"
+      aria-label="Copy to clipboard"
+      title="Copy to clipboard"
+      (click)="copy()">
+      <mat-icon>content_copy</mat-icon>
+    </button>
+  </div>
+</div>

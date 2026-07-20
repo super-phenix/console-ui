@@ -12,7 +12,7 @@
     @if (productNameInput()) {
       <mat-form-field class="info-card__item info-card__item--form">
         <mat-label>Name</mat-label>
-        <input matInput [formControl]="productNameInput()!" [maxlength]="maxLength" placeholder="Nom du produit" />
+        <input matInput [formControl]="productNameInput()!" [maxlength]="maxLength" placeholder="Product name" />
         <mat-hint align="end"> {{ productNameInput()?.getRawValue()?.length }} / {{ maxLength }} </mat-hint>
         @if (productNameInput()?.getError('required')) {
           <mat-error>Name is required.</mat-error>

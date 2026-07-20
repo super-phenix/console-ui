@@ -29,12 +29,7 @@ interface ProductItem {
   data: Product;
 }
 
-interface SortMethod<T extends ProductItem> {
-  sort: Sort;
-  sortFunc: (sort: Sort, a: T, b: T) => number;
-}
-
-function defaultSortFunc<T extends ProductItem>(sort: Sort, a: T, b: T) {
+export function defaultSortFunc<T extends ProductItem>(sort: Sort, a: T, b: T) {
   const isAsc = sort.direction === 'asc';
   switch (sort.active) {
     case 'az': {
@@ -49,10 +44,6 @@ function defaultSortFunc<T extends ProductItem>(sort: Sort, a: T, b: T) {
     default:
       return 0;
   }
-}
-
-function sortData<T extends ProductItem>(this: SortMethod<T>, a: T, b: T) {
-  return this.sortFunc(this.sort, a, b);
 }
 
 @Component({
@@ -83,7 +74,9 @@ export class ProductTableWrapperComponent<T extends ProductItem> implements Afte
 
   readonly columns = input.required<string[]>();
   readonly dataSource = input.required<MatTableDataSource<T>>();
-  readonly sortDataFunc = defaultSortFunc;
+  // Optional override so a list can sort its own extra columns; defaults to the
+  // shared az/name/id comparator.
+  readonly sortDataFunc = input<(sort: Sort, a: T, b: T) => number>(defaultSortFunc);
 
   constructor() {
     effect(() => {
@@ -99,23 +92,14 @@ export class ProductTableWrapperComponent<T extends ProductItem> implements Afte
   }
 
   initDataSource() {
+    const sortFunc = this.sortDataFunc();
     this.dataSource().sort = this.matTableSort;
 
     this.dataSource().sortData = (data: T[], sort: MatSort): T[] => {
-      return data.sort(
-        sortData.bind({
-          sort: sort,
-          sortFunc: this.sortDataFunc,
-        })
-      );
+      return data.sort((a, b) => sortFunc(sort, a, b));
     };
 
-    this.dataSource().data = this.dataSource().data.sort(
-      sortData.bind({
-        sort: this.defaultSort,
-        sortFunc: this.sortDataFunc,
-      })
-    );
+    this.dataSource().data = this.dataSource().data.sort((a, b) => sortFunc(this.defaultSort, a, b));
   }
 
   trackBy(_: number, product: T) {

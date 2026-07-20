@@ -81,6 +81,37 @@ export function ipInCidrValidator(cidr: string | undefined): ValidatorFn {
   };
 }
 
+// Value must be a parseable JSON document. Empty values pass (required owns emptiness).
+export function jsonValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) {
+      return null;
+    }
+    try {
+      JSON.parse(control.value);
+      return null;
+    } catch {
+      return { json: true };
+    }
+  };
+}
+
+// Minified JSON length must not exceed max. Unparseable values pass (jsonValidator owns validity).
+export function maxMinifiedLength(max: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) {
+      return null;
+    }
+    let minified: string;
+    try {
+      minified = JSON.stringify(JSON.parse(control.value));
+    } catch {
+      return null;
+    }
+    return minified.length > max ? { maxMinifiedLength: { max, actual: minified.length } } : null;
+  };
+}
+
 export function uniqueRoutesValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const formArray = control as FormArray;

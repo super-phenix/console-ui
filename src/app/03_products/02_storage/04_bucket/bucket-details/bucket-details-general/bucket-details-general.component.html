@@ -1,0 +1,49 @@
+<div class="product-details">
+  <h2>General Information</h2>
+
+  <div spxGrid>
+    <div class="product-details__card sg-r2 sg-c2">
+      <h3 class="text-break-all mt-0 mb-1">{{ bucket().productName }}</h3>
+
+      <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="bucket().eid" />
+
+      <div class="product-details__card-line">
+        <strong>Status: </strong>
+        <mat-chip-set aria-label="bucket status">
+          @let chip = bucketPhaseChip(bucket().bucket?.phase);
+          <mat-chip [class]="chip.cls" [matTooltip]="chip.title" disabled="true">{{ chip.label }}</mat-chip>
+        </mat-chip-set>
+      </div>
+
+      <spx-span-copy class="product-details__card-line" key="Local ID" [value]="bucket().id" />
+      @if (bucket().bucket?.name) {
+        <spx-span-copy class="product-details__card-line" key="Bucket name" [value]="bucket().bucket?.name" />
+      }
+      @if (bucket().bucket?.endpoint) {
+        <spx-span-copy class="product-details__card-line" key="Endpoint" [value]="bucket().bucket?.endpoint" />
+      }
+    </div>
+
+    <div class="product-details__card sg-r1 sg-c1">
+      <div class="product-details__card-line product-details__card-line--split flex-grow">
+        <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+        <span class="product-details__card-line-right"> {{ bucket().codeAZ?.toUpperCase() }} </span>
+
+        <span class="product-details__card-line-left"> <strong>Storage Class:</strong> </span>
+        <span class="product-details__card-line-right"> {{ bucket().bucket?.storageClass }} </span>
+
+        <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+        <span class="product-details__card-line-right">
+          {{ bucket().gitops === 'true' ? 'Yes' : 'No' }}
+        </span>
+
+        @if (bucket().bucket?.creationTimestamp) {
+          <span class="product-details__card-line-left"> <strong>Created:</strong> </span>
+          <span class="product-details__card-line-right">
+            {{ bucket().bucket?.creationTimestamp | date: 'medium' }}
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -14,6 +14,8 @@ export const SNAPSHOT_REFRESH_KEY = 'snapshot_refresh';
 
 export const BAAS_REFRESH_KEY = 'baas_refresh';
 
+export const BUCKET_REFRESH_KEY = 'bucket_refresh';
+
 export const VPC_REFRESH_KEY = 'vpc_refresh';
 
 export const SUBNET_REFRESH_KEY = 'subnet_refresh';
