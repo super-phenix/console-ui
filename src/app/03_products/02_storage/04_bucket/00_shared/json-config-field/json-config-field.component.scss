@@ -1,0 +1,17 @@
+.json-config-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &__not-set {
+    color: var(--mat-sys-on-surface-variant);
+    font-style: italic;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+}

@@ -9,7 +9,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,8 +17,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MAX_MINIFIED_JSON_LENGTH } from '../00_shared/bucket.constants';
+import { JsonConfigFieldComponent } from '../00_shared/json-config-field/json-config-field.component';
 import { StepGeneralComponent } from '@products/00_shared/components/forms-step/step-general/step-general.component';
-import { TextEditorDialog } from '@products/00_shared/dialogs/text-editor-dialog.component';
 import { ProductBucket } from '@products/00_shared/models/product.model';
 import { S3Config } from '@products/00_shared/models/storage/bucket/bucket.model';
 import { BucketConfig, UpdateBucket } from '@products/00_shared/models/storage/bucket/create-bucket.model';
@@ -41,11 +40,11 @@ import { catchError, firstValueFrom, of } from 'rxjs';
     MatButtonModule,
     MatInputModule,
     MatSelectModule,
-    MatChipsModule,
     MatStepperModule,
     MatIconModule,
     ContentHeaderComponent,
     StepGeneralComponent,
+    JsonConfigFieldComponent,
   ],
   templateUrl: './bucket-update.component.html',
   styleUrl: './bucket-update.component.scss',
@@ -145,31 +144,6 @@ export class BucketUpdateComponent {
     };
   }
 
-  async editJson(controlName: 'policy' | 'lifecycle') {
-    const ctrl = this.firstFormGroup.get(controlName);
-    const titles = { policy: 'Bucket policy', lifecycle: 'Bucket lifecycle' };
-    const editorRef = this.dialog.open(TextEditorDialog, {
-      data: {
-        title: titles[controlName],
-        subtitle: `S3 ${controlName} configuration in JSON (${MAX_MINIFIED_JSON_LENGTH} characters max once minified).`,
-        text: ctrl?.value || '',
-      },
-      panelClass: 'dialog--large',
-    });
-    const res = await firstValueFrom<string | undefined>(editorRef.afterClosed());
-    if (res === undefined) {
-      return;
-    }
-    ctrl?.setValue(res);
-    ctrl?.markAsDirty();
-  }
-
-  clearJson(controlName: 'policy' | 'lifecycle') {
-    const ctrl = this.firstFormGroup.get(controlName);
-    ctrl?.setValue('');
-    ctrl?.markAsDirty();
-  }
-
   buildConfig(): BucketConfig {
     const values = this.firstFormGroup.getRawValue();
     return {
@@ -185,9 +159,7 @@ export class BucketUpdateComponent {
       const ref = this.dialog.open(ConfirmDialog, {
         data: {
           title: `Bucket Update`,
-          html: `
-            <p>Are you sure you want to update "${this.bucket()!.productName}"?</p>
-            <span class="color-warn"><strong>Warning:</strong> The advanced options replace the existing ones, cleared fields will be removed from the bucket.</span>`,
+          html: `<p>Are you sure you want to update "${this.bucket()!.productName}"?</p>`,
         },
       });
       ref.afterClosed().subscribe(async res => {

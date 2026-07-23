@@ -2,8 +2,6 @@ import { TitleCasePipe } from '@angular/common';
 import { Component, effect, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -12,7 +10,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StepGeneralComponent } from '@products/00_shared/components/forms-step/step-general/step-general.component';
-import { TextEditorDialog } from '@products/00_shared/dialogs/text-editor-dialog.component';
 import { S3Config } from '@products/00_shared/models/storage/bucket/bucket.model';
 import { BucketConfig, CreateBucket } from '@products/00_shared/models/storage/bucket/create-bucket.model';
 import { BucketService } from '@products/00_shared/services/bucket.service';
@@ -22,6 +19,7 @@ import { StateService } from '@shared/services/state.service';
 import { jsonValidator, maxMinifiedLength } from '@shared/utils/validators';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { MAX_MINIFIED_JSON_LENGTH } from '../00_shared/bucket.constants';
+import { JsonConfigFieldComponent } from '../00_shared/json-config-field/json-config-field.component';
 
 @Component({
   selector: 'spx-bucket-create',
@@ -31,12 +29,12 @@ import { MAX_MINIFIED_JSON_LENGTH } from '../00_shared/bucket.constants';
     MatButtonModule,
     MatInputModule,
     MatSelectModule,
-    MatChipsModule,
     MatStepperModule,
     MatIconModule,
     MatProgressSpinnerModule,
     ContentHeaderComponent,
     StepGeneralComponent,
+    JsonConfigFieldComponent,
     TitleCasePipe,
   ],
   templateUrl: './bucket-create.component.html',
@@ -48,7 +46,6 @@ export class BucketCreateComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
-  private dialog = inject(MatDialog);
 
   readonly BINARY_UNITS = BINARY_UNITS;
 
@@ -112,31 +109,6 @@ export class BucketCreateComponent {
       }
       return sizeBytes > capBytes ? { maxSizeCap: { max: cap } } : null;
     };
-  }
-
-  async editJson(controlName: 'policy' | 'lifecycle') {
-    const ctrl = this.secondFormGroup.get(controlName);
-    const titles = { policy: 'Bucket policy', lifecycle: 'Bucket lifecycle' };
-    const editorRef = this.dialog.open(TextEditorDialog, {
-      data: {
-        title: titles[controlName],
-        subtitle: `S3 ${controlName} configuration in JSON (${MAX_MINIFIED_JSON_LENGTH} characters max once minified).`,
-        text: ctrl?.value || '',
-      },
-      panelClass: 'dialog--large',
-    });
-    const res = await firstValueFrom<string | undefined>(editorRef.afterClosed());
-    if (res === undefined) {
-      return;
-    }
-    ctrl?.setValue(res);
-    ctrl?.markAsDirty();
-  }
-
-  clearJson(controlName: 'policy' | 'lifecycle') {
-    const ctrl = this.secondFormGroup.get(controlName);
-    ctrl?.setValue('');
-    ctrl?.markAsDirty();
   }
 
   buildConfig(): BucketConfig {

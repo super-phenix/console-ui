@@ -1,0 +1,40 @@
+<div class="json-config-field">
+  <strong>{{ label() }}</strong>
+
+  @if (value()) {
+    <mat-chip-set [attr.aria-label]="(label() | lowercase) + ' set'">
+      <mat-chip class="status-chip--ready" disabled="true">Set</mat-chip>
+    </mat-chip-set>
+  } @else {
+    <span class="json-config-field__not-set">Not set</span>
+  }
+
+  <div class="json-config-field__actions">
+    @if (value()) {
+      <button type="button" matButton [attr.aria-label]="'Edit ' + (label() | lowercase)" (click)="openEditor()">
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+      <button type="button" matButton [attr.aria-label]="'Remove ' + (label() | lowercase)" (click)="clear()">
+        <mat-icon>delete</mat-icon>
+        Remove
+      </button>
+    } @else {
+      <button type="button" matButton [attr.aria-label]="'Add ' + (label() | lowercase)" (click)="openEditor()">
+        <mat-icon>add</mat-icon>
+        Add
+      </button>
+    }
+  </div>
+</div>
+
+@if (control().hasError('json')) {
+  <mat-error>The {{ label() | lowercase }} is not valid JSON.</mat-error>
+}
+@if (control().hasError('maxMinifiedLength')) {
+  <mat-error>
+    The {{ label() | lowercase }} exceeds
+    {{ control().getError('maxMinifiedLength').max }} characters once minified
+    ({{ control().getError('maxMinifiedLength').actual }}).
+  </mat-error>
+}

@@ -112,68 +112,19 @@
                   </div>
                 }
 
-                <div class="info-card__block info-card__block--space-evenly">
-                  <div class="info-card__item d-flex align-items-center gap-2">
-                    <strong>Bucket policy: </strong>
-                    <button type="button" matButton aria-label="Edit bucket policy" (click)="editJson('policy')">
-                      <mat-icon>edit</mat-icon>
-                      Edit
-                    </button>
-                    @if (secondFormGroup.get('policy')?.value) {
-                      <mat-chip-set aria-label="policy set">
-                        <mat-chip class="status-chip--ready" disabled="true">Set</mat-chip>
-                      </mat-chip-set>
-                      <button type="button" matIconButton aria-label="Clear bucket policy" (click)="clearJson('policy')">
-                        <mat-icon>close</mat-icon>
-                      </button>
-                    }
-                  </div>
-
-                  <div class="info-card__item d-flex align-items-center gap-2">
-                    <strong>Lifecycle: </strong>
-                    <button type="button" matButton aria-label="Edit bucket lifecycle" (click)="editJson('lifecycle')">
-                      <mat-icon>edit</mat-icon>
-                      Edit
-                    </button>
-                    @if (secondFormGroup.get('lifecycle')?.value) {
-                      <mat-chip-set aria-label="lifecycle set">
-                        <mat-chip class="status-chip--ready" disabled="true">Set</mat-chip>
-                      </mat-chip-set>
-                      <button
-                        type="button"
-                        matIconButton
-                        aria-label="Clear bucket lifecycle"
-                        (click)="clearJson('lifecycle')">
-                        <mat-icon>close</mat-icon>
-                      </button>
-                    }
-                  </div>
+                <div class="info-card__block">
+                  <spx-json-config-field
+                    class="info-card__item"
+                    label="Bucket policy"
+                    [control]="secondFormGroup.controls.policy" />
                 </div>
 
-                @if (secondFormGroup.get('policy')?.hasError('json')) {
-                  <div class="info-card__block"><mat-error>The bucket policy is not valid JSON.</mat-error></div>
-                }
-                @if (secondFormGroup.get('policy')?.hasError('maxMinifiedLength')) {
-                  <div class="info-card__block">
-                    <mat-error>
-                      The bucket policy exceeds
-                      {{ secondFormGroup.get('policy')?.getError('maxMinifiedLength').max }} characters once minified
-                      ({{ secondFormGroup.get('policy')?.getError('maxMinifiedLength').actual }}).
-                    </mat-error>
-                  </div>
-                }
-                @if (secondFormGroup.get('lifecycle')?.hasError('json')) {
-                  <div class="info-card__block"><mat-error>The lifecycle is not valid JSON.</mat-error></div>
-                }
-                @if (secondFormGroup.get('lifecycle')?.hasError('maxMinifiedLength')) {
-                  <div class="info-card__block">
-                    <mat-error>
-                      The lifecycle exceeds
-                      {{ secondFormGroup.get('lifecycle')?.getError('maxMinifiedLength').max }} characters once minified
-                      ({{ secondFormGroup.get('lifecycle')?.getError('maxMinifiedLength').actual }}).
-                    </mat-error>
-                  </div>
-                }
+                <div class="info-card__block">
+                  <spx-json-config-field
+                    class="info-card__item"
+                    label="Lifecycle"
+                    [control]="secondFormGroup.controls.lifecycle" />
+                </div>
               </div>
             </div>
           </form>
