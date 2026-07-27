@@ -42,4 +42,27 @@ export const StorageRoutes: Routes = [
       { path: 'update/:az/:id', loadComponent: () => import('./03_baas/baas-update/baas-update.component').then(m => m.BaasUpdateComponent) },
     ],
   },
+  {
+    path: 'bucket',
+    canActivate: [permissionGuard],
+    data: {
+      permission: PermissionsEnum.ProjectBucketRead,
+    },
+    loadChildren: () => [
+      { path: '', loadComponent: () => import('./04_bucket/bucket-list/bucket-list.component').then(m => m.BucketListComponent) },
+      {
+        path: 'create',
+        canActivate: [permissionGuard],
+        data: { permission: PermissionsEnum.ProjectBucketWrite },
+        loadComponent: () => import('./04_bucket/bucket-create/bucket-create.component').then(m => m.BucketCreateComponent),
+      },
+      { path: 'details/:az/:id', loadComponent: () => import('./04_bucket/bucket-details/bucket-details.component').then(m => m.BucketDetailsComponent) },
+      {
+        path: 'update/:az/:id',
+        canActivate: [permissionGuard],
+        data: { permission: PermissionsEnum.ProjectBucketWrite },
+        loadComponent: () => import('./04_bucket/bucket-update/bucket-update.component').then(m => m.BucketUpdateComponent),
+      },
+    ],
+  },
 ];

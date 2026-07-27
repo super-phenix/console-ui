@@ -81,6 +81,21 @@ export function ipInCidrValidator(cidr: string | undefined): ValidatorFn {
   };
 }
 
+// Value must be a parseable JSON document. Empty values pass (required owns emptiness).
+export function jsonValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) {
+      return null;
+    }
+    try {
+      JSON.parse(control.value);
+      return null;
+    } catch {
+      return { json: true };
+    }
+  };
+}
+
 export function uniqueRoutesValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const formArray = control as FormArray;

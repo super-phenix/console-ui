@@ -1,0 +1,116 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Bucket details"></spx-content-header>
+
+    @if (bucketProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        @let bucket = bucketProduct.value();
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        <button
+          matIconButton
+          class="icon-btn--border icon-btn--medium"
+          aria-label="Refresh bucket"
+          (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+
+        @if (
+          (bucket.gitops !== 'true' && canProjectBucketWrite()) ||
+          (canProjectArgoCdRead() && bucket.gitops === 'true')
+        ) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (bucket.gitops !== 'true' && canProjectBucketWrite()) {
+              <button
+                mat-menu-item
+                aria-label="Edit bucket button"
+                [routerLink]="['/products/storage/bucket', 'update', bucket.codeAZ, bucket.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && bucket.gitops === 'true') {
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (bucket.gitops !== 'true' && canProjectBucketWrite()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete bucket button" (click)="deleteBucket()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (bucketProduct.isLoading()) {
+    <div class="d-flex justify-content-center p-4">
+      <mat-spinner diameter="32"></mat-spinner>
+    </div>
+  }
+
+  @if (bucketProduct.error()) {
+    <spx-banner [level]="BannerLevelEnum.Error">Failed to load the bucket.</spx-banner>
+  }
+
+  @if (bucketProduct.hasValue()) {
+    @let bucket = bucketProduct.value();
+
+    @if (bucket.gitops !== 'true' && !bucket.productTypeId) {
+      <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+        <span>Product not synchronized with the database.</span>
+        <span>
+          Please contact support at
+          <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+        </span>
+      </spx-banner>
+    }
+
+    @if (bucket.gitops === 'true') {
+      <spx-banner [level]="BannerLevelEnum.Warn">
+        This resource is managed by GitOps. You cannot modify it from the console.
+      </spx-banner>
+    }
+
+    @if (!bucket.bucket) {
+      <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the bucket on the AZ.</spx-banner>
+    }
+
+    <mat-tab-group
+      class="product-details__tabs mat-tab-fill-height"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      preserveContent
+      (selectedIndexChange)="updateFragment($event)"
+      [selectedIndex]="initialIndex()">
+      <mat-tab label="General">
+        <ng-template matTabContent>
+          <spx-bucket-details-general [bucket]="bucket" />
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="Connect">
+        <ng-template matTabContent>
+          <spx-bucket-details-connect [bucket]="bucket" [az]="az()" />
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="Configuration">
+        <ng-template matTabContent>
+          <spx-bucket-details-config [bucket]="bucket" />
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

@@ -44,6 +44,10 @@ export const ProductStorage: ProductCategory = {
       link: 'baas',
       title: 'Backup',
     },
+    {
+      link: 'bucket',
+      title: 'Object Storage',
+    },
   ],
 };
 
@@ -113,6 +117,7 @@ export const ProductTypeLink: Map<string, string> = new Map<string, string>([
   ['loadBalancer', 'load-balancer'],
   ['firewall', 'firewall'],
   ['kaas', 'kaas'],
+  ['bucket', 'bucket'],
   ['ssh', 'ssh'],
 ]);
 

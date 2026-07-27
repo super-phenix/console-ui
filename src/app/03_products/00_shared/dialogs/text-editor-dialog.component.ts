@@ -10,14 +10,17 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { jsonValidator } from '@shared/utils/validators';
 
 export interface TextEditorData {
   title?: string;
   subtitle?: string;
   text?: string;
   readonly?: boolean;
+  json?: boolean;
 }
 
 @Component({
@@ -46,14 +49,25 @@ export interface TextEditorData {
             [cdkAutosizeMinRows]="autosize()"
             [cdkAutosizeMaxRows]="autosize()"
             [formControl]="text"></textarea>
+          @if (text.hasError('json')) {
+            <mat-error>Not valid JSON.</mat-error>
+          }
         </mat-form-field>
       </div>
     </div>
     <div mat-dialog-actions>
       <button type="button" mat-stroked-button [mat-dialog-close]="undefined">Cancel</button>
-      <button type="button" matButton="filled" color="primary" [mat-dialog-close]="this.text.value">Ok</button>
+      <button
+        type="button"
+        matButton="filled"
+        color="primary"
+        [disabled]="blockingError"
+        [mat-dialog-close]="this.text.value">
+        Ok
+      </button>
     </div>
   `,
+  providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
   styles: `
     @use '@angular/material' as mat;
 
@@ -90,7 +104,14 @@ export class TextEditorDialog implements OnInit {
   title = signal(this.data?.title || 'Text Editor');
   subtitle = signal(this.data?.subtitle);
 
-  text = this.fb.nonNullable.control(this.data?.text || '', Validators.required);
+  text = this.fb.nonNullable.control(this.data?.text || '', [
+    Validators.required,
+    ...(this.data?.json ? [jsonValidator()] : []),
+  ]);
+
+  get blockingError(): boolean {
+    return this.text.hasError('json');
+  }
 
   constructor() {
     this.dialogRef.updateSize('var(--mat-dialog-container-max-width, 560px)', '75%');

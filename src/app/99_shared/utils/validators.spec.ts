@@ -1,5 +1,5 @@
 import { FormControl, ValidationErrors } from '@angular/forms';
-import { ipInCidrValidator, ipv4Validator } from './validators';
+import { ipInCidrValidator, ipv4Validator, jsonValidator } from './validators';
 
 describe('ipv4Validator', () => {
   const validate = (value: string): ValidationErrors | null => ipv4Validator()(new FormControl(value));
@@ -37,6 +37,26 @@ describe('ipInCidrValidator', () => {
   cases.forEach(({ name, cidr, value, expected }) => {
     it(`should return ${JSON.stringify(expected)} for ${name}`, () => {
       expect(validate(cidr, value)).toEqual(expected);
+    });
+  });
+});
+
+describe('jsonValidator', () => {
+  const validate = (value: string): ValidationErrors | null => jsonValidator()(new FormControl(value));
+
+  const cases: { name: string; value: string; expected: ValidationErrors | null }[] = [
+    { name: 'empty value (required owns emptiness)', value: '', expected: null },
+    { name: 'valid object', value: '{"Version": "2012-10-17"}', expected: null },
+    { name: 'valid array', value: '[1, 2, 3]', expected: null },
+    { name: 'pretty-printed object', value: '{\n  "a": "b"\n}', expected: null },
+    { name: 'trailing comma', value: '{"a": 1,}', expected: { json: true } },
+    { name: 'plain string', value: 'not-json', expected: { json: true } },
+    { name: 'unterminated object', value: '{"a":', expected: { json: true } },
+  ];
+
+  cases.forEach(({ name, value, expected }) => {
+    it(`should return ${JSON.stringify(expected)} for ${name}`, () => {
+      expect(validate(value)).toEqual(expected);
     });
   });
 });

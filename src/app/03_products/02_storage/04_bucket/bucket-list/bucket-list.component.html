@@ -1,0 +1,104 @@
+<div class="product-list main-content">
+  <div class="product-list__header">
+    <spx-content-header titleOnly title="Buckets"></spx-content-header>
+
+    @if (canProjectBucketWrite()) {
+      <div class="product-list__header-create-btn">
+        <a matButton="filled" ariaLabel="Button to create a bucket" [routerLink]="['create']">
+          <mat-icon>add</mat-icon>
+          Create a bucket
+        </a>
+      </div>
+    }
+  </div>
+
+  <spx-product-list-filter
+    [refreshInterval]="refreshInterval()"
+    (refreshIntervalChange)="lss.setValue(BUCKET_REFRESH_KEY, $event.toString())"
+    (needReload)="reloadData()"
+    (filter)="filterValue.set($event)"></spx-product-list-filter>
+
+  <div class="product-list__table">
+    @if (bucketProduct.isLoading() || bucketProduct.status() === 'error') {
+      <div class="product-list__table-loading-shade">
+        @if (bucketProduct.isLoading()) {
+          <mat-spinner></mat-spinner>
+        }
+        @if (bucketProduct.status() === 'error') {
+          <div class="product-list__table-error">Failed to retrieve products</div>
+        }
+      </div>
+    }
+
+    <spx-product-table-wrapper [dataSource]="dataSource()" [columns]="displayedColumns" [sortDataFunc]="bucketSortFunc">
+      <ng-container matColumnDef="storageClass">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Storage class </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          {{ el.data?.bucket?.storageClass }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="phase">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          <mat-chip-set aria-label="bucket status">
+            @let chip = bucketPhaseChip(el.data?.bucket?.phase);
+            <mat-chip [class]="chip.cls" [matTooltip]="chip.title" disabled="true">{{ chip.label }}</mat-chip>
+          </mat-chip-set>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions" stickyEnd>
+        <mat-header-cell *matHeaderCellDef class="mat-column-actions--double-btn"></mat-header-cell>
+        <mat-cell *matCellDef="let el" class="mat-column-actions--double-btn">
+          <a matIconButton [routerLink]="['details', el.data.codeAZ, el.data.eid]" aria-label="Open Details button">
+            <mat-icon class="icon-accent">visibility</mat-icon>
+          </a>
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Action menu">
+            <mat-icon>more_horiz</mat-icon>
+          </button>
+
+          <mat-menu #menu="matMenu">
+            @if (el.data.gitops !== 'true' && canProjectBucketWrite()) {
+              <button
+                mat-menu-item
+                aria-label="Edit bucket button"
+                [routerLink]="['update', el.data.codeAZ, el.data.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && el.data.gitops === 'true') {
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD(el.data)">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (el.data.gitops !== 'true' && canProjectBucketWrite()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete bucket button" (click)="deleteBucket(el.data)">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <tr class="d-flex mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center gap-2">
+          <span>No buckets yet.</span>
+          @if (canProjectBucketWrite()) {
+            <a class="color-primary" [routerLink]="['create']">Create a bucket</a>
+          }
+        </td>
+        <td class="mat-mdc-cell mat-column-actions mat-column-actions--empty mat-column-actions--double-btn"></td>
+      </tr>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </spx-product-table-wrapper>
+  </div>
+</div>

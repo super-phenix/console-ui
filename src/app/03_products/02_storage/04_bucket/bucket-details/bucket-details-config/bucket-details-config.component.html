@@ -1,0 +1,45 @@
+<div class="product-details">
+  <h2>Configuration</h2>
+
+  <div spxGrid>
+    <div class="product-details__card sg-r1 sg-c2">
+      <h3 class="mt-0">Quotas</h3>
+      <span class="product-details__card-line">
+        <strong>Max objects: </strong>
+        {{ bucket().bucket?.maxObjects || '—' }}
+      </span>
+
+      <span class="product-details__card-line">
+        <strong>Max size: </strong>
+        {{ bucket().bucket?.maxSize || '—' }}
+      </span>
+    </div>
+
+    <div class="product-details__card sg-r1 sg-c2">
+      <h3 class="mt-0">Policies</h3>
+      <span class="product-details__card-line">
+        <strong>Bucket policy: </strong>
+        <button
+          matButton
+          aria-label="View bucket policy"
+          [disabled]="!bucket().bucket?.policy"
+          (click)="viewJson('Bucket policy', bucket().bucket?.policy)">
+          <mat-icon>visibility</mat-icon>
+          {{ bucket().bucket?.policy ? 'View' : 'Not set' }}
+        </button>
+      </span>
+
+      <span class="product-details__card-line">
+        <strong>Lifecycle: </strong>
+        <button
+          matButton
+          aria-label="View bucket lifecycle"
+          [disabled]="!bucket().bucket?.lifecycle"
+          (click)="viewJson('Bucket lifecycle', bucket().bucket?.lifecycle)">
+          <mat-icon>visibility</mat-icon>
+          {{ bucket().bucket?.lifecycle ? 'View' : 'Not set' }}
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
