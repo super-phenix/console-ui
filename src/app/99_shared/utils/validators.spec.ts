@@ -1,5 +1,5 @@
 import { FormControl, ValidationErrors } from '@angular/forms';
-import { ipInCidrValidator, ipv4Validator, jsonValidator, maxMinifiedLength } from './validators';
+import { ipInCidrValidator, ipv4Validator, jsonValidator } from './validators';
 
 describe('ipv4Validator', () => {
   const validate = (value: string): ValidationErrors | null => ipv4Validator()(new FormControl(value));
@@ -57,36 +57,6 @@ describe('jsonValidator', () => {
   cases.forEach(({ name, value, expected }) => {
     it(`should return ${JSON.stringify(expected)} for ${name}`, () => {
       expect(validate(value)).toEqual(expected);
-    });
-  });
-});
-
-describe('maxMinifiedLength', () => {
-  const validate = (max: number, value: string): ValidationErrors | null =>
-    maxMinifiedLength(max)(new FormControl(value));
-
-  // {"a":"..."} weighs 8 chars plus the value length
-  const exactly1000 = `{"a":"${'x'.repeat(992)}"}`;
-  const over1000 = `{"a":"${'x'.repeat(993)}"}`;
-  // whitespace-heavy document that only fits once minified
-  const whitespaceHeavy = `{${' '.repeat(2000)}"a":  "b"  }`;
-
-  const cases: { name: string; max: number; value: string; expected: ValidationErrors | null }[] = [
-    { name: 'empty value (required owns emptiness)', max: 1000, value: '', expected: null },
-    { name: 'unparseable value (jsonValidator owns validity)', max: 1000, value: 'not-json', expected: null },
-    { name: 'exactly at the limit', max: 1000, value: exactly1000, expected: null },
-    {
-      name: 'over the limit',
-      max: 1000,
-      value: over1000,
-      expected: { maxMinifiedLength: { max: 1000, actual: 1001 } },
-    },
-    { name: 'fits only after minification', max: 1000, value: whitespaceHeavy, expected: null },
-  ];
-
-  cases.forEach(({ name, max, value, expected }) => {
-    it(`should return ${JSON.stringify(expected)} for ${name}`, () => {
-      expect(validate(max, value)).toEqual(expected);
     });
   });
 });

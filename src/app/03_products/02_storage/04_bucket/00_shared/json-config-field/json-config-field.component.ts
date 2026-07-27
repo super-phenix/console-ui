@@ -9,7 +9,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { TextEditorDialog, TextEditorData } from '@products/00_shared/dialogs/text-editor-dialog.component';
 import { firstValueFrom, startWith, switchMap } from 'rxjs';
-import { MAX_MINIFIED_JSON_LENGTH } from '../bucket.constants';
 
 /**
  * Self-contained row for an optional JSON config field (bucket policy,
@@ -37,10 +36,9 @@ export class JsonConfigFieldComponent {
   async openEditor() {
     const data: TextEditorData = {
       title: this.label(),
-      subtitle: `S3 ${this.label().toLowerCase()} configuration in JSON (${MAX_MINIFIED_JSON_LENGTH} characters max once minified).`,
+      subtitle: `S3 ${this.label().toLowerCase()} configuration in JSON.`,
       text: this.control().value || '',
       json: true,
-      maxMinifiedLength: MAX_MINIFIED_JSON_LENGTH,
     };
     const editorRef = this.dialog.open(TextEditorDialog, { data, panelClass: 'dialog--large' });
     const res = await firstValueFrom<string | undefined>(editorRef.afterClosed());

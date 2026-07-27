@@ -16,7 +16,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MAX_MINIFIED_JSON_LENGTH } from '../00_shared/bucket.constants';
 import { JsonConfigFieldComponent } from '../00_shared/json-config-field/json-config-field.component';
 import { StepGeneralComponent } from '@products/00_shared/components/forms-step/step-general/step-general.component';
 import { ProductBucket } from '@products/00_shared/models/product.model';
@@ -29,7 +28,7 @@ import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.com
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
-import { jsonValidator, maxMinifiedLength } from '@shared/utils/validators';
+import { jsonValidator } from '@shared/utils/validators';
 import { catchError, firstValueFrom, of } from 'rxjs';
 
 @Component({
@@ -72,8 +71,8 @@ export class BucketUpdateComponent {
       maxObjects: this.fb.control<number | null>(null, [Validators.min(1)]),
       maxSizeValue: this.fb.control<number | null>(null, [Validators.min(1)]),
       maxSizeUnit: this.fb.nonNullable.control<BinaryUnit>('Gi'),
-      policy: this.fb.nonNullable.control('', [jsonValidator(), maxMinifiedLength(MAX_MINIFIED_JSON_LENGTH)]),
-      lifecycle: this.fb.nonNullable.control('', [jsonValidator(), maxMinifiedLength(MAX_MINIFIED_JSON_LENGTH)]),
+      policy: this.fb.nonNullable.control('', [jsonValidator()]),
+      lifecycle: this.fb.nonNullable.control('', [jsonValidator()]),
     },
     { validators: [this.maxSizeCapValidator()] }
   );

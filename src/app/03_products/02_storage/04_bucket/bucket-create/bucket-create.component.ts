@@ -16,9 +16,8 @@ import { BucketService } from '@products/00_shared/services/bucket.service';
 import { BINARY_UNITS, BinaryUnit, parseQuantityToBytes } from '@products/00_shared/utils/quantity';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { StateService } from '@shared/services/state.service';
-import { jsonValidator, maxMinifiedLength } from '@shared/utils/validators';
+import { jsonValidator } from '@shared/utils/validators';
 import { catchError, firstValueFrom, of } from 'rxjs';
-import { MAX_MINIFIED_JSON_LENGTH } from '../00_shared/bucket.constants';
 import { JsonConfigFieldComponent } from '../00_shared/json-config-field/json-config-field.component';
 
 @Component({
@@ -64,8 +63,8 @@ export class BucketCreateComponent {
       maxObjects: this.fb.control<number | null>(null, [Validators.min(1)]),
       maxSizeValue: this.fb.control<number | null>(null, [Validators.min(1)]),
       maxSizeUnit: this.fb.nonNullable.control<BinaryUnit>('Gi'),
-      policy: this.fb.nonNullable.control('', [jsonValidator(), maxMinifiedLength(MAX_MINIFIED_JSON_LENGTH)]),
-      lifecycle: this.fb.nonNullable.control('', [jsonValidator(), maxMinifiedLength(MAX_MINIFIED_JSON_LENGTH)]),
+      policy: this.fb.nonNullable.control('', [jsonValidator()]),
+      lifecycle: this.fb.nonNullable.control('', [jsonValidator()]),
     },
     { validators: [this.maxSizeCapValidator()] }
   );

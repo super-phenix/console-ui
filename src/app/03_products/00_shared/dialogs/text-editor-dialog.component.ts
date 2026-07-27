@@ -13,7 +13,7 @@ import {
 import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { jsonValidator, maxMinifiedLength } from '@shared/utils/validators';
+import { jsonValidator } from '@shared/utils/validators';
 
 export interface TextEditorData {
   title?: string;
@@ -21,7 +21,6 @@ export interface TextEditorData {
   text?: string;
   readonly?: boolean;
   json?: boolean;
-  maxMinifiedLength?: number;
 }
 
 @Component({
@@ -52,12 +51,6 @@ export interface TextEditorData {
             [formControl]="text"></textarea>
           @if (text.hasError('json')) {
             <mat-error>Not valid JSON.</mat-error>
-          }
-          @if (text.hasError('maxMinifiedLength')) {
-            <mat-error>
-              Exceeds {{ text.getError('maxMinifiedLength').max }} characters once minified
-              ({{ text.getError('maxMinifiedLength').actual }}).
-            </mat-error>
           }
         </mat-form-field>
       </div>
@@ -114,11 +107,10 @@ export class TextEditorDialog implements OnInit {
   text = this.fb.nonNullable.control(this.data?.text || '', [
     Validators.required,
     ...(this.data?.json ? [jsonValidator()] : []),
-    ...(this.data?.maxMinifiedLength ? [maxMinifiedLength(this.data.maxMinifiedLength)] : []),
   ]);
 
   get blockingError(): boolean {
-    return this.text.hasError('json') || this.text.hasError('maxMinifiedLength');
+    return this.text.hasError('json');
   }
 
   constructor() {

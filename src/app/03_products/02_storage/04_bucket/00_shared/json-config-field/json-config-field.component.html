@@ -31,10 +31,3 @@
 @if (control().hasError('json')) {
   <mat-error>The {{ label() | lowercase }} is not valid JSON.</mat-error>
 }
-@if (control().hasError('maxMinifiedLength')) {
-  <mat-error>
-    The {{ label() | lowercase }} exceeds
-    {{ control().getError('maxMinifiedLength').max }} characters once minified
-    ({{ control().getError('maxMinifiedLength').actual }}).
-  </mat-error>
-}
