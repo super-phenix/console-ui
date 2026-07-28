@@ -1,6 +1,6 @@
 apiVersion: v2
-name: console-ui
-description: A Web Console for Superphenix
+name: superphenix-console
+description: A Web Console for the Superphenix Console
 
 # A chart can be either an 'application' or a 'library' chart.
 #

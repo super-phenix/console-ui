@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/super-phenix/console-ui
+  repository: ghcr.io/super-phenix/superphenix-console
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -31,7 +31,7 @@ service:
   port: 80
 
 # Nginx listen port need to match with service.port value
-consoleUi:
+console:
   config: |-
     # Sample config
     # the events block is required
@@ -73,7 +73,7 @@ consoleUi:
     // environment.js
     window.$environment = {
       production: false,
-      appName: 'Console UI',
+      appName: 'Superphenix Console',
       url: {
         base: 'https://' + API_URL,
         token: 'https://' + API_URL + '/v1/session',

@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "console-ui.fullname" . }}
+  name: {{ include "superphenix-console.fullname" . }}
   labels:
-    {{- include "console-ui.labels" . | nindent 4 }}
+    {{- include "superphenix-console.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "console-ui.selectorLabels" . | nindent 6 }}
+      {{- include "superphenix-console.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -16,7 +16,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "console-ui.labels" . | nindent 8 }}
+        {{- include "superphenix-console.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -48,7 +48,7 @@ spec:
             - name: config
               subPath: environment.js
               mountPath: /usr/share/nginx/html/environment.js
-            {{- if .Values.consoleUi.themeOverride }}
+            {{- if .Values.console.themeOverride }}
             - name: config
               subPath: theme-override.css
               mountPath: /usr/share/nginx/html/styles/theme-override.css
@@ -70,4 +70,4 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ template "console-ui.fullname" . }}
+            name: {{ template "superphenix-console.fullname" . }}

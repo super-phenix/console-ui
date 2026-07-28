@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: superphenix-console
 
 jobs:
   build-and-push:
@@ -34,7 +34,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=tag
@@ -68,7 +68,7 @@ jobs:
           
           echo "Packaging chart with version $HELM_VERSION and appVersion $APP_VERSION"
           
-          helm package deployment/console-ui --version $HELM_VERSION --app-version $APP_VERSION
+          helm package deployment/superphenix-console --version $HELM_VERSION --app-version $APP_VERSION
           
           # GHCR OCI requires lowercase repository paths
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
@@ -77,4 +77,4 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
           
           # Push to GHCR OCI registry
-          helm push "console-ui-${HELM_VERSION}.tgz" "oci://${{ env.REGISTRY }}/${OWNER_LOWER}/charts"
+          helm push "superphenix-console-${HELM_VERSION}.tgz" "oci://${{ env.REGISTRY }}/${OWNER_LOWER}/charts"

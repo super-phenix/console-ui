@@ -1,4 +1,4 @@
-ARG PROJECT=console-ui
+ARG PROJECT=superphenix-console
 
 # Stage 1: Build
 FROM node:26-alpine AS build

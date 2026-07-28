@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "console-ui": {
+    "superphenix-console": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/console-ui",
+            "outputPath": "dist/superphenix-console",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [],
@@ -80,13 +80,13 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "console-ui:build:production"
+              "buildTarget": "superphenix-console:build:production"
             },
             "development": {
-              "buildTarget": "console-ui:build:development"
+              "buildTarget": "superphenix-console:build:development"
             },
             "local": {
-              "buildTarget": "console-ui:build:local"
+              "buildTarget": "superphenix-console:build:local"
             }
           },
           "defaultConfiguration": "development"
