@@ -70,7 +70,7 @@ export interface ProductEIP extends Product {
 
 export interface ProductDisk extends Product {
   disk?: Disk;
-  pvc: PVC;
+  pvc?: PVC;
   mountStatus?: MountStatus;
 }
 

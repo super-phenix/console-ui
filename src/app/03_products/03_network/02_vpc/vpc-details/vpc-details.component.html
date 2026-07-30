@@ -48,7 +48,7 @@
                 mat-menu-item
                 aria-label="Delete VPC button"
                 (click)="deleteVPC()"
-                [disabled]="vpc?.vpc?.status?.subnets && vpc?.vpc?.status?.subnets?.length !== 0">
+                [disabled]="vpc?.vpc?.status?.subnets && vpc?.vpc.status.subnets.length !== 0">
                 <mat-icon>delete</mat-icon>
                 Delete
               </button>

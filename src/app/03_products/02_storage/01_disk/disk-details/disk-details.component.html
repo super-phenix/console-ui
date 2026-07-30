@@ -16,7 +16,7 @@
             !isClusterInstance()) ||
           (disk?.mountStatus?.isMounted && (instanceStatus() === 'Stopped' || instanceStatus() === 'Succeeded')) ||
           (canProjectSnapshotWrite() &&
-            (disk?.disk?.status?.progress === '100.0%' || disk.pvc.status.phase === 'Bound')) ||
+            (disk?.disk?.status?.progress === '100.0%' || disk.pvc?.status?.phase === 'Bound')) ||
           (canProjectArgoCdRead() && diskProduct.value().gitops === 'true' && !isClusterInstance()) ||
           (disk.gitops !== 'true' && canProjectDiskWrite())
         ) {
@@ -40,7 +40,7 @@
 
             @if (
               canProjectSnapshotWrite() &&
-              (disk?.disk?.status?.progress === '100.0%' || disk.pvc.status.phase === 'Bound')
+              (disk?.disk?.status?.progress === '100.0%' || disk.pvc?.status?.phase === 'Bound')
             ) {
               <button mat-menu-item aria-label="Create Snapshot button" (click)="createSnapshot()">
                 <mat-icon>camera_alt</mat-icon>
@@ -128,7 +128,7 @@
   @if (
     diskProduct.hasValue() &&
     diskProduct.value().pvc &&
-    diskProduct.value().pvc.spec.storageClassName === 'undefined-storage-class'
+    diskProduct.value().pvc?.spec?.storageClassName === 'undefined-storage-class'
   ) {
     <spx-banner [level]="BannerLevelEnum.Warn" multiline>
       <span>The storage class cannot be retrieved.</span>
@@ -161,7 +161,7 @@
                   {{ diskProgress === '100.0%' ? 'Ready' : diskProgress }}
                 </mat-chip>
               } @else {
-                @let status = disk.pvc.status.phase === 'Bound' ? 'ready' : 'error';
+                @let status = disk.pvc?.status?.phase === 'Bound' ? 'ready' : 'error';
                 <mat-chip [class]="'status-chip--' + status.toLowerCase()" disabled="true">
                   {{ status === 'ready' ? 'Ready' : 'Error' }}
                 </mat-chip>
@@ -204,18 +204,18 @@
 
       @let sourceSpec = disk?.disk?.spec?.source;
       @let storageSpec = disk?.disk?.spec?.storage;
-      @let storageClassName = disk.pvc.spec.storageClassName;
+      @let storageClassName = disk.pvc?.spec?.storageClassName;
 
       <div spxGrid>
         <div class="product-details__card sg-r1 sg-c2">
           <h3 class="mt-0">Storage</h3>
           <span class="product-details__card-line">
             <strong>Size: </strong>
-            {{ disk.pvc.status.capacity.storage || storageSpec?.resources?.requests?.['storage'] }}
+            {{ disk.pvc?.status?.capacity?.storage || storageSpec?.resources?.requests?.['storage'] }}
           </span>
 
           <span class="product-details__card-line">
-            <strong>Mode: </strong> {{ storageSpec?.volumeMode || disk.pvc.spec.volumeMode }}
+            <strong>Mode: </strong> {{ storageSpec?.volumeMode || disk.pvc?.spec?.volumeMode }}
           </span>
 
           <span class="product-details__card-line"> <strong>Storage Class: </strong> {{ storageClassName }} </span>
@@ -238,12 +238,9 @@
           } @else if (sourceSpec?.snapshot) {
             <span class="product-details__card-line"><strong>Type: </strong> Snapshot </span>
             <spx-span-copy class="product-details__card-line" key="Origine" [value]="sourceSpec?.snapshot.name" />
-          } @else if (disk.pvc.spec.dataSource) {
+          } @else if (disk.pvc?.spec?.dataSource) {
             <span class="product-details__card-line"><strong>Type: </strong> Snapshot </span>
-            <spx-span-copy
-              class="product-details__card-line"
-              key="Origine"
-              [value]="disk.pvc.spec.dataSource.name" />
+            <spx-span-copy class="product-details__card-line" key="Origine" [value]="disk.pvc.spec.dataSource.name" />
           }
         </div>
 
