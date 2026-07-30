@@ -16,6 +16,10 @@ interface ChangeLogItem {
 export class ChangelogComponent {
   changelogs: ChangeLogItem[] = [
     {
+      date: this.getDate(29, 7, 2026),
+      description: 'Add support for Object Storage product.',
+    },
+    {
       date: this.getDate(28, 4, 2026),
       description: 'New graphic design and complete UI redesign.',
     },
