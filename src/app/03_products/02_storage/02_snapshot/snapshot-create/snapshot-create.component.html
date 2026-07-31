@@ -53,7 +53,7 @@
                   @if (!firstFormGroup.get('scheduled')?.value) {
                     <mat-form-field class="info-card__item" subscriptSizing="dynamic">
                       <mat-label>Source disk</mat-label>
-                      <mat-select formControlName="source">
+                      <mat-select spxAutoSelect formControlName="source">
                         @for (option of diskProduct.hasValue() ? diskProduct.value() : []; track option.eid) {
                           @let size =
                             option?.pvc?.status?.capacity?.storage ||

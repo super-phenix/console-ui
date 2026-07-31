@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { AutoSelectDirective } from '@shared/directives/auto-select.directive';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,6 +32,7 @@ import { firstValueFrom, of } from 'rxjs';
     MatButtonModule,
     MatIconModule,
     MatSelectModule,
+    AutoSelectDirective,
     MatSlideToggleModule,
     ContentHeaderComponent,
     StepGeneralComponent,

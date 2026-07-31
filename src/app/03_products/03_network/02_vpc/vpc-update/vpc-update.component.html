@@ -105,7 +105,7 @@
 
                           <mat-form-field>
                             <mat-label>Route Table</mat-label>
-                            <mat-select formControlName="routeTable">
+                            <mat-select spxAutoSelect formControlName="routeTable">
                               @if (subnetsProduct.hasValue()) {
                                 @for (subnet of subnetsProduct.value(); track $index) {
                                   <mat-option [value]="subnet.eid">

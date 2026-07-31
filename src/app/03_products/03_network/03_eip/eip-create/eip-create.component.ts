@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
+import { AutoSelectDirective } from '@shared/directives/auto-select.directive';
 import { MatStepperModule } from '@angular/material/stepper';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StepGeneralComponent } from '@products/00_shared/components/forms-step/step-general/step-general.component';
@@ -29,6 +30,7 @@ import { firstValueFrom, map, of } from 'rxjs';
     MatButtonModule,
     MatInputModule,
     MatSelectModule,
+    AutoSelectDirective,
     MatRadioModule,
     MatChipsModule,
     MatIconModule,

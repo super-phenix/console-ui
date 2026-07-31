@@ -15,7 +15,7 @@
     @if (!this.az()) {
       <mat-form-field>
         <mat-label>AZ Selection</mat-label>
-        <mat-select formControlName="az">
+        <mat-select spxAutoSelect formControlName="az">
           @for (az of stateSvc.azList(); track $index) {
             <mat-option [value]="az.code">
               <div class="d-flex align-items-center gap-2">
@@ -73,7 +73,7 @@
 
     <mat-form-field>
       <mat-label>Storage class</mat-label>
-      <mat-select formControlName="storageClass">
+      <mat-select spxAutoSelect formControlName="storageClass">
         @for (storageClass of storageClassList(); track $index) {
           <mat-option [value]="storageClass">
             <span> {{ storageClass | titlecase }} </span>
@@ -113,7 +113,7 @@
       @if (createForm.get('general.source.type')?.value === 'clone') {
         <mat-form-field class="product-create__form-select" subscriptSizing="dynamic">
           <mat-label>Select a disk</mat-label>
-          <mat-select formControlName="clone">
+          <mat-select spxAutoSelect formControlName="clone">
             @for (option of disksProduct(); track $index) {
               @if (option.mountStatus) {
                 <mat-option [value]="option.eid">
@@ -137,7 +137,7 @@
       @if (createForm.get('general.source.type')?.value === 'snapshot') {
         <mat-form-field class="product-create__form-select" subscriptSizing="dynamic">
           <mat-label>Select a snapshot</mat-label>
-          <mat-select formControlName="snapshot">
+          <mat-select spxAutoSelect formControlName="snapshot">
             @for (option of snapshotsProduct(); track $index) {
               @if (!option.snapshot?.status?.error) {
                 <mat-option [value]="option.eid">

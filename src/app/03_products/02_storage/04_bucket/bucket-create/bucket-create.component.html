@@ -36,7 +36,7 @@
               <div class="info-card__content info-card__content--space-evenly">
                 <mat-form-field class="info-card__item">
                   <mat-label>Storage class</mat-label>
-                  <mat-select formControlName="storageClass">
+                  <mat-select spxAutoSelect formControlName="storageClass">
                     @for (storageClass of s3Config()?.storageClasses; track $index) {
                       <mat-option [value]="storageClass">
                         <span> {{ storageClass | titlecase }} </span>
