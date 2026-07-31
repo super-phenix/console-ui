@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { AutoSelectDirective } from '@shared/directives/auto-select.directive';
 import { ProductDisk, ProductSnapshot } from '@products/00_shared/models/product.model';
 import {
   DiskSourceType,
@@ -34,6 +35,7 @@ import { catchError, firstValueFrom, of } from 'rxjs';
     MatButtonModule,
     MatInputModule,
     MatSelectModule,
+    AutoSelectDirective,
     MatChipsModule,
     MatIconModule,
     TitleCasePipe,

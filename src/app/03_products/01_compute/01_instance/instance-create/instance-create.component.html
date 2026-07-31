@@ -64,7 +64,7 @@
 
                   <mat-form-field class="info-card__item">
                     <mat-label>Instance Type</mat-label>
-                    <mat-select formControlName="vmType">
+                    <mat-select spxAutoSelect formControlName="vmType">
                       @if (vmTypeList.hasValue()) {
                         @for (vmType of vmTypeList.value(); track $index) {
                           <mat-option [value]="vmType"> {{ vmType }} </mat-option>

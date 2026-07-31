@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { AutoSelectDirective } from '@shared/directives/auto-select.directive';
 import { CPU_VALUE_LIST, MEMORY_VALUE_LIST } from '@products/00_shared/models/compute/instance/instance';
 import { MAX_NAME_LENGTH } from '@shared/models/consts';
 
@@ -18,6 +19,7 @@ import { MAX_NAME_LENGTH } from '@shared/models/consts';
     MatInputModule,
     MatIconModule,
     MatSelectModule,
+    AutoSelectDirective,
     MatButtonModule,
     TitleCasePipe,
   ],

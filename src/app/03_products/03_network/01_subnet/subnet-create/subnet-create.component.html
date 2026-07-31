@@ -60,7 +60,7 @@
               <div class="info-card__content info-card__content--space-evenly">
                 <mat-form-field class="info-card__item info-card__item--form">
                   <mat-label>VPC Selection</mat-label>
-                  <mat-select formControlName="vpcEId">
+                  <mat-select spxAutoSelect formControlName="vpcEId">
                     @for (vpc of vpcResource.value(); track $index) {
                       <mat-option [value]="vpc.eid">
                         {{ vpc.productName }}

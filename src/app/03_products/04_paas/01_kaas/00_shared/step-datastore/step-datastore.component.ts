@@ -4,10 +4,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { AutoSelectDirective } from '@shared/directives/auto-select.directive';
 
 @Component({
   selector: 'spx-step-datastore',
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatIconModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatSelectModule,
+    AutoSelectDirective, MatInputModule, MatIconModule],
   templateUrl: './step-datastore.component.html',
   styleUrl: './step-datastore.component.scss',
 })

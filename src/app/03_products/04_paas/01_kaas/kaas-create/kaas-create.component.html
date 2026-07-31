@@ -26,7 +26,7 @@
                   <span class="mb-4"><i>Define the Kubernetes version for the cluster.</i></span>
                   <mat-form-field>
                     <mat-label>Kube Version</mat-label>
-                    <mat-select formControlName="kubeVersion">
+                    <mat-select spxAutoSelect formControlName="kubeVersion">
                       @let versions = kubeVersions.hasValue() ? kubeVersions.value() : [];
                       @for (version of versions; track version) {
                         <mat-option [value]="version">{{ version }}</mat-option>

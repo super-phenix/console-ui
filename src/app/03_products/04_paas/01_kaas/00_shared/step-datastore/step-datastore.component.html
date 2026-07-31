@@ -19,7 +19,7 @@
     <div class="info-card__block">
       <mat-form-field class="info-card__item">
         <mat-label>Storage Class</mat-label>
-        <mat-select formControlName="storageClassName">
+        <mat-select spxAutoSelect formControlName="storageClassName">
           @for (sc of storageClassList(); track $index) {
             <mat-option [value]="sc">{{ sc }}</mat-option>
           }

@@ -78,7 +78,7 @@
 
                 <mat-form-field class="info-card__item">
                   <mat-label>Storage class</mat-label>
-                  <mat-select formControlName="storageClass">
+                  <mat-select spxAutoSelect formControlName="storageClass">
                     @for (storageClass of storageClassList(); track $index) {
                       <mat-option [value]="storageClass">
                         <span> {{ storageClass | titlecase }} </span>
@@ -139,7 +139,7 @@
                   @if (secondFormGroup.get('source.type')?.value === 'clone') {
                     <mat-form-field class="info-card__item">
                       <mat-label>Select a disk</mat-label>
-                      <mat-select formControlName="clone">
+                      <mat-select spxAutoSelect formControlName="clone">
                         @for (option of disksProduct(); track $index) {
                           @if (option.mountStatus) {
                             <mat-option [value]="option.eid">
@@ -157,7 +157,7 @@
                   @if (secondFormGroup.get('source.type')?.value === 'snapshot') {
                     <mat-form-field class="info-card__item">
                       <mat-label>Select a snapshot</mat-label>
-                      <mat-select formControlName="snapshot">
+                      <mat-select spxAutoSelect formControlName="snapshot">
                         @for (option of snapshotsProduct(); track $index) {
                           @if (!option.snapshot?.status?.error) {
                             <mat-option [value]="option.eid">

@@ -26,7 +26,7 @@
 
       <mat-form-field>
         <mat-label>Storage Class</mat-label>
-        <mat-select formControlName="storageClass">
+        <mat-select spxAutoSelect formControlName="storageClass">
           @for (storageClass of storageClassList(); track $index) {
             <mat-option [value]="storageClass">
               <span> {{ storageClass | titlecase }} </span>

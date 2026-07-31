@@ -32,7 +32,7 @@
                 <div class="info-card__block">
                   <mat-form-field class="info-card__item">
                     <mat-label>Subnet</mat-label>
-                    <mat-select formControlName="subnetEid">
+                    <mat-select spxAutoSelect formControlName="subnetEid">
                       @for (subnet of subnetsProduct.value(); track subnet.eid) {
                         <mat-option [value]="subnet.eid">
                           {{ subnet.productName || subnet.eid }}
