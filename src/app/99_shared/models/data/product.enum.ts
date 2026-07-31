@@ -34,7 +34,7 @@ export const ProductStorage: ProductCategory = {
   items: [
     {
       link: 'disk',
-      title: 'Disks',
+      title: 'Disk',
     },
     {
       link: 'snapshot',
@@ -86,7 +86,7 @@ export const ProductPaas: ProductCategory = {
   items: [
     {
       link: 'kaas',
-      title: 'KaaS',
+      title: 'Kubernetes',
     },
   ],
 };

@@ -1,6 +1,6 @@
 <div class="product-list main-content">
   <div class="product-list__header">
-    <spx-content-header titleOnly title="Cluster"></spx-content-header>
+    <spx-content-header titleOnly title="Kubernetes"></spx-content-header>
 
     <div class="product-list__header-create-btn">
       <a matButton="filled" ariaLabel="Button to create a Cluster" [routerLink]="['create']">
@@ -41,10 +41,7 @@
 
           <mat-menu #menu="matMenu">
             @if (canProjectKaaSWrite() && el.data.gitops !== 'true') {
-              <a
-                mat-menu-item
-                aria-label="Edit Cluster button"
-                [routerLink]="['update', el.data.codeAZ, el.data.eid]">
+              <a mat-menu-item aria-label="Edit Cluster button" [routerLink]="['update', el.data.codeAZ, el.data.eid]">
                 <mat-icon>edit</mat-icon>
                 Edit
               </a>

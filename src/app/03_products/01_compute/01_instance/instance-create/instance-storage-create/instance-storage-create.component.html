@@ -101,7 +101,7 @@
                     @if (disk.diskExisting) {
                       {{ disk.diskExisting.productName || disk.diskExisting.eid }} -
                       {{
-                        disk.diskExisting.pvc.status.capacity.storage ||
+                        disk.diskExisting.pvc?.status?.capacity?.storage ||
                           disk.diskExisting.disk?.spec?.storage?.resources?.requests?.['storage']
                       }}
                     }
@@ -163,10 +163,15 @@
       <div class="info-card__content info-card__content--multi-block">
         <div class="info-card__block flex-column">
           <span>
-            <i>Mount platform-provided driver disks (e.g. Windows VirtIO drivers). Changes apply after the next restart.</i>
+            <i>
+              Mount platform-provided driver disks (e.g. Windows VirtIO drivers). Changes apply after the next restart.
+            </i>
           </span>
           <span>
-            <i>Pre-checked entries are recommended by the platform for the selected OS — unchecking them may degrade guest compatibility.</i>
+            <i>
+              Pre-checked entries are recommended by the platform for the selected OS — unchecking them may degrade
+              guest compatibility.
+            </i>
           </span>
         </div>
         <div class="info-card__block flex-column">

@@ -94,7 +94,7 @@ export class DiskUpdateComponent {
           res?.pvc?.status?.capacity?.storage || res?.disk?.spec?.storage?.resources?.requests?.['storage'];
         const size = storage ? storage.replace(/\D/g, '') : '10';
 
-        if (res.pvc.metadata.labels) {
+        if (res.pvc?.metadata.labels) {
           const customLabels: string[] = [];
           for (const [key, value] of Object.entries(res.pvc.metadata.labels)) {
             const label = `${key}:${value}`;

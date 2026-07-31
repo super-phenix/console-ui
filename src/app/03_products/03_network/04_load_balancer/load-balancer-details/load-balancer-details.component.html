@@ -124,12 +124,14 @@
             <div class="d-flex flex-column my-1">
               <strong>Port forwarding</strong>
               <div class="pl-3 d-flex flex-column gap-2">
-                @for (item of lb.loadBalancer?.spec?.ports; track $index) {
-                  <div class="d-flex align-items-center">
-                    <span>- {{ item.port }}</span>
-                    <mat-icon>arrow_right_alt</mat-icon>
-                    <span>{{ item.targetPort }} [{{ item.protocol }}] </span>
-                  </div>
+                @if (lb.loadBalancer?.spec) {
+                  @for (item of lb.loadBalancer.spec.ports; track $index) {
+                    <div class="d-flex align-items-center">
+                      <span>- {{ item.port }}</span>
+                      <mat-icon>arrow_right_alt</mat-icon>
+                      <span>{{ item.targetPort }} [{{ item.protocol }}] </span>
+                    </div>
+                  }
                 }
               </div>
             </div>
