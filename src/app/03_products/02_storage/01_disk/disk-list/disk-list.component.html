@@ -88,7 +88,7 @@
           </button>
 
           <mat-menu #menu="matMenu">
-            @if (!isInError(el.data) && canProjectSnapshotWrite() && el.data.gitops !== 'true' && !el.isClusterDisk) {
+            @if (!isInError(el.data) && canProjectSnapshotWrite() && !el.isClusterDisk) {
               <button
                 mat-menu-item
                 aria-label="Edit disk button"

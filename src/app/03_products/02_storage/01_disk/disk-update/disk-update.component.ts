@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -17,9 +17,11 @@ import { ProductDisk } from '@products/00_shared/models/product.model';
 import { UpdateDisk } from '@products/00_shared/models/storage/disk/create-disk.model';
 import { AZService } from '@products/00_shared/services/az.service';
 import { DiskService } from '@products/00_shared/services/disk.service';
+import { BannerComponent } from '@shared/components/banner/banner.component';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { CUSTOM_USER_LABEL_NUMBER, CUSTOM_USER_LABEL_PREFIX, MAX_NAME_LENGTH } from '@shared/models/consts';
+import { BannerLevelEnum } from '@shared/models/enums';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
@@ -41,6 +43,7 @@ import { firstValueFrom } from 'rxjs';
     StepGeneralComponent,
     StepLabelComponent,
     ContentHeaderComponent,
+    BannerComponent,
   ],
   templateUrl: './disk-update.component.html',
   styleUrl: './disk-update.component.scss',
@@ -57,6 +60,7 @@ export class DiskUpdateComponent {
   maxLength = MAX_NAME_LENGTH;
   readonly CUSTOM_USER_LABEL_PREFIX = CUSTOM_USER_LABEL_PREFIX;
   readonly CUSTOM_USER_LABEL_NUMBER = CUSTOM_USER_LABEL_NUMBER;
+  readonly BannerLevelEnum = BannerLevelEnum;
 
   firstFormGroup = this.fb.nonNullable.group({
     productName: this.fb.nonNullable.control('', Validators.required),
@@ -68,6 +72,12 @@ export class DiskUpdateComponent {
 
   disk = signal<ProductDisk | undefined>(undefined);
   oldSize = signal(1);
+
+  /**
+   * TODO: to remove when gitops can grow disk size
+   * A GitOps managed disk can only be resized only by forcing the update on the API side.
+   */
+  isGitops = computed(() => this.disk()?.gitops === 'true');
 
   labels = signal<string[]>([]);
   initLabels = signal<string[]>([]);
@@ -113,6 +123,10 @@ export class DiskUpdateComponent {
         });
 
         this.disk.set(res);
+
+        if (res.gitops === 'true') {
+          this.firstFormGroup.controls.productName.disable();
+        }
       });
   }
 
@@ -121,7 +135,15 @@ export class DiskUpdateComponent {
       const ref = this.dialog.open(ConfirmDialog, {
         data: {
           title: `Disk Update`,
-          html: `
+          html: this.isGitops()
+            ? `
+            <p>Are you sure you want to resize "${this.disk()!.productName}"?</p>
+            <span class="color-warn">
+              <strong>Warning:</strong> this disk is managed by GitOps. The new size will be applied directly to the
+              cluster, bypassing the GitOps protection. You must update the git manifest accordingly, otherwise the
+              next synchronization will revert this change.
+            </span>`
+            : `
             <span>Are you sure you want to update "${this.disk()!.productName}"?</span>`,
         },
       });
@@ -129,12 +151,14 @@ export class DiskUpdateComponent {
         if (!res) {
           return;
         }
-        const formValues = this.firstFormGroup.value;
+        // getRawValue and not value: productName is disabled for a GitOps disk and would be dropped
+        const formValues = this.firstFormGroup.getRawValue();
         const updateDisk: UpdateDisk = {
           general: {
-            productName: formValues.productName!,
-            labels: this.labels(),
-            storage: formValues.storage!.toString(),
+            productName: formValues.productName,
+            // The label step is hidden for a GitOps disk, resend the loaded labels untouched
+            labels: this.isGitops() ? this.initLabels() : this.labels(),
+            storage: formValues.storage.toString(),
           },
         };
 
@@ -144,7 +168,8 @@ export class DiskUpdateComponent {
             this.stateSvc.project()!.id,
             this.selectedAz(),
             this.eid,
-            updateDisk
+            updateDisk,
+            this.isGitops()
           )
         );
         this.router.navigate(['/products', 'storage', 'disk', 'details', this.selectedAz(), this.eid]);
