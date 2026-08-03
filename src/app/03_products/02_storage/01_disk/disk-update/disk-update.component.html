@@ -8,15 +8,27 @@
         <form [formGroup]="firstFormGroup">
           <ng-template matStepLabel>General Information</ng-template>
           <ng-template matStepContent>
+            @if (isGitops()) {
+              <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+                <span>This disk is managed by GitOps.</span>
+                <span>
+                  Only its size can be changed here, and the change is applied directly to the cluster. You must update
+                  the git manifest accordingly, otherwise the next synchronization will revert it.
+                </span>
+              </spx-banner>
+            }
+
             <spx-step-general [formGroup]="firstFormGroup" [showAz]="false"></spx-step-general>
 
-            <spx-step-label
-              titleText="Labels"
-              [subtitleText]="`You can add up to ${CUSTOM_USER_LABEL_NUMBER} custom labels.`"
-              [prefix]="CUSTOM_USER_LABEL_PREFIX"
-              [maxSize]="CUSTOM_USER_LABEL_NUMBER"
-              [labels]="initLabels()"
-              (labelsChange)="labels.set($event)"></spx-step-label>
+            @if (!isGitops()) {
+              <spx-step-label
+                titleText="Labels"
+                [subtitleText]="`You can add up to ${CUSTOM_USER_LABEL_NUMBER} custom labels.`"
+                [prefix]="CUSTOM_USER_LABEL_PREFIX"
+                [maxSize]="CUSTOM_USER_LABEL_NUMBER"
+                [labels]="initLabels()"
+                (labelsChange)="labels.set($event)"></spx-step-label>
+            }
 
             <div class="info-card">
               <div class="info-card__title">

@@ -10,10 +10,7 @@
         </button>
 
         @if (
-          (runningStatus()?.reason !== 'Error' &&
-            canProjectSnapshotWrite() &&
-            diskProduct.value().gitops !== 'true' &&
-            !isClusterInstance()) ||
+          (runningStatus()?.reason !== 'Error' && canProjectSnapshotWrite() && !isClusterInstance()) ||
           (disk?.mountStatus?.isMounted && (instanceStatus() === 'Stopped' || instanceStatus() === 'Succeeded')) ||
           (canProjectSnapshotWrite() &&
             (disk?.disk?.status?.progress === '100.0%' || disk.pvc?.status?.phase === 'Bound')) ||
@@ -23,12 +20,7 @@
           <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
 
           <mat-menu #menu="matMenu">
-            @if (
-              runningStatus()?.reason !== 'Error' &&
-              canProjectSnapshotWrite() &&
-              diskProduct.value().gitops !== 'true' &&
-              !isClusterInstance()
-            ) {
+            @if (runningStatus()?.reason !== 'Error' && canProjectSnapshotWrite() && !isClusterInstance()) {
               <button
                 mat-menu-item
                 aria-label="Edit disk button"
