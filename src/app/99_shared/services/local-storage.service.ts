@@ -24,8 +24,8 @@ export const EIP_REFRESH_KEY = 'eip_refresh';
 
 export const LOAD_BALANCER_REFRESH_KEY = 'load_balancer_refresh';
 
-export const FIREWALL_SHOW_CLUSTER_KEY = 'firewall_show_cluster';
-export const FIREWALL_REFRESH_KEY = 'firewall_refresh';
+export const SECURITY_GROUP_SHOW_CLUSTER_KEY = 'security_group_show_cluster';
+export const SECURITY_GROUP_REFRESH_KEY = 'security_group_refresh';
 
 export const KAAS_REFRESH_KEY = 'kaas_refresh';
 

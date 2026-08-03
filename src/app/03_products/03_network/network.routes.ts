@@ -56,16 +56,30 @@ export const NetworkRoutes: Routes = [
     ],
   },
   {
-    path: 'firewall',
+    path: 'security-group',
     canActivate: [permissionGuard],
     data: {
-      permission: PermissionsEnum.ProjectLoadBalancerRead,
+      permission: PermissionsEnum.ProjectSecurityGroupRead,
     },
     loadChildren: () => [
-      { path: '', loadComponent: () => import('./05_firewall/firewall-list/firewall-list.component').then(m => m.FirewallListComponent) },
-      { path: 'create', loadComponent: () => import('./05_firewall/firewall-create/firewall-create.component').then(m => m.FirewallCreateComponent) },
-      { path: 'details/:az/:id', loadComponent: () => import('./05_firewall/firewall-details/firewall-details.component').then(m => m.FirewallDetailsComponent) },
-      { path: 'update/:az/:id', loadComponent: () => import('./05_firewall/firewall-update/firewall-update.component').then(m => m.FirewallUpdateComponent) },
+      { path: '', loadComponent: () => import('./05_security_group/security-group-list/security-group-list.component').then(m => m.SecurityGroupListComponent) },
+      { path: 'create', loadComponent: () => import('./05_security_group/security-group-create/security-group-create.component').then(m => m.SecurityGroupCreateComponent) },
+      { path: 'details/:az/:id', loadComponent: () => import('./05_security_group/security-group-details/security-group-details.component').then(m => m.SecurityGroupDetailsComponent) },
+      { path: 'update/:az/:id', loadComponent: () => import('./05_security_group/security-group-update/security-group-update.component').then(m => m.SecurityGroupUpdateComponent) },
+    ],
+  },
+  {
+    // Legacy path: the product was renamed from "firewall" to "security-group".
+    // Kept so bookmarks and links predating the rename keep resolving.
+    path: 'firewall',
+    children: [
+      {
+        path: '**',
+        redirectTo: ({ url }) => {
+          const rest = url.map(s => s.path).join('/');
+          return rest ? `/products/network/security-group/${rest}` : '/products/network/security-group';
+        },
+      },
     ],
   },
 ];

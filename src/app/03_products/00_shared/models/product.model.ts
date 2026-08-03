@@ -2,7 +2,7 @@ import { InstanceSnapshot, InstanceSnapshotContent } from './compute/instance-sn
 import { VirtualMachine } from './compute/instance/vm.model';
 import { VirtualMachineInstance } from './compute/instance/vmi.model';
 import { DNAT, EIP, FIP, SNAT } from './network/eip/eip.model';
-import { Firewall } from './network/firewall/firewall.model';
+import { SecurityGroup } from './network/security-group/security-group.model';
 import { LoadBalancer } from './network/load-balancer/load-balancer.model';
 import { NatGateway, Subnet } from './network/subnet/subnet.model';
 import { VPC } from './network/vpc/vpc.model';
@@ -87,8 +87,8 @@ export interface ProductLoadBalancer extends Product {
   loadBalancer?: LoadBalancer;
 }
 
-export interface ProductFirewall extends Product {
-  firewall?: Firewall;
+export interface ProductSecurityGroup extends Product {
+  securityGroup?: SecurityGroup;
 }
 
 export interface ProductKaaS extends Product {

@@ -207,7 +207,7 @@
       }
 
       <!-- INSTANCES -->
-      @if (canProjectFirewallRead()) {
+      @if (canProjectSecurityGroupRead()) {
         <mat-tab label="Network Policies">
           <ng-template matTabContent>
             <spx-kaas-details-netpols [az]="this.az()" [cluster]="kaas"></spx-kaas-details-netpols>

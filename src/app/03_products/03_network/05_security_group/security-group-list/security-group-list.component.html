@@ -1,0 +1,103 @@
+<div class="product-list main-content">
+  <div class="product-list__header">
+    <spx-content-header titleOnly title="Security Group"></spx-content-header>
+
+    <div class="product-list__header-create-btn">
+      <a matButton="filled" ariaLabel="Button to create a Security Group" [routerLink]="['create']">
+        <mat-icon>add</mat-icon>
+        Create a security group
+      </a>
+    </div>
+  </div>
+
+  <spx-product-list-filter
+    [refreshInterval]="refreshInterval()"
+    (refreshIntervalChange)="lss.setValue(SECURITY_GROUP_REFRESH_KEY, $event.toString())"
+    (needReload)="reloadData()"
+    (filter)="filterValue.set($event)"
+    [showCluster]="showClusterSecurityGroup()"
+    (showClusterChange)="lss.setValue(SECURITY_GROUP_SHOW_CLUSTER_KEY, $event.toString())"></spx-product-list-filter>
+
+  <div class="product-list__table">
+    @if (securityGroupProduct.isLoading() || securityGroupProduct.status() === 'error') {
+      <div class="product-list__table-loading-shade">
+        @if (securityGroupProduct.isLoading()) {
+          <mat-spinner></mat-spinner>
+        }
+        @if (securityGroupProduct.status() === 'error') {
+          <div class="product-list__table-error">Failed to retrieve products</div>
+        }
+      </div>
+    }
+
+    <spx-product-table-wrapper [dataSource]="dataSource()" [columns]="displayedColumns">
+      <ng-container matColumnDef="description">
+        <mat-header-cell *matHeaderCellDef> Description </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          <div class="text-truncate">
+            {{ el.data.securityGroup?.description }}
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="policyType">
+        <mat-header-cell *matHeaderCellDef> Policy Type </mat-header-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.securityGroup?.spec?.policyTypes }} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions" stickyEnd>
+        <mat-header-cell *matHeaderCellDef class="mat-column-actions--double-btn"></mat-header-cell>
+        <mat-cell *matCellDef="let el" class="mat-column-actions--double-btn">
+          <a matIconButton [routerLink]="['details', el.data.codeAZ, el.data.eid]" aria-label="Open Details button">
+            <mat-icon class="icon-accent">visibility</mat-icon>
+          </a>
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Action menu">
+            <mat-icon>more_horiz</mat-icon>
+          </button>
+
+          <mat-menu #menu="matMenu">
+            @if (el.data.gitops !== 'true' && canProjectSecurityGroupWrite() && !el.isClusterSecurityGroup) {
+              <button
+                mat-menu-item
+                aria-label="Edit security group button"
+                [routerLink]="['update', el.data.codeAZ, el.data.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (el.data.gitops === 'true' && canProjectArgoCdRead() && !el.isClusterSecurityGroup) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD(el.data)">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (el.data.gitops !== 'true' && canProjectSecurityGroupWrite()) {
+              <mat-divider></mat-divider>
+              <button
+                mat-menu-item
+                aria-label="Delete security group button"
+                (click)="deleteSecurityGroup(el.data)"
+                [disabled]="el.isClusterSecurityGroup">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <tr class="d-flex mat-mdc-row" *matNoDataRow>
+        <td class="mat-mdc-cell d-flex flex-grow align-items-center justify-content-center">
+          No data for this product type
+        </td>
+        <td class="mat-mdc-cell mat-column-actions mat-column-actions--empty mat-column-actions--double-btn"></td>
+      </tr>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </spx-product-table-wrapper>
+  </div>
+</div>
