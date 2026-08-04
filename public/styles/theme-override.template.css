@@ -318,7 +318,7 @@
   /* --custom-chips-on-info: var(--text-input-dark); */
 
   /* ── PRA Banner ─────────────────────────────────────────────────────────
-   * Background color for the PRA (Privileged Remote Access) banner.
+   * Background color for the Disaster Recovery banner.
    * ──────────────────────────────────────────────────────────────────── */
   /* --pra-banner: light-dark(#fff2c6, #fff2c6); */
 }
