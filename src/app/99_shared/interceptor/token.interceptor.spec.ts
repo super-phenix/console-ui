@@ -2,8 +2,7 @@ import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '@env/environment';
-import { AuthService } from '../services/auth.service';
+import { AuthService, SESSION_TOKEN_URL } from '../services/auth.service';
 import { StateService } from '../services/state.service';
 import { tokenInterceptor } from './token.interceptor';
 
@@ -41,7 +40,7 @@ describe('tokenInterceptor', () => {
     const result = firstValueFrom(http.get('/api/things'));
 
     // Pre-send renewal fires first (issued synchronously on subscribe).
-    httpMock.expectOne(environment.session.token).flush({ session: 'newtok', user: { id: 'u' } });
+    httpMock.expectOne(SESSION_TOKEN_URL).flush({ session: 'newtok', user: { id: 'u' } });
     await flush();
 
     const req = httpMock.expectOne('/api/things');
@@ -66,8 +65,8 @@ describe('tokenInterceptor', () => {
   it('does not touch the session endpoint itself', async () => {
     auth.setAccessToken(makeToken(nowSec() - 60)); // stale, but URL is skipped
 
-    const result = firstValueFrom(http.get(environment.session.token));
-    const req = httpMock.expectOne(environment.session.token);
+    const result = firstValueFrom(http.get(SESSION_TOKEN_URL));
+    const req = httpMock.expectOne(SESSION_TOKEN_URL);
     expect(req.request.headers.has('Authorization')).toBeFalse();
     req.flush({ session: 'x', user: { id: 'u' } });
     await expectAsync(result).toBeResolved();

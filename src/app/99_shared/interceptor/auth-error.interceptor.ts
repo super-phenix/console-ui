@@ -1,10 +1,9 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { environment } from '@env/environment';
 import { catchError, from, switchMap, throwError } from 'rxjs';
 import { UnauthorizedSnackbar } from '../models/snackbar';
-import { AuthService } from '../services/auth.service';
+import { AuthService, SESSION_TOKEN_URL } from '../services/auth.service';
 import { SessionRecoveryService } from '../services/session-recovery.service';
 
 // Last-resort net for 401s the pre-send check can't predict (server-side
@@ -17,7 +16,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: unknown) => {
-      const isSessionEndpoint = req.url === `${environment.session.token}`;
+      const isSessionEndpoint = req.url === SESSION_TOKEN_URL;
       if (!(err instanceof HttpErrorResponse) || err.status !== 401 || isSessionEndpoint) {
         return throwError(() => err);
       }

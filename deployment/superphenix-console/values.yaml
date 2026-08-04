@@ -31,57 +31,28 @@ service:
   port: 80
 
 # Nginx listen port need to match with service.port value
-console:
-  config: |-
-    # Sample config
-    # the events block is required
-    events{}
+config:
+  nginxConf: ""
+  production: true
+  appName: "Superphenix Console"
 
-    http {
-        # include the default mime.types to map file extensions to MIME types
-        include /etc/nginx/mime.types;
+  # Required: The API domain (without protocol), e.g. "api.superphenix.net"
+  apiUrl: ""
 
-        server {
-          listen 80;
-            # set the root directory for the server (we need to copy our
-            # application files here)
-            root /usr/share/nginx/html;
+  # Auth UI base URL
+  authUrl: "https://login.console.example.org"
 
-            # set the default index file for the server (Angular generates the
-            # index.html file for us and it will be in the above directory)
-            index index.html;
+  ssl: true
+  sessionAutoRenew: 10
+  supportEmail: "support@example.org"
 
-            location ~* \.js$ {
-              types { }
-              default_type "text/javascript; charset=utf-8";
-            }
-
-            # specify the configuration for the '/' location
-            location / {
-                # try to serve the requested URI. if that fails then try to
-                # serve the URI with a trailing slash. if that fails, then
-                # serve the index.html file; this is needed in order to serve
-                # Angular routes--e.g.,'localhost:8080/customer' will serve
-                # the index.html file
-                try_files $uri $uri/ /index.html;
-            }
-        }
-    }
-  environment: |-
-    API_URL = 'api.example.org';
-
-    // environment.js
-    window.$environment = {
-      production: false,
-      appName: 'Superphenix Console',
-      url: {
-        base: 'https://' + API_URL,
-        token: 'https://' + API_URL + '/v1/session',
-        kubevirt: 'https://' + API_URL + '/api/kubevirt',
-        ws: 'wss://' + API_URL + '/api/kubevirt/vmi',
-        auth: 'https://auth.example.org',
-      },
-    };
+  # Help links displayed in the UI.
+  # Each entry is a key/value pair: key is the link name, value contains icon (Material icon name), text, and url.
+  helpLinks:
+    documentation:
+      icon: "docs"
+      text: "Documentation"
+      url: "https://docs.superphenix.net"
 
   # Optional: Override the built-in theme-override.css
   # If empty, the built-in theme-override.css from the Docker image is used.

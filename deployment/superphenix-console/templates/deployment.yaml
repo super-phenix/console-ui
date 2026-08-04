@@ -42,13 +42,15 @@ spec:
           readinessProbe:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           volumeMounts:
+            {{- if .Values.config.nginxConf }}
             - name: config
               subPath: nginx.conf
               mountPath: /etc/nginx/nginx.conf
+            {{- end }}
             - name: config
               subPath: environment.js
               mountPath: /usr/share/nginx/html/environment.js
-            {{- if .Values.console.themeOverride }}
+            {{- if .Values.config.themeOverride }}
             - name: config
               subPath: theme-override.css
               mountPath: /usr/share/nginx/html/styles/theme-override.css

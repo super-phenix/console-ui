@@ -3,9 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '@env/environment';
 import { UnauthorizedSnackbar } from '../models/snackbar';
-import { AuthService } from '../services/auth.service';
+import { AuthService, SESSION_TOKEN_URL } from '../services/auth.service';
 import { SessionRecoveryService } from '../services/session-recovery.service';
 import { authErrorInterceptor } from './auth-error.interceptor';
 
@@ -90,8 +89,8 @@ describe('authErrorInterceptor', () => {
   });
 
   it('does not recover on a 401 from the session endpoint', async () => {
-    const result = firstValueFrom(http.get(environment.session.token));
-    httpMock.expectOne(environment.session.token).flush('no', unauthorized);
+    const result = firstValueFrom(http.get(SESSION_TOKEN_URL));
+    httpMock.expectOne(SESSION_TOKEN_URL).flush('no', unauthorized);
     await flush();
 
     await expectAsync(result).toBeRejected();

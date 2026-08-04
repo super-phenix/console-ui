@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from '@env/environment';
+import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { firstValueFrom, Subject } from 'rxjs';
 import { defaultOnceHandler } from '../http/customHandler';
 import { Organization } from '../models/data/organization';
@@ -65,7 +65,7 @@ export class OrganizationService {
 
   createOrganization(name: string) {
     return this.http
-      .post(`${environment.url.http}${environment.api.organization}`, {
+      .post(`${HTTP_PROTOCOL}${environment.apiUrl}${API_ENDPOINT}/organization`, {
         name: name,
       })
       .pipe(defaultOnceHandler());
@@ -99,6 +99,6 @@ export class OrganizationService {
   }
 
   private getBaseUrl(orgId: string) {
-    return `${environment.url.http}${environment.api.organization}/${orgId}`;
+    return `${HTTP_PROTOCOL}${environment.apiUrl}${API_ENDPOINT}/organization/${orgId}`;
   }
 }

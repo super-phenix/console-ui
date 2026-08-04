@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { environment } from '@env/environment';
-import { AuthService } from './auth.service';
+import { AuthService, SESSION_TOKEN_URL } from './auth.service';
 import { StateService } from './state.service';
 
 // Build a decodable JWT whose payload carries the given expiry (epoch seconds).
@@ -11,7 +11,7 @@ function makeToken(expEpochSec: number): string {
 }
 
 const nowSec = () => Math.floor(Date.now() / 1000);
-const tokenUrl = environment.session.token;
+const tokenUrl = SESSION_TOKEN_URL;
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -60,7 +60,7 @@ describe('AuthService', () => {
   });
 
   it('ensureValidToken renews a token within the autoRenew window', async () => {
-    service.setAccessToken(makeToken(nowSec() + (environment.session.autoRenew - 1) * 60));
+    service.setAccessToken(makeToken(nowSec() + (environment.sessionAutoRenew - 1) * 60));
 
     const p = service.ensureValidToken();
     httpMock.expectOne(tokenUrl).flush({ session: 'renewed', user: { id: 'u1' } });
@@ -81,7 +81,7 @@ describe('AuthService', () => {
     const open = spyOn(window, 'open').and.returnValue(null);
     service.openLoginPopup('/auth-complete');
     expect(open).toHaveBeenCalledWith(
-      `${environment.url.auth}/ui/login?return_to=${window.location.origin}/auth-complete`,
+      `${environment.authUrl}/ui/login?return_to=${window.location.origin}/auth-complete`,
       '_blank'
     );
   });

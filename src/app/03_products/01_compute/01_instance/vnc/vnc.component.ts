@@ -3,7 +3,8 @@ import { Component, DestroyRef, ElementRef, OnInit, inject, viewChild } from '@a
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute } from '@angular/router';
-import { environment } from '@env/environment';
+import { CONTROLLER_PATH, WS_PROTOCOL, environment } from '@env/environment';
+import { SESSION_TOKEN_URL } from '@shared/services/auth.service';
 import * as RFB from '@novnc/novnc/lib/rfb';
 import { Session } from '@shared/models/data/user';
 import { firstValueFrom } from 'rxjs';
@@ -49,14 +50,14 @@ export class VNCComponent implements OnInit {
   }
 
   async initVNC() {
-    const res = await firstValueFrom(this.http.get<Session>(`${environment.session.token}`, { withCredentials: true }));
+    const res = await firstValueFrom(this.http.get<Session>(SESSION_TOKEN_URL, { withCredentials: true }));
     const accessToken = res.session;
 
     console.log(
-      `${environment.url.ws}/${this.orgaId}${environment.api.controller}/${this.codeAz}/${this.projectId}/instance/${this.vmName}/vnc`
+      `${WS_PROTOCOL}${environment.apiUrl}/${this.orgaId}${CONTROLLER_PATH}/${this.codeAz}/${this.projectId}/instance/${this.vmName}/vnc`
     );
 
-    const wsUrl = `${environment.url.ws}/${this.orgaId}${environment.api.controller}/${this.codeAz}/${this.projectId}/instance/${this.vmName}/vnc?bearer=${accessToken}`;
+    const wsUrl = `${WS_PROTOCOL}${environment.apiUrl}/${this.orgaId}${CONTROLLER_PATH}/${this.codeAz}/${this.projectId}/instance/${this.vmName}/vnc?bearer=${accessToken}`;
 
     const container: HTMLSpanElement | null = document.getElementById('screen');
     if (container) {

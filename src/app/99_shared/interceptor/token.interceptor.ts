@@ -1,12 +1,11 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { environment } from '@env/environment';
 import { from, switchMap } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { AuthService, SESSION_TOKEN_URL } from '../services/auth.service';
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   // Skip the session endpoint itself to avoid a renewal loop.
-  if (req.url === `${environment.session.token}`) {
+  if (req.url === SESSION_TOKEN_URL) {
     return next(req);
   }
 

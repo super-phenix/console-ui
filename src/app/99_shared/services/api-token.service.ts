@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from '@env/environment';
+import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { Observable, map } from 'rxjs';
 import { defaultOnceHandler } from '../http/customHandler';
 
@@ -28,7 +28,7 @@ export class ApiTokenService {
   protected http = inject(HttpClient);
 
   private getBaseUrl() {
-    return `${environment.url.http}${environment.api.agat}/api-token`;
+    return `${HTTP_PROTOCOL}${environment.apiUrl}${API_ENDPOINT}/api-token`;
   }
 
   list(): Observable<ApiToken[]> {

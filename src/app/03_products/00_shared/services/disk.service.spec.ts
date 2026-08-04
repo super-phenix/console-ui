@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { environment } from '@env/environment';
+import { CONTROLLER_PATH, HTTP_PROTOCOL, environment } from '@env/environment';
 
 import { UpdateDisk } from '../models/storage/disk/create-disk.model';
 import { DiskService } from './disk.service';
@@ -11,7 +11,7 @@ describe('DiskService', () => {
   const projectId = 'proj1';
   const az = 'az1';
   const eid = 'eid1';
-  const url = `${environment.url.http}/${orgaId}${environment.api.controller}/${az}/${projectId}/disk/${eid}`;
+  const url = `${HTTP_PROTOCOL}${environment.apiUrl}/${orgaId}${CONTROLLER_PATH}/${az}/${projectId}/disk/${eid}`;
 
   const updateDisk: UpdateDisk = {
     general: {

@@ -4,11 +4,26 @@ metadata:
   name: {{ include "superphenix-console.fullname" . }}
   labels: {{- include "superphenix-console.labels" . | nindent 4 }}
 data:
+  {{- if .Values.config.nginxConf }}
   nginx.conf: |-
-    {{ .Values.console.config | nindent 4 }}
+    {{ .Values.config.nginxConf | nindent 4 }}
+  {{- end }}
   environment.js: |-
-    {{ .Values.console.environment | nindent 4 }}
-  {{- if .Values.console.themeOverride }}
+    window.$environment = {
+      production: {{ .Values.config.production }},
+      appName: {{ .Values.config.appName | quote }},
+      apiUrl: {{ .Values.config.apiUrl | quote }},
+      authUrl: {{ .Values.config.authUrl | quote }},
+      ssl: {{ .Values.config.ssl }},
+      sessionAutoRenew: {{ .Values.config.sessionAutoRenew }},
+      supportEmail: {{ .Values.config.supportEmail | quote }},
+      helpLinks: [
+        {{- range $key, $val := .Values.config.helpLinks }}
+        { icon: {{ $val.icon | quote }}, text: {{ $val.text | quote }}, url: {{ $val.url | quote }} },
+        {{- end }}
+      ],
+    };
+  {{- if .Values.config.themeOverride }}
   theme-override.css: |-
-    {{ .Values.console.themeOverride | nindent 4 }}
+    {{ .Values.config.themeOverride | nindent 4 }}
   {{- end }}
