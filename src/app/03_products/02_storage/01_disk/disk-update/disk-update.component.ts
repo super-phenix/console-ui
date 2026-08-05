@@ -113,6 +113,7 @@ export class DiskUpdateComponent {
             }
           }
           this.initLabels.set(customLabels);
+          this.labels.set(customLabels);
         }
 
         this.oldSize.set(+size);
