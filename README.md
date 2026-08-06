@@ -1,13 +1,5 @@
 
-<p align="center">
-  <picture>
-    <img alt="Superphenix" src="public/assets/images/logo.svg" width="400" height="200">
-  </picture>
-</p>
-
-<p align="center">
-  <strong>Build your own cloud platform with Superphenix</strong>
-</p>
+<h1 align="center">Superphenix Console</h1>
 
 <p align="center">
   <a href="https://github.com/super-phenix/console-ui/releases"><img
@@ -24,18 +16,9 @@
   /></a>
 </p>
 
----
-
 This repository contains the code for the frontend of the Superphenix web console.
 
 The console connects to the [Superphenix API](https://github.com/super-phenix/superphenix) and allows you to manage your resources and AZs.
-
-<table>
-  <tr>
-    <td><a href="https://superphenix.net"><img src="https://superphenix.net/dashboard-light.png" alt="Superphenix UI — light"></a></td>
-    <td><a href="https://superphenix.net"><img src="https://superphenix.net/instances-dark.png" alt="Superphenix UI — dark"></a></td>
-  </tr>
-</table>
 
 ## What is Superphenix?
 
