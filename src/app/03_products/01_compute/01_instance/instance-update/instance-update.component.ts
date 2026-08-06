@@ -32,7 +32,10 @@ import {
   VM_TYPE_DEFAULT,
 } from '@products/00_shared/models/compute/instance/instance';
 import { extractVolumeEID } from '@products/00_shared/models/compute/instance/utils';
-import { AdvancedOptions, AdvancedOptionsInput } from '@products/00_shared/models/compute/instance/advanced-options.model';
+import {
+  AdvancedOptions,
+  AdvancedOptionsInput,
+} from '@products/00_shared/models/compute/instance/advanced-options.model';
 import { ProductInstance } from '@products/00_shared/models/product.model';
 import { AZService } from '@products/00_shared/services/az.service';
 import { InstanceService } from '@products/00_shared/services/instance.service';
@@ -215,6 +218,7 @@ export class InstanceUpdateComponent {
               }
             }
             this.initLabels.set(customLabels);
+            this.labels.set(customLabels);
           }
 
           let cloudInit: string | undefined = '';
@@ -300,7 +304,12 @@ export class InstanceUpdateComponent {
 
         // Load the resolved advanced options to seed the advanced step.
         this.instanceSvc
-          .getAdvancedOptions(this.stateSvc.organization()!.id, this.stateSvc.project()!.id, this.selectedAz(), this.eid)
+          .getAdvancedOptions(
+            this.stateSvc.organization()!.id,
+            this.stateSvc.project()!.id,
+            this.selectedAz(),
+            this.eid
+          )
           .subscribe(advanced => this.advancedInitial.set(advanced));
       });
   }
