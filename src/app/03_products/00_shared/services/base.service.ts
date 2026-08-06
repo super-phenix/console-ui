@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { environment } from '@env/environment';
+import { CONTROLLER_PATH, HTTP_PROTOCOL, environment } from '@env/environment';
 import { productOnceHandler } from '@shared/http/customHandler';
 import { ArgoCdLink, Product, ProductCreation } from '../models/product.model';
 
@@ -91,7 +91,7 @@ export abstract class BaseService<T extends Product, K> {
    */
   protected getPath(orgId: string, projectId: string, az?: string): string {
     const end = az ? `${az}/${projectId}` : `${projectId}`;
-    return `${environment.url.http}/${orgId}${environment.api.controller}/${end}${this.ENDPOINT}`;
+    return `${HTTP_PROTOCOL}${environment.apiUrl}/${orgId}${CONTROLLER_PATH}/${end}${this.ENDPOINT}`;
   }
 
   /**
@@ -103,6 +103,6 @@ export abstract class BaseService<T extends Product, K> {
    */
   protected getBasePath(orgId: string, projectId: string, az?: string): string {
     const end = az ? `${az}/${projectId}` : `${projectId}`;
-    return `${environment.url.http}/${orgId}${environment.api.controller}/${end}`;
+    return `${HTTP_PROTOCOL}${environment.apiUrl}/${orgId}${CONTROLLER_PATH}/${end}`;
   }
 }

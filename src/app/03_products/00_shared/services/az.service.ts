@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from '@env/environment';
+import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { defaultOnceHandler } from '@shared/http/customHandler';
 import { Observable } from 'rxjs';
 import { AZ } from '../models/product.model';
@@ -20,6 +20,6 @@ export class AZService {
   }
 
   private getBaseUrl(orgId: string) {
-    return `${environment.url.http}${environment.api.organization}/${orgId}`;
+    return `${HTTP_PROTOCOL}${environment.apiUrl}${API_ENDPOINT}/organization/${orgId}`;
   }
 }

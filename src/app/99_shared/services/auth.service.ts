@@ -1,10 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, Injectable, signal, WritableSignal, inject } from '@angular/core';
-import { environment } from '@env/environment';
+import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { firstValueFrom } from 'rxjs';
 import { jwtDecode } from '@shared/http/jwtDecode';
 import { Session, User } from '../models/data/user';
 import { StateService } from './state.service';
+
+export const SESSION_TOKEN_URL = `${HTTP_PROTOCOL}${environment.apiUrl}${API_ENDPOINT}/session`;
+export const SESSION_WHOAMI_URL = `${HTTP_PROTOCOL}${environment.apiUrl}${API_ENDPOINT}/whoami`;
 
 // Minutes left before the access token expires; a stale/undecodable token returns 0.
 function getTokenMinutesBeforeExp(token: string): number {
@@ -43,7 +46,7 @@ export class AuthService {
     if (!this.userLoggedIn()) {
       try {
         const res = await firstValueFrom(
-          this.http.get<Session>(`${environment.session.token}`, { withCredentials: true })
+          this.http.get<Session>(SESSION_TOKEN_URL, { withCredentials: true })
         );
         this.user.set(res.user);
         this.setAccessToken(res.session);
@@ -66,7 +69,7 @@ export class AuthService {
     this.renewInFlight = (async () => {
       try {
         const res = await firstValueFrom(
-          this.http.get<Session>(`${environment.session.token}`, { withCredentials: true })
+          this.http.get<Session>(SESSION_TOKEN_URL, { withCredentials: true })
         );
         this.user.set(res.user);
         this.setAccessToken(res.session);
@@ -84,7 +87,7 @@ export class AuthService {
    */
   async ensureValidToken() {
     const token = this.accessToken();
-    if (!token || getTokenMinutesBeforeExp(token) <= environment.session.autoRenew) {
+    if (!token || getTokenMinutesBeforeExp(token) <= environment.sessionAutoRenew) {
       await this.renewAccessToken();
     }
   }
@@ -95,7 +98,7 @@ export class AuthService {
    */
   openLoginPopup(returnPath: string): Window | null {
     const returnTo = `${window.location.origin}${returnPath}`;
-    return window.open(`${environment.url.auth}/ui/login?return_to=${returnTo}`, '_blank');
+    return window.open(`${environment.authUrl}/ui/login?return_to=${returnTo}`, '_blank');
   }
 
   /**
@@ -112,11 +115,11 @@ export class AuthService {
    */
   redirectToFlow(flow: 'login' | 'logout' | 'settings', redirect?: string) {
     const returnTo = redirect || location.href;
-    window.location.href = `${environment.url.auth}/ui/${flow}?return_to=${returnTo}`;
+    window.location.href = `${environment.authUrl}/ui/${flow}?return_to=${returnTo}`;
   }
 
   async reloadUser() {
-    const res = await firstValueFrom(this.http.get<User>(`${environment.session.whoami}`));
+    const res = await firstValueFrom(this.http.get<User>(SESSION_WHOAMI_URL));
     this.user.set(res);
     this.stateSvc.onLogin(res);
   }

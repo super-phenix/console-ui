@@ -9,24 +9,18 @@ export interface HelpLink {
 interface Environment {
   production: boolean;
   appName: string;
-  url: {
-    http: string;
-    ws: string;
-    auth: string;
-  };
-  session: {
-    token: string;
-    whoami: string;
-    autoRenew: number;
-  };
-  api: {
-    agat: string;
-    organization: string;
-    controller: string;
-  };
+  apiUrl: string;
+  authUrl: string;
+  ssl: boolean;
+  sessionAutoRenew: number;
   supportEmail: string;
   helpLinks?: HelpLink[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const environment = (window as any).$environment as Environment;
+
+export const CONTROLLER_PATH = '/api/spx-ctrl';
+export const API_ENDPOINT = '/v1';
+export const HTTP_PROTOCOL = environment.ssl ? 'https://' : 'http://';
+export const WS_PROTOCOL = environment.ssl ? 'wss://' : 'ws://';

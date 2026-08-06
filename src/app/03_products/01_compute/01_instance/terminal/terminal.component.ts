@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { environment } from '@env/environment';
+import { CONTROLLER_PATH, WS_PROTOCOL, environment } from '@env/environment';
+import { SESSION_TOKEN_URL } from '@shared/services/auth.service';
 import { Session } from '@shared/models/data/user';
 import { AttachAddon } from '@xterm/addon-attach';
 import { FitAddon } from '@xterm/addon-fit';
@@ -53,15 +54,15 @@ export class TerminalComponent implements OnInit {
     terminal.open(document.getElementById('terminal')!);
     fitAddon.fit();
 
-    const res = await firstValueFrom(this.http.get<Session>(`${environment.session.token}`, { withCredentials: true }));
+    const res = await firstValueFrom(this.http.get<Session>(SESSION_TOKEN_URL, { withCredentials: true }));
     const accessToken = res.session;
 
     console.log(
-      `${environment.url.ws}/${this.orgaId}${environment.api.controller}/${this.codeAz}/${this.projectId}/instance/${this.vmName}/serial`
+      `${WS_PROTOCOL}${environment.apiUrl}/${this.orgaId}${CONTROLLER_PATH}/${this.codeAz}/${this.projectId}/instance/${this.vmName}/serial`
     );
 
     const webSocket = new WebSocket(
-      `${environment.url.ws}/${this.orgaId}${environment.api.controller}/${this.codeAz}/${this.projectId}/instance/${this.vmName}/serial?bearer=` +
+      `${WS_PROTOCOL}${environment.apiUrl}/${this.orgaId}${CONTROLLER_PATH}/${this.codeAz}/${this.projectId}/instance/${this.vmName}/serial?bearer=` +
         accessToken
     );
 

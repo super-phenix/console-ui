@@ -7,21 +7,10 @@ if (!w.$environment) {
   w.$environment = {
     production: false,
     appName: 'Console Superphénix (test)',
-    url: {
-      http: 'https://api.test',
-      ws: 'wss://api.test',
-      auth: 'http://localhost:3000',
-    },
-    session: {
-      token: 'https://api.test/v1/session',
-      whoami: 'https://api.test/v1/whoami',
-      autoRenew: 10,
-    },
-    api: {
-      agat: '/v1',
-      organization: '/v1/organization',
-      controller: '/api/spx-ctrl',
-    },
+    apiUrl: 'api.test',
+    authUrl: 'http://localhost:3000',
+    ssl: true,
+    sessionAutoRenew: 10,
     supportEmail: 'support@email.com',
     helpLinks: [
       { icon: 'live_help', text: 'Support', url: 'https://support.test' },
