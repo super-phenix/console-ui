@@ -225,7 +225,7 @@ export class OrganizationIamComponent {
     }
   }
 
-  /** Copy the selected group into a new custom one, the only way to derive from a predefined role. */
+  /** Copy the selected group into a new custom one, the only way to derive from a predefined group. */
   async duplicateGroup() {
     if (!this.canDuplicateCurrentGroup()) {
       return;

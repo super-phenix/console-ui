@@ -33,12 +33,12 @@ export interface DuplicateGroupData {
     MatDialogClose,
   ],
   template: `
-    <h2 mat-dialog-title>Duplicate a role</h2>
+    <h2 mat-dialog-title>Duplicate a group</h2>
     <div mat-dialog-content class="d-flex flex-column">
       <span> Create an editable copy of '{{ data.sourceName }}': </span>
       <div class="dialog-form">
         <mat-form-field class="w-100">
-          <mat-label>Role name</mat-label>
+          <mat-label>Group name</mat-label>
           <input matInput type="text" autocomplete="off" [formControl]="control" [maxlength]="maxLength" />
           <mat-hint align="end"> {{ control.getRawValue()?.length }} / {{ maxLength }} </mat-hint>
           @if (control.hasError('required')) {
@@ -48,7 +48,7 @@ export interface DuplicateGroupData {
             <mat-error>The field cannot start or end with a space</mat-error>
           }
           @if (control.hasError('taken')) {
-            <mat-error>A role with this name already exists</mat-error>
+            <mat-error>A group with this name already exists</mat-error>
           }
         </mat-form-field>
       </div>
