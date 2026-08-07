@@ -123,11 +123,14 @@
    *                      Recommended size: 1920×1080 px (or larger), SVG preferred.
    * --logo-image       : Application logo displayed in the header and login pages.
    *                      Recommended size: 200×60 px (or larger with same aspect ratio), SVG preferred.
+   * --footer-logo      : Small logo in the auth pages footer.
+   *                      Defaults to the favicon. Recommended size: 16×16 px, SVG preferred.
    *
    * Values must be valid CSS `url()` expressions.
    * ──────────────────────────────────────────────────────────────────── */
   /* --background-image: url('/assets/images/background.svg'); */
   /* --logo-image: url('/assets/images/logo.svg'); */
+  /* --footer-logo: url('/assets/favicon/favicon.svg'); */
 
   /* ═══════════════════════════════════════════════════════════════════════
    * SEMANTIC TOKENS

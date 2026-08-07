@@ -1,0 +1,52 @@
+{
+  "error": {
+    "1": "Account recovery is disabled.<br> Contact an administrator.",
+    "4000001": "{{ reason }}",
+    "4000002": "Field {{ property }} is required.",
+    "4000006": "Invalid credentials.",
+    "4010002": "The form was not filled out correctly."
+  },
+  "info": {
+    "1010001": "Sign in",
+    "1040001": "Sign up",
+    "1060003": "An email containing a recovery code has been sent to the specified email address. If you have not received an email, please verify the email address associated with your account.",
+    "1070001": "Password",
+    "1070002": "{{ title }}",
+    "1070003": "Save",
+    "1070005": "Send",
+    "1070007": "E-mail",
+    "1070008": "Resend code",
+    "1070010": "Recovery code",
+    "1080003": "An email containing a verification code has been sent to the specified email address. If you have not received an email, please verify the email address associated with your account."
+  },
+  "success": {
+    "1050001": "Changes saved!",
+    "1060001": "You have successfully recovered your account! Please change your password within 15 minutes."
+  },
+  "context": {
+    "property": {
+      "identifier": " ",
+      "password": " "
+    },
+    "title": {
+      "E-mail": "E-mail",
+      "Nom": "Lastname",
+      "Prénom": "Firstname"
+    }
+  },
+  "ui": {
+    "login": "Sign in",
+    "registration": "Sign up",
+    "recovery": "Forgot password",
+    "logout": "Logout",
+    "settings": "Account settings",
+    "verification": "Verification",
+    "error": "Error",
+    "already_have_account": "Already have an account?",
+    "connect": "Sign in",
+    "forgot_password": "Forgot password",
+    "back_to_site": "Back to site",
+    "logging_out": "Logging out",
+    "invalid_email": "\"{{value}}\" is not a valid email"
+  }
+}

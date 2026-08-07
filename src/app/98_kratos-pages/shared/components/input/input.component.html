@@ -1,0 +1,16 @@
+@switch (node.attributes.node_type) {
+  @case ('input') {
+    @if (node.attributes.type === 'submit') {
+      <spx-auth-input-submit
+        [form]="form"
+        [attributes]="node.attributes"
+        [meta]="node.meta"></spx-auth-input-submit>
+    } @else {
+      <spx-auth-input-default
+        [form]="form"
+        [attributes]="node.attributes"
+        [meta]="node.meta"
+        [messages]="node.messages"></spx-auth-input-default>
+    }
+  }
+}

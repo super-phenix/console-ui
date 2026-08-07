@@ -24,3 +24,5 @@ export const CONTROLLER_PATH = '/api/spx-ctrl';
 export const API_ENDPOINT = '/v1';
 export const HTTP_PROTOCOL = environment.ssl ? 'https://' : 'http://';
 export const WS_PROTOCOL = environment.ssl ? 'wss://' : 'ws://';
+export const API_TOKEN_URL = HTTP_PROTOCOL + environment.apiUrl + API_ENDPOINT + '/session/token';
+export const API_LOGOUT_URL = HTTP_PROTOCOL + environment.apiUrl + API_ENDPOINT + '/logout';

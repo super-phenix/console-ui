@@ -1,0 +1,29 @@
+<div class="app">
+  <div class="app__section">
+    <div class="app__header">
+      <mat-button-toggle-group
+        class="app__header__theme"
+        name="themeSelection"
+        aria-label="Theme Selection"
+        [hideSingleSelectionIndicator]="true"
+        [value]="this.isDarkTheme() ? 'dark' : 'light'"
+        (change)="switchTheme()">
+        <mat-button-toggle value="light" aria-label="Light mode">
+          <mat-icon class="symbols-fill">brightness_7</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="dark" aria-label="Dark mode">
+          <mat-icon class="symbols-fill">bedtime</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <div class="app__router">
+      <router-outlet />
+    </div>
+
+    <div class="app__footer">
+      <div class="footer__logo"></div>
+      <span class="footer__copyright"> 142 857 ! © 2026 </span>
+    </div>
+  </div>
+</div>

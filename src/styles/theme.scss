@@ -93,6 +93,7 @@ html {
   // Background and logo
   --background-image: url('/assets/images/background.svg');
   --logo-image: url('/assets/images/logo.svg');
+  --footer-image: url('/assets/favicon/favicon.svg');
 
   @include theme.state-color();
   @include theme.custom-color();

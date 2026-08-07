@@ -1,0 +1,25 @@
+<div class="dynamic-form">
+  <div class="dynamic-form__message">
+    @for (msg of flow.ui.messages; track $index) {
+      <span [classList]="msg.type" appI18n [id]="msg.id" [group]="msg.type" [context]="msg.context">
+        {{ msg.text }}
+      </span>
+    }
+  </div>
+</div>
+
+@if (ready()) {
+  @if (manual) {
+    <form class="dynamic-form__form" [formGroup]="form" (submit)="submit($event)">
+      @for (node of flow.ui.nodes; track $index) {
+        <spx-auth-input [node]="node" [form]="form"></spx-auth-input>
+      }
+    </form>
+  } @else {
+    <form class="dynamic-form__form" [method]="flow.ui.method" [action]="flow.ui.action">
+      @for (node of flow.ui.nodes; track $index) {
+        <spx-auth-input [node]="node" [form]="form"></spx-auth-input>
+      }
+    </form>
+  }
+}

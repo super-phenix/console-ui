@@ -1,0 +1,13 @@
+<div class="input__field-submit" [formGroup]="form">
+  <button
+    mat-flat-button
+    [type]="attributes.type"
+    appI18n
+    [id]="meta.label?.id"
+    [group]="meta.label?.type"
+    [context]="meta.label?.context"
+    [value]="attributes.value"
+    [name]="attributes.name">
+    {{ meta.label?.text }}
+  </button>
+</div>

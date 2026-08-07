@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter, Router } from '@angular/router';
 import { environment } from '@env/environment';
 import { AuthService, SESSION_TOKEN_URL } from './auth.service';
 import { StateService } from './state.service';
@@ -24,6 +25,7 @@ describe('AuthService', () => {
         { provide: StateService, useValue: { onLogin: () => undefined } },
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     });
     service = TestBed.inject(AuthService);
@@ -77,12 +79,30 @@ describe('AuthService', () => {
     expect(service.accessToken()).toBe(token);
   });
 
-  it('openLoginPopup targets the auth-ui login flow with a return path', () => {
+  it('openLoginPopup targets the internal login route with a return path', () => {
     const open = spyOn(window, 'open').and.returnValue(null);
     service.openLoginPopup('/auth-complete');
     expect(open).toHaveBeenCalledWith(
-      `${environment.authUrl}/ui/login?return_to=${window.location.origin}/auth-complete`,
+      `${window.location.origin}/auth/login?return_to=${encodeURIComponent(`${window.location.origin}/auth-complete`)}`,
       '_blank'
     );
+  });
+
+  it('redirectToFlow navigates to the internal auth route', () => {
+    const router = TestBed.inject(Router);
+    const navSpy = spyOn(router, 'navigate');
+    service.redirectToFlow('login', 'http://example.com/dashboard');
+    expect(navSpy).toHaveBeenCalledWith(['/auth', 'login'], {
+      queryParams: { return_to: 'http://example.com/dashboard' },
+    });
+  });
+
+  it('redirectToFlow defaults return_to to current location', () => {
+    const router = TestBed.inject(Router);
+    const navSpy = spyOn(router, 'navigate');
+    service.redirectToFlow('logout');
+    expect(navSpy).toHaveBeenCalledWith(['/auth', 'logout'], {
+      queryParams: { return_to: location.href },
+    });
   });
 });

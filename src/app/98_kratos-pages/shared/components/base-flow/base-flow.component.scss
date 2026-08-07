@@ -1,0 +1,65 @@
+@use 'sass:color';
+
+.flow {
+  display: flex;
+  flex-direction: column;
+
+  padding-block: 60px;
+  padding-inline: 125px;
+
+  width: 350px;
+
+  background-color: var(--mat-sys-surface);
+
+  border-radius: 1rem;
+
+  &__app-logo {
+    align-self: center;
+    margin-bottom: 1.5rem;
+    width: 181px;
+    height: 56px;
+    background-image: var(--logo-image);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  &__title {
+    align-self: center;
+    text-align: center;
+    font: var(--mat-sys-headline-large);
+    margin-block: 1.5rem;
+  }
+
+  &__links {
+    display: flex;
+    flex-direction: column;
+
+    margin-top: 20px;
+    gap: 20px;
+
+    .flow__link {
+      display: flex;
+      flex-grow: 1;
+      justify-content: center;
+      width: 100%;
+
+      a {
+        width: 100%;
+        text-decoration: none;
+        color: var(--text-title);
+
+        &:hover {
+          color: var(--mat-sys-hover-state-primary);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 435px) {
+  .flow {
+    width: calc(85vw - 80px);
+    min-width: 200px;
+  }
+}
