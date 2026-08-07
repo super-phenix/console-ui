@@ -80,17 +80,19 @@
             </div>
           }
 
-          <div class="d-flex align-items-center gap-2">
+          <div class="d-flex align-items-center gap-3">
             @if (canDuplicateCurrentGroup()) {
-              <button mat-stroked-button aria-label="Duplicate button" (click)="duplicateGroup()">Duplicate</button>
+              <button matButton="filled" aria-label="Duplicate button" (click)="duplicateGroup()">
+                <mat-icon class="symbols-fill">content_copy</mat-icon> Duplicate
+              </button>
             }
             @if (canEditCurrentGroup()) {
               <button
-                class="org-iam-content__actions-delete-btn"
-                mat-stroked-button
+                class="org-iam-content__permissions-group-delete"
+                matButton="outlined"
                 aria-label="Delete button"
                 (click)="deleteGroup()">
-                Delete
+                <mat-icon class="symbols-fill">delete</mat-icon> Delete
               </button>
             }
           </div>

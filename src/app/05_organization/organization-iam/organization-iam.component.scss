@@ -102,6 +102,21 @@
           width: 300px;
         }
 
+        &-delete {
+          @include mat.button-overrides(
+            (
+              outlined-label-text-color: var(--mat-sys-error),
+              outlined-outline-color: var(--mat-sys-error),
+              outlined-state-layer-color: var(--mat-sys-error),
+              outlined-ripple-color: var(--mat-sys-error),
+            )
+          );
+
+          mat-icon {
+            color: var(--mat-sys-error);
+          }
+        }
+
         &-chip {
           display: inline-flex;
           align-items: center;
