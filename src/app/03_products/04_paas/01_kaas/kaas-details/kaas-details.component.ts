@@ -85,8 +85,8 @@ export class KaasDetailsComponent extends TabsBase {
   canProjectInstanceRead = computed(() =>
     this.permissionSvc.permissions().includes(PermissionsEnum.ProjectInstanceRead)
   );
-  canProjectFirewallRead = computed(() =>
-    this.permissionSvc.permissions().includes(PermissionsEnum.ProjectFirewallRead)
+  canProjectSecurityGroupRead = computed(() =>
+    this.permissionSvc.permissions().includes(PermissionsEnum.ProjectSecurityGroupRead)
   );
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 

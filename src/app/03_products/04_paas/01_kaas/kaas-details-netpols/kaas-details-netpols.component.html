@@ -28,12 +28,12 @@
 
       <ng-container matColumnDef="description">
         <mat-header-cell *matHeaderCellDef> Description </mat-header-cell>
-        <mat-cell *matCellDef="let el"> {{ el.data.firewall?.description }} </mat-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.securityGroup?.description }} </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="policyType">
         <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
-        <mat-cell *matCellDef="let el"> {{ el.data.firewall?.spec?.policyTypes }} </mat-cell>
+        <mat-cell *matCellDef="let el"> {{ el.data.securityGroup?.spec?.policyTypes }} </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="gitops">
@@ -53,8 +53,8 @@
             <a
               mat-icon-button
               class="color-primary"
-              [routerLink]="['/products', 'network', 'firewall', 'details', az(), el.data.eid]"
-              aria-label="Go to subnet"
+              [routerLink]="['/products', 'network', 'security-group', 'details', az(), el.data.eid]"
+              aria-label="Go to security group"
               target="_blank">
               <mat-icon>open_in_new</mat-icon>
             </a>

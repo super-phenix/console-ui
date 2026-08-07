@@ -16,7 +16,7 @@ import {
       <div>
         <h2>None</h2>
         <span>
-          Don't create any policies. Apply user-defined firewall rules.<br />
+          Don't create any policies. Apply user-defined security group rules.<br />
           Custom rules need to accommodate for cluster requirements.<br />
           <i>
             Make sure to allow traffic to the control plane on ports 7442, 7443 and 7444, from the EIP attached to your

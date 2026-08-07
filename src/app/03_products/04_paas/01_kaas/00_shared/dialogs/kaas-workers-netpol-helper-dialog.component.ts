@@ -16,7 +16,7 @@ import {
       <div>
         <h2>None</h2>
         <span>
-          Don't create any policies. Apply user-defined firewall rules.<br />
+          Don't create any policies. Apply user-defined security group rules.<br />
           Custom rules need to accommodate for cluster requirements.<br />
           <br />
           Worker nodes need to have internet access and can be targeted via the label:<br />

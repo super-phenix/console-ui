@@ -30,8 +30,8 @@ export enum PermissionsEnum {
   ProjectLoadBalancerRead = 'ProjectLoadBalancerRead',
   ProjectLoadBalancerWrite = 'ProjectLoadBalancerWrite',
 
-  ProjectFirewallRead = 'ProjectFirewallRead',
-  ProjectFirewallWrite = 'ProjectFirewallWrite',
+  ProjectSecurityGroupRead = 'ProjectSecurityGroupRead',
+  ProjectSecurityGroupWrite = 'ProjectSecurityGroupWrite',
 
   ProjectKaaSRead = 'ProjectKaaSRead',
   ProjectKaaSKubeConfig = 'ProjectKaaSKubeConfig',

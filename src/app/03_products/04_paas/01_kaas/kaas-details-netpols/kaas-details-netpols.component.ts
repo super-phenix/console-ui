@@ -8,18 +8,17 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProductFirewall, ProductKaaS } from '@products/00_shared/models/product.model';
+import { ProductSecurityGroup, ProductKaaS } from '@products/00_shared/models/product.model';
 import { AZService } from '@products/00_shared/services/az.service';
 import { InstanceService } from '@products/00_shared/services/instance.service';
 import { KaasService } from '@products/00_shared/services/kaas.service';
 import { AutoRefreshComponent } from '@shared/components/auto-refresh/auto-refresh.component';
 import { PRA_LABEL_KEYS } from '@shared/models/consts';
-import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
 import { catchError, of } from 'rxjs';
 
-interface ProductFirewallItem {
-  data: ProductFirewall;
+interface ProductSecurityGroupItem {
+  data: ProductSecurityGroup;
   isPRA: boolean;
 }
 
@@ -44,7 +43,6 @@ export class KaasDetailsNetpolsComponent {
   protected kaasSvc = inject(KaasService);
   protected instanceSvc = inject(InstanceService);
   protected azSvc = inject(AZService);
-  protected permissionSvc = inject(PermissionService);
   protected route = inject(ActivatedRoute);
 
   displayedColumns: string[] = ['id', 'name', 'description', 'policyType', 'gitops', 'actions'];
@@ -60,10 +58,10 @@ export class KaasDetailsNetpolsComponent {
     if (instances == null) {
       instances = [];
     }
-    const datas: ProductFirewallItem[] = instances.map(i => {
+    const datas: ProductSecurityGroupItem[] = instances.map(i => {
       let isPRA = false;
-      if (i.firewall?.metadata.labels) {
-        isPRA = Object.keys(i.firewall.metadata.labels).some(v => PRA_LABEL_KEYS.includes(v));
+      if (i.securityGroup?.metadata.labels) {
+        isPRA = Object.keys(i.securityGroup.metadata.labels).some(v => PRA_LABEL_KEYS.includes(v));
       }
 
       return {

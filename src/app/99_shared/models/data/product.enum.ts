@@ -73,8 +73,8 @@ export const ProductNetwork: ProductCategory = {
       title: 'Load Balancer',
     },
     {
-      link: 'firewall',
-      title: 'Firewall',
+      link: 'security-group',
+      title: 'Security Group',
     },
   ],
 };
@@ -115,7 +115,9 @@ export const ProductTypeLink: Map<string, string> = new Map<string, string>([
   ['snapshot', 'snapshot'],
   ['vmSnapshot', 'instance-snapshot'],
   ['loadBalancer', 'load-balancer'],
-  ['firewall', 'firewall'],
+  ['securityGroup', 'security-group'],
+  // Legacy: deep links shared before the Security Group rename still carry the old `firewall` product type.
+  ['firewall', 'security-group'],
   ['kaas', 'kaas'],
   ['bucket', 'bucket'],
   ['ssh', 'ssh'],

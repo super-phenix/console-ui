@@ -1,0 +1,234 @@
+<div class="product-details main-content">
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Security Group Details"></spx-content-header>
+
+    @if (sgProduct.hasValue()) {
+      <div class="d-flex align-items-center gap-3">
+        <button matIconButton class="icon-btn--border icon-btn--medium" (click)="copyShareLink()">
+          <mat-icon>share</mat-icon>
+        </button>
+
+        @if (
+          (canProjectSecurityGroupWrite() && sgProduct.value().gitops !== 'true') ||
+          (canProjectArgoCdRead() && sgProduct.value().gitops === 'true' && !isClusterSecurityGroup())
+        ) {
+          <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
+
+          <mat-menu #menu="matMenu">
+            @if (canProjectSecurityGroupWrite() && sgProduct.value().gitops !== 'true' && !isClusterSecurityGroup()) {
+              <button
+                mat-menu-item
+                aria-label="Edit security group button"
+                [routerLink]="[
+                  '/products/network/security-group',
+                  'update',
+                  sgProduct.value().codeAZ,
+                  sgProduct.value().eid,
+                ]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectArgoCdRead() && sgProduct.value().gitops === 'true' && !isClusterSecurityGroup()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectSecurityGroupWrite() && sgProduct.value().gitops !== 'true') {
+              <mat-divider></mat-divider>
+              <button
+                mat-menu-item
+                aria-label="Delete security group button"
+                (click)="deleteSecurityGroup()"
+                [disabled]="isClusterSecurityGroup()">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        }
+      </div>
+    }
+  </div>
+
+  @if (
+    sgProduct.hasValue() &&
+    sgProduct.value().gitops !== 'true' &&
+    !sgProduct.value().productTypeId &&
+    !isClusterSecurityGroup()
+  ) {
+    <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+      <span>Product not synchronized with the database.</span>
+      <span>
+        Please contact support at
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </span>
+    </spx-banner>
+  }
+
+  @if (sgProduct.hasValue() && isPRA()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created from a restore point during a disaster recovery plan.
+    </spx-banner>
+  }
+
+  @if (sgProduct.hasValue() && isClusterSecurityGroup()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      This resource was created by a KaaS Product. You cannot modify it.
+    </spx-banner>
+  }
+
+  @if (sgProduct.hasValue() && !sgProduct.value().securityGroup) {
+    <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the security group on the AZ.</spx-banner>
+  }
+
+  <div class="product-details__content">
+    @if (sgProduct.hasValue()) {
+      <h2>General Information</h2>
+      @let sg = sgProduct.value()!;
+
+      <div spxGrid>
+        <div class="product-details__card sg-r2 sg-c2">
+          <h3 class="text-break-all mt-0 mb-1">{{ sg.productName }}</h3>
+
+          <spx-span-copy class="product-details__card-line product-details__card-eid" [value]="sg.eid" />
+          <spx-span-copy class="product-details__card-line" key="Local ID" [value]="sg.id" />
+          <spx-span-copy class="product-details__card-line" key="Project ID" [value]="productLabelInfo().projectId" />
+          <spx-span-copy
+            class="product-details__card-line"
+            key="Organization ID"
+            [value]="productLabelInfo().organizationId" />
+        </div>
+
+        <div class="product-details__card sg-r1 sg-c1">
+          <div class="product-details__card-line product-details__card-line--split flex-grow">
+            <span class="product-details__card-line-left"> <strong>Localisation:</strong> </span>
+            <span class="product-details__card-line-right"> {{ sg.codeAZ?.toUpperCase() }} </span>
+
+            <span class="product-details__card-line-left"> <strong>GitOps:</strong> </span>
+            <span class="product-details__card-line-right">
+              {{ sg.gitops === 'true' ? 'Yes' : 'No' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <h2>Specifications</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-c-all">
+          <h3 class="mt-0">Description</h3>
+          <span class="product-details__card-line text-break-all">{{ sg.securityGroup?.description }}</span>
+        </div>
+
+        <div class="product-details__card sg-c-all">
+          <h3 class="mt-0">Target Selection</h3>
+
+          @let target = sg.securityGroup?.spec?.podSelector;
+          @if (target && target.matchLabels) {
+            <div class="product-details__card-line">
+              <div class="d-flex flex-column gap-1 mb-2">
+                <span><strong>Match Labels</strong></span>
+
+                <div class="d-flex flex-column">
+                  @for (item of target.matchLabels | keyvalue; track $index) {
+                    <span>- {{ item.key }}: {{ item.value }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+          @if (target && target.matchExpressions && target.matchExpressions.length > 0) {
+            <div class="product-details__card-line">
+              <div class="d-flex flex-column gap-1">
+                <span><strong>Match Expressions</strong></span>
+
+                <div class="d-flex flex-column">
+                  @for (item of target.matchExpressions; track $index) {
+                    <span>
+                      - {{ item.key }} {{ item.operator }}
+                      @if (item.values && item.values.length > 0) {
+                        ["{{ item.values.join('","') }}"]
+                      }
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <h2>Ingress</h2>
+      <div spxGrid>
+        @let ingressRules = sg.securityGroup?.spec?.ingress;
+        @if (ingressRules || sg.securityGroup?.spec?.policyTypes?.includes('Ingress')) {
+          @if (ingressRules && ingressRules.length > 0) {
+            @for (inRule of ingressRules; track $index; let idx = $index) {
+              <div
+                class="product-details__card"
+                [ngClass]="Object.getOwnPropertyNames(inRule).length > 0 ? 'sg-c2' : 'sg-c1'">
+                <h3 class="mt-0">Rule n°{{ idx + 1 }}</h3>
+                @if (Object.getOwnPropertyNames(inRule).length > 0) {
+                  <spx-rule-display [ingress]="inRule"></spx-rule-display>
+                } @else {
+                  <span>Allow All</span>
+                }
+              </div>
+            }
+          } @else {
+            <div class="product-details__card sg-c1">
+              <span>Deny All</span>
+            </div>
+          }
+        }
+      </div>
+
+      <h2>Egress</h2>
+      <div spxGrid>
+        @let egressRules = sg.securityGroup?.spec?.egress;
+        @if (egressRules || sg.securityGroup?.spec?.policyTypes?.includes('Egress')) {
+          @if (egressRules && egressRules.length > 0) {
+            @for (eRule of egressRules; track $index; let idx = $index) {
+              <div
+                class="product-details__card"
+                [ngClass]="Object.getOwnPropertyNames(eRule).length > 0 ? 'sg-c2' : 'sg-c1'">
+                <h3 class="mt-0">Rule n°{{ idx + 1 }}</h3>
+                @if (Object.getOwnPropertyNames(eRule).length > 0) {
+                  <spx-rule-display [egress]="eRule"></spx-rule-display>
+                } @else {
+                  <span>Allow All</span>
+                }
+              </div>
+            }
+          } @else {
+            <div class="product-details__card sg-c1">
+              <span>Deny All</span>
+            </div>
+          }
+        }
+      </div>
+
+      <h2>Labels</h2>
+
+      <div spxGrid>
+        <div class="product-details__card sg-r-all sg-c-all">
+          <mat-chip-set class="product-details__labels" aria-label="Labels">
+            @for (labels of sg.securityGroup?.metadata?.labels | keyvalue; track $index) {
+              <mat-chip (click)="copy(labels.value)">
+                <div class="d-flex flex-wrap gap-x-1">
+                  <span>{{ labels.key }}:</span>
+                  <span>{{ labels.value }}</span>
+                </div>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </div>
+    }
+  </div>
+</div>

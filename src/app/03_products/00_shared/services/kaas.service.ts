@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { productOnceHandler } from '@shared/http/customHandler';
 import { BaseService } from './base.service';
-import { ProductFirewall, ProductInstance, ProductKaaS } from '../models/product.model';
+import { ProductSecurityGroup, ProductInstance, ProductKaaS } from '../models/product.model';
 import { CreateKaaS, UpdateKaaS, UpdateKaaSProduct } from '../models/paas/kaas/kaas';
 
 @Injectable({
@@ -30,7 +30,7 @@ export class KaasService extends BaseService<ProductKaaS, CreateKaaS> {
 
   listNetpols(orgaId: string, projectId: string, az: string, clusterEid: string) {
     return this.http
-      .get<ProductFirewall[]>(`${this.getPath(orgaId, projectId, az)}/${clusterEid}/netpols`)
+      .get<ProductSecurityGroup[]>(`${this.getPath(orgaId, projectId, az)}/${clusterEid}/netpols`)
       .pipe(productOnceHandler(this.snackbar));
   }
 
