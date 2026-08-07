@@ -1,0 +1,51 @@
+<div class="input__group" [formGroup]="form">
+  @if (attributes.type === 'hidden') {
+    @if (meta.label; as label) {
+      <label
+        [class.required]="attributes.required === true"
+        [textContent]="label.text"
+        [for]="meta.label.id"
+        appI18n
+        [id]="meta.label.id"
+        [group]="meta.label.type"
+        [context]="meta.label.context"></label>
+    }
+
+    <input
+      [id]="meta.label?.id"
+      type="hidden"
+      [attr.autocomplete]="attributes.autocomplete"
+      [value]="attributes.value ? attributes.value : ''"
+      [required]="attributes.required === true"
+      [name]="attributes.name"
+      [formControlName]="attributes.name" />
+  } @else {
+    @if (meta.label; as label) {
+      <mat-form-field>
+        <mat-label
+          [class.required]="attributes.required === true"
+          [textContent]="label.text"
+          appI18n
+          [id]="meta.label.id"
+          [group]="meta.label.type"
+          [context]="meta.label.context"></mat-label>
+
+        <input
+          matInput
+          [type]="attributes.type"
+          [attr.autocomplete]="attributes.autocomplete"
+          [value]="attributes.value ? attributes.value : ''"
+          [required]="attributes.required === true"
+          [name]="attributes.name"
+          [formControlName]="attributes.name" />
+        @for (msg of messages; track $index) {
+          <mat-hint>
+            <span class="color-error" appI18n [id]="msg.id" [group]="msg.type" [context]="msg.context">{{
+              msg.text
+            }}</span>
+          </mat-hint>
+        }
+      </mat-form-field>
+    }
+  }
+</div>

@@ -2,6 +2,7 @@ import { registerLocaleData } from '@angular/common';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import localeFr from '@angular/common/locales/fr';
 import { ApplicationConfig, LOCALE_ID, provideZonelessChangeDetection } from '@angular/core';
+import { kratosCredentialsInterceptor } from './98_kratos-pages/shared/interceptor/kratos-credentials.interceptor';
 import { MAT_CARD_CONFIG } from '@angular/material/card';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
@@ -19,7 +20,7 @@ const userLang = navigator.language;
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideHttpClient(withInterceptors([tokenInterceptor, authErrorInterceptor, errorsInterceptor])),
+    provideHttpClient(withInterceptors([kratosCredentialsInterceptor, tokenInterceptor, authErrorInterceptor, errorsInterceptor])),
     provideRouter(routes),
     {
       provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,

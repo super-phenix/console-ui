@@ -1,0 +1,8 @@
+<div class="flow">
+  <span>
+    {{ $any(error()?.error)?.reason }}
+  </span>
+  <pre>
+    {{ error()?.error | json }}
+  </pre>
+</div>

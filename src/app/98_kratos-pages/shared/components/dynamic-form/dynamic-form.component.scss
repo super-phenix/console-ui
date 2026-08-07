@@ -1,0 +1,31 @@
+.dynamic-form {
+  display: flex;
+  flex-direction: column;
+
+  &__message {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+
+    min-height: 1lh;
+
+    span {
+      font-style: italic;
+
+      &.error {
+        color: var(--mat-sys-error);
+      }
+
+      &.success {
+        color: green;
+      }
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 0.75rem;
+  }
+}

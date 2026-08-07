@@ -3,7 +3,7 @@ window.$environment = {
   production: false,
   appName: 'Superphenix Console',
   apiUrl: 'api.example.org',
-  authUrl: 'http://localhost:3000',
+  authUrl: 'http://localhost:4433',
   ssl: true,
   sessionAutoRenew: 10,
   supportEmail: 'contact@superphenix.net',

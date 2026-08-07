@@ -1,0 +1,52 @@
+{
+  "error": {
+    "1": "La récupération de compte est désactivé.<br> Contactez un administrateur.",
+    "4000001": "{{ reason }}",
+    "4000002": "Champs {{ property }} obligatoire.",
+    "4000006": "Identifiants invalides.",
+    "4010002": "Le formulaire n'a pas été correctement rempli."
+  },
+  "info": {
+    "1010001": "Se connecter",
+    "1040001": "S'inscrire",
+    "1060003": "Un email contenant un code de récupération a été envoyé à l'adresse mail indiquée. Si vous n'avez pas reçu de mail, merci de vérifier l'adresse mail associée à votre compte.",
+    "1070001": "Mot de passe",
+    "1070002": "{{ title }}",
+    "1070003": "Enregistrer",
+    "1070005": "Envoyer",
+    "1070007": "E-mail",
+    "1070008": "Renvoyer le code",
+    "1070010": "Code de récupération",
+    "1080003": "Un email contenant un code de vérification a été envoyé à l'adresse mail indiquée. Si vous n'avez pas reçu de mail, merci de vérifier l'adresse mail associée à votre compte."
+  },
+  "success": {
+    "1050001": "Changements sauvegardés !",
+    "1060001": "Vous avez récupérer votre compte avec succès ! Merci de changer votre mot de passe dans les 15 minutes."
+  },
+  "context": {
+    "property": {
+      "identifier": " ",
+      "password": " "
+    },
+    "title": {
+      "E-mail": "E-mail",
+      "Nom": "Nom",
+      "Prénom": "Prénom"
+    }
+  },
+  "ui": {
+    "login": "Se connecter",
+    "registration": "S'inscrire",
+    "recovery": "Mot de passe oublié",
+    "logout": "Déconnexion",
+    "settings": "Paramètres du compte",
+    "verification": "Vérification",
+    "error": "Erreur",
+    "already_have_account": "Vous avez déjà un compte ?",
+    "connect": "Se connecter",
+    "forgot_password": "Mot de passe oublié",
+    "back_to_site": "Retour au site",
+    "logging_out": "Déconnexion en cours",
+    "invalid_email": "\"{{value}}\" n'est pas un email valide"
+  }
+}

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, Injectable, signal, WritableSignal, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { firstValueFrom } from 'rxjs';
 import { jwtDecode } from '@shared/http/jwtDecode';
@@ -26,6 +27,7 @@ function getTokenMinutesBeforeExp(token: string): number {
 export class AuthService {
   protected http = inject(HttpClient);
   protected stateSvc = inject(StateService);
+  private router = inject(Router);
 
   private _accessToken: WritableSignal<string | undefined> = signal(undefined);
   accessToken = this._accessToken.asReadonly();
@@ -93,12 +95,12 @@ export class AuthService {
   }
 
   /**
-   * Open the auth-ui login flow in a new tab, returning to the worker page that
+   * Open the login flow in a new tab, returning to the worker page that
    * pings this tab once the session is re-established. Returns null if blocked.
    */
   openLoginPopup(returnPath: string): Window | null {
-    const returnTo = `${window.location.origin}${returnPath}`;
-    return window.open(`${environment.authUrl}/ui/login?return_to=${returnTo}`, '_blank');
+    const returnTo = encodeURIComponent(`${window.location.origin}${returnPath}`);
+    return window.open(`${window.location.origin}/auth/login?return_to=${returnTo}`, '_blank');
   }
 
   /**
@@ -110,12 +112,12 @@ export class AuthService {
   }
 
   /**
-   * Redirect to the auth ui flow page
+   * Navigate to the internal auth flow page
    * @param flow
    */
   redirectToFlow(flow: 'login' | 'logout' | 'settings', redirect?: string) {
     const returnTo = redirect || location.href;
-    window.location.href = `${environment.authUrl}/ui/${flow}?return_to=${returnTo}`;
+    this.router.navigate(['/auth', flow], { queryParams: { return_to: returnTo } });
   }
 
   async reloadUser() {
