@@ -18,4 +18,6 @@ export interface Group {
   allProjects: boolean;
   projectIds: string[];
   permissionSets: string[];
+  /** Set on platform-managed groups; absent means the group is custom and editable. */
+  predefinedKey?: string;
 }

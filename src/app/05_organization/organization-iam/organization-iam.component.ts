@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TagOption, TagSelectorComponent } from '@shared/components/tag-selector/tag-selector.component';
 import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
+import { DuplicateGroupData, DuplicateGroupDialog } from '@shared/dialogs/duplicate-group-dialog.component';
 import { MAX_NAME_LENGTH, NIL_UUID } from '@shared/models/consts';
 import { Project } from '@shared/models/data/organization';
 import { EntityTypeEnum, Group, PermissionSetMap } from '@shared/models/permissions/permission';
@@ -49,14 +50,22 @@ export class OrganizationIamComponent {
     this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationIAMWrite)
   );
 
+  /** Predefined groups are realigned on the platform catalog, the API refuses any edit on them. */
+  isPredefined = computed(() => !!this.currentGroup()?.predefinedKey);
+  canEditCurrentGroup = computed(() => this.canOrganizationIAMWrite() && !this.isPredefined());
+  canDuplicateCurrentGroup = computed(
+    () => this.canOrganizationIAMWrite() && !!this.currentGroup() && this.currentGroup()!.id !== NEW_ID
+  );
+
+  predefinedGroups = computed(() => this.groups.value()?.filter(g => g.predefinedKey) ?? []);
+  customGroups = computed(() => this.groups.value()?.filter(g => !g.predefinedKey) ?? []);
+
   readonly EntityTypeEnum = EntityTypeEnum;
   readonly maxLength = MAX_NAME_LENGTH;
   private readonly dialog = inject(MatDialog);
   private readonly snackbar = inject(MatSnackBar);
 
   groups: ResourceRef<Group[] | undefined>;
-
-  selectedGroupIndex = 0;
 
   currentGroup: WritableSignal<Group | undefined> = signal(undefined);
   formControlMap = new Map<string, FormControlWithName[]>();
@@ -98,7 +107,6 @@ export class OrganizationIamComponent {
       if (index !== -1) {
         const group = this.groups.value()![index];
         this.currentGroup.set(group);
-        this.selectedGroupIndex = index;
 
         this.formArray.clear();
         this.groupProjectsChanged = false;
@@ -120,10 +128,12 @@ export class OrganizationIamComponent {
         });
         this.formArray.markAsPristine();
 
-        if (this.canOrganizationIAMWrite()) {
+        if (this.canEditCurrentGroup()) {
           this.formArray.enable();
+          this.nameInput.enable();
         } else {
           this.formArray.disable();
+          this.nameInput.disable();
         }
       }
     }
@@ -159,14 +169,8 @@ export class OrganizationIamComponent {
         projectIds: [],
       };
 
-      this.groups.update(g => {
-        if (g) {
-          g.push(group);
-        } else {
-          return [group];
-        }
-        return g;
-      });
+      // A new array reference on every mutation, the predefined/custom lists derive from it.
+      this.groups.update(g => (g ? [...g, group] : [group]));
     }
     this.groupSelected(NEW_ID);
   }
@@ -178,7 +182,7 @@ export class OrganizationIamComponent {
   }
 
   save() {
-    if (this.currentGroup()?.id && this.nameInput.valid && this.nameInput.value && this.canOrganizationIAMWrite()) {
+    if (this.currentGroup()?.id && this.nameInput.valid && this.nameInput.value && this.canEditCurrentGroup()) {
       const group = this.currentGroup()!;
 
       const pSets: string[] = [];
@@ -207,7 +211,7 @@ export class OrganizationIamComponent {
 
       this.permissionSvc.updateGroup(this.stateSvc.organization()!.id, group).subscribe(res => {
         if (this.groups.hasValue()) {
-          const groups = this.groups.value()!;
+          const groups = [...this.groups.value()!];
           const index = groups.findIndex(g => g.id === group.id);
           if (index !== -1) {
             groups[index] = res;
@@ -221,8 +225,40 @@ export class OrganizationIamComponent {
     }
   }
 
+  /** Copy the selected group into a new custom one, the only way to derive from a predefined role. */
+  async duplicateGroup() {
+    if (!this.canDuplicateCurrentGroup()) {
+      return;
+    }
+
+    const source = this.currentGroup()!;
+    const data: DuplicateGroupData = {
+      sourceName: source.name,
+      existingNames: this.groups.value()?.map(g => g.name) ?? [],
+    };
+    const ref = this.dialog.open(DuplicateGroupDialog, { data });
+    const name = await firstValueFrom(ref.afterClosed());
+    if (!name) {
+      return;
+    }
+
+    this.permissionSvc
+      .duplicateGroup(this.stateSvc.organization()!.id, source.id, name)
+      .pipe(
+        catchError(err => {
+          this.snackbar.open(err.error, undefined, { duration: 5000, horizontalPosition: 'end' });
+          throw err;
+        })
+      )
+      .subscribe(res => {
+        const groups = [...(this.groups.value() ?? []), res];
+        this.groups.set(groups.sort((a, b) => a.name.localeCompare(b.name)));
+        this.groupSelected(res.id);
+      });
+  }
+
   async deleteGroup() {
-    if (this.currentGroup() && this.canOrganizationIAMWrite()) {
+    if (this.currentGroup() && this.canEditCurrentGroup()) {
       const ref = this.dialog.open(ConfirmDialog, {
         data: {
           title: `Deletion`,
@@ -252,12 +288,7 @@ export class OrganizationIamComponent {
   }
 
   private removeFromGroupsList(id: string) {
-    const groups = this.groups.value()!;
-    const index = groups.findIndex(g => g.id === id);
-    if (index > -1) {
-      // only splice array when item is found
-      groups.splice(index, 1); // 2nd parameter means remove one item only
-    }
+    const groups = this.groups.value()!.filter(g => g.id !== id);
     this.groups.set(groups);
     if (groups.length > 0) {
       this.groupSelected(groups[0].id);
