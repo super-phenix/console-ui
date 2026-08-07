@@ -82,6 +82,15 @@ export class PermissionService {
     return this.http.post<Group>(`${this.getBaseUrl(orgId)}/group`, group).pipe(defaultOnceHandler());
   }
 
+  /**
+   * Copy a group, predefined or not, into a new editable custom one
+   */
+  duplicateGroup(orgId: string, groupId: string, name: string) {
+    return this.http
+      .post<Group>(`${this.getBaseUrl(orgId)}/group/${groupId}/duplicate`, { name })
+      .pipe(defaultOnceHandler());
+  }
+
   deleteGroup(orgId: string, groupId: string) {
     return this.http
       .delete(`${this.getBaseUrl(orgId)}/group`, {

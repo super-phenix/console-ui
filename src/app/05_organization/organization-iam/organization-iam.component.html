@@ -2,19 +2,48 @@
   <div class="org-iam-menu">
     <h2>Groups</h2>
 
-    <mat-button-toggle-group
-      class="org-iam-menu__group"
-      name="group"
-      aria-label="Group selection"
-      [vertical]="true"
-      [hideSingleSelectionIndicator]="true"
-      (valueChange)="groupSelected($event)">
-      @for (group of groups.value(); track $index) {
-        <mat-button-toggle class="org-iam-menu__group-btn" [value]="group.id" [checked]="$index === selectedGroupIndex">
-          <div class="d-flex">{{ group.name || 'New group' }}</div>
-        </mat-button-toggle>
+    <div class="org-iam-menu__sections">
+      @if (predefinedGroups().length) {
+        <h3 class="org-iam-menu__section-title">Predefined</h3>
+        <mat-button-toggle-group
+          class="org-iam-menu__group"
+          name="predefinedGroup"
+          aria-label="Predefined group selection"
+          [vertical]="true"
+          [hideSingleSelectionIndicator]="true"
+          (valueChange)="groupSelected($event)">
+          @for (group of predefinedGroups(); track group.id) {
+            <mat-button-toggle
+              class="org-iam-menu__group-btn"
+              [value]="group.id"
+              [checked]="group.id === currentGroup()?.id">
+              <div class="d-flex align-items-center gap-2">
+                <mat-icon class="org-iam-menu__group-btn-icon">lock</mat-icon>
+                {{ group.name }}
+              </div>
+            </mat-button-toggle>
+          }
+        </mat-button-toggle-group>
       }
-    </mat-button-toggle-group>
+
+      <h3 class="org-iam-menu__section-title">Custom</h3>
+      <mat-button-toggle-group
+        class="org-iam-menu__group"
+        name="customGroup"
+        aria-label="Custom group selection"
+        [vertical]="true"
+        [hideSingleSelectionIndicator]="true"
+        (valueChange)="groupSelected($event)">
+        @for (group of customGroups(); track group.id) {
+          <mat-button-toggle
+            class="org-iam-menu__group-btn"
+            [value]="group.id"
+            [checked]="group.id === currentGroup()?.id">
+            <div class="d-flex">{{ group.name || 'New group' }}</div>
+          </mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+    </div>
 
     @if (canOrganizationIAMWrite()) {
       <button
@@ -33,24 +62,48 @@
     <div class="org-iam-content__permissions">
       @if (currentGroup()) {
         <div class="org-iam-content__permissions-group">
-          @if (canOrganizationIAMWrite()) {
+          @if (canEditCurrentGroup()) {
             <mat-form-field class="org-iam-content__permissions-group-name" subscriptSizing="dynamic">
               <mat-label>Name</mat-label>
               <input matInput [formControl]="nameInput" [maxlength]="maxLength" placeholder="Group name" />
               <mat-hint align="end"> {{ nameInput.getRawValue()?.length }} / {{ maxLength }} </mat-hint>
             </mat-form-field>
-
-            <button
-              class="org-iam-content__actions-delete-btn"
-              mat-stroked-button
-              aria-label="Delete button"
-              (click)="deleteGroup()">
-              Delete
-            </button>
           } @else {
-            <h1>{{ currentGroup()!.name }}</h1>
+            <div class="d-flex align-items-center gap-3">
+              <h1>{{ currentGroup()!.name }}</h1>
+              @if (isPredefined()) {
+                <span class="org-iam-content__permissions-group-chip">
+                  <mat-icon class="org-iam-content__permissions-group-chip-icon">lock</mat-icon>
+                  Predefined
+                </span>
+              }
+            </div>
           }
+
+          <div class="d-flex align-items-center gap-3">
+            @if (canDuplicateCurrentGroup()) {
+              <button matButton="filled" aria-label="Duplicate button" (click)="duplicateGroup()">
+                <mat-icon class="symbols-fill">content_copy</mat-icon> Duplicate
+              </button>
+            }
+            @if (canEditCurrentGroup()) {
+              <button
+                class="org-iam-content__permissions-group-delete"
+                matButton="outlined"
+                aria-label="Delete button"
+                (click)="deleteGroup()">
+                <mat-icon class="symbols-fill">delete</mat-icon> Delete
+              </button>
+            }
+          </div>
         </div>
+
+        @if (isPredefined()) {
+          <p class="org-iam-content__permissions-hint">
+            This group is managed by the platform and kept up to date automatically. Duplicate it to get an editable
+            copy.
+          </p>
+        }
 
         <!-- Organization -->
         <h2>Organization Scope</h2>
@@ -68,7 +121,7 @@
           <spx-tag-selector
             [options]="projects"
             [selection]="groupProjects"
-            [readOnly]="!canOrganizationIAMWrite()"
+            [readOnly]="!canEditCurrentGroup()"
             (selectionChange)="groupProjectsChange($event)"></spx-tag-selector>
         </div>
 
@@ -80,7 +133,7 @@
       }
     </div>
 
-    @if (!formArray.pristine || !nameInput.pristine || groupProjectsChanged) {
+    @if (canEditCurrentGroup() && (!formArray.pristine || !nameInput.pristine || groupProjectsChanged)) {
       <div class="org-iam-content__actions">
         <button class="org-iam-content__actions-cancel-btn" mat-button aria-label="Cancel button" (click)="cancel()">
           Cancel
