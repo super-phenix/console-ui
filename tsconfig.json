@@ -23,6 +23,7 @@
       "@products/*": ["./src/app/03_products/*"],
       "@user/*": ["./src/app/04_user/*"],
       "@organization/*": ["./src/app/05_organization/*"],
+      "@kratos-pages/*": ["./src/app/98_kratos-pages/*"],
       "@env/*": ["./src/environments/*"]
     },
     "typeRoots": ["node_modules/@types", "src/novnc-typings.d.ts"],

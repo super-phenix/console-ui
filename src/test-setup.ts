@@ -8,7 +8,7 @@ if (!w.$environment) {
     production: false,
     appName: 'Console Superphénix (test)',
     apiUrl: 'api.test',
-    authUrl: 'http://localhost:3000',
+    authUrl: 'http://localhost:4433',
     ssl: true,
     sessionAutoRenew: 10,
     supportEmail: 'support@email.com',

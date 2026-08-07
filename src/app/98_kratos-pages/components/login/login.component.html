@@ -1,0 +1,24 @@
+<div class="flow">
+  @if (flow(); as flow) {
+    <div class="flow__app-logo" role="img" aria-label="Superphenix Logo"></div>
+
+    <h1 class="flow__title">{{ this.route.title | async }}</h1>
+
+    @if (form) {
+      <spx-auth-dynamic-form
+        [flow]="flow"
+        [(form)]="form"
+        [manual]="!flowId"
+        (submitForm)="submit($event)"></spx-auth-dynamic-form>
+    }
+  }
+
+  <div class="flow__links">
+    <div class="flow__link">
+      <a matButton="outlined" [routerLink]="['/auth/registration']">{{ i18n.getTranslation('ui', 'registration') }}</a>
+    </div>
+    <div class="flow__link">
+      <a matButton="text" [routerLink]="['/auth/recovery']">{{ i18n.getTranslation('ui', 'forgot_password') }}</a>
+    </div>
+  </div>
+</div>
