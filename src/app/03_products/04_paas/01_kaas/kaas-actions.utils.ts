@@ -51,6 +51,50 @@ export class KaasActions {
     });
   }
 
+  static async upgradeKaaS(
+    kaasSvc: KaasService,
+    stateSvc: StateService,
+    dialog: MatDialog,
+    cluster: ProductKaaS,
+    canReadArgo: boolean
+  ): Promise<boolean> {
+    if (!cluster.codeAZ || !cluster.eid) return false;
+
+    const orgId = stateSvc.organization()!.id;
+    const projectId = stateSvc.project()!.id;
+
+    let argoLink: string | undefined;
+    if (canReadArgo) {
+      argoLink = await firstValueFrom(kaasSvc.getArgoLink(orgId, projectId, cluster.codeAZ, cluster.eid))
+        .then(res => res.link)
+        .catch(() => undefined);
+    }
+
+    const argo = argoLink
+      ? `<a href="${argoLink.replaceAll('"', '%22')}" target="_blank" rel="noopener noreferrer">ArgoCD</a>`
+      : 'ArgoCD';
+
+    const name = cluster.productName || cluster.eid;
+    const ref = dialog.open(ConfirmDialog, {
+      data: {
+        title: `Upgrade Cluster`,
+        confirmBtn: 'Upgrade',
+        html: `
+          <p>Upgrade "${name}" to the latest release for its Kubernetes version?</p>
+          <p class="color-warn"><strong>Warning:</strong> Expect a service interruption during the upgrade.</p>
+          <span>Follow the upgrade progress in ${argo}.</span>
+        `,
+      },
+    });
+
+    const confirmed = await firstValueFrom(ref.afterClosed());
+    if (confirmed !== true) return false;
+
+    return firstValueFrom(kaasSvc.upgrade(orgId, projectId, cluster.codeAZ, cluster.eid))
+      .then(() => true)
+      .catch(() => false);
+  }
+
   static downloadKubeConfig(
     kaasSvc: KaasService,
     stateSvc: StateService,

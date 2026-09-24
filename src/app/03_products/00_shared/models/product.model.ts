@@ -95,6 +95,7 @@ export interface ProductSecurityGroup extends Product {
 
 export interface ProductKaaS extends Product {
   cluster?: Cluster;
+  outdated?: boolean;
 }
 
 export interface ProductBaaS extends Product {

@@ -1,6 +1,6 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { KeyValuePipe } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -93,6 +93,8 @@ export class KaasDetailsComponent extends TabsBase {
   routeParams;
   kaasProduct;
 
+  private needReload = signal(0);
+
   isDR = computed(() => {
     if (this.kaasProduct.hasValue()) {
       if (this.kaasProduct.value().cluster?.cluster.metadata.labels) {
@@ -136,7 +138,7 @@ export class KaasDetailsComponent extends TabsBase {
     this.routeParams = toSignal(route.params);
 
     this.kaasProduct = rxResource({
-      params: computed(() => [stateSvc.project(), stateSvc.organization(), this.routeParams()]),
+      params: computed(() => [stateSvc.project(), stateSvc.organization(), this.routeParams(), this.needReload()]),
       stream: () => {
         const az = this.routeParams()?.['az'];
         const id = this.routeParams()?.['id'];
@@ -171,6 +173,26 @@ export class KaasDetailsComponent extends TabsBase {
         }
       });
     }
+  }
+
+  upgradeKaaS() {
+    if (this.kaasProduct.hasValue()) {
+      KaasActions.upgradeKaaS(
+        this.kaasSvc,
+        this.stateSvc,
+        this.dialog,
+        this.kaasProduct.value(),
+        this.canProjectArgoCdRead()
+      ).then(res => {
+        if (res) {
+          this.reload();
+        }
+      });
+    }
+  }
+
+  reload() {
+    this.needReload.update(v => v + 1);
   }
 
   downloadKubeconfig() {

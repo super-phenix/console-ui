@@ -22,6 +22,12 @@ export class KaasService extends BaseService<ProductKaaS, CreateKaaS> {
       .pipe(productOnceHandler(this.snackbar));
   }
 
+  upgrade(orgaId: string, projectId: string, az: string, effectiveId: string) {
+    return this.http
+      .post(`${this.getPath(orgaId, projectId, az)}/${effectiveId}/upgrade`, {})
+      .pipe(productOnceHandler(this.snackbar));
+  }
+
   listInstances(orgaId: string, projectId: string, az: string, clusterEid: string) {
     return this.http
       .get<ProductInstance[]>(`${this.getPath(orgaId, projectId, az)}/${clusterEid}/instances`)

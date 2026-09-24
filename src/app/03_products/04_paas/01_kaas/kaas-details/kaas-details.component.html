@@ -22,6 +22,12 @@
                 Edit
               </button>
             }
+            @if (canProjectKaaSWrite() && kaasProduct.value().gitops !== 'true' && kaasProduct.value().outdated) {
+              <button mat-menu-item aria-label="Upgrade cluster button" (click)="upgradeKaaS()">
+                <mat-icon>upgrade</mat-icon>
+                Upgrade
+              </button>
+            }
             @if (canProjectKaaSKubeConfig()) {
               <button mat-menu-item aria-label="Download Kubeconfig" (click)="downloadKubeconfig()">
                 <mat-icon>download</mat-icon>
@@ -73,6 +79,20 @@
     </spx-banner>
   }
 
+  @if (kaasProduct.hasValue() && kaasProduct.value().outdated) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      <div class="d-flex align-items-center justify-content-between gap-3 flex-grow">
+        <span>An upgrade is available for this cluster.</span>
+        @if (canProjectKaaSWrite() && kaasProduct.value().gitops !== 'true') {
+          <button matButton="outlined" (click)="upgradeKaaS()">
+            <mat-icon>upgrade</mat-icon>
+            Upgrade
+          </button>
+        }
+      </div>
+    </spx-banner>
+  }
+
   @if (kaasProduct.hasValue() && !kaasProduct.value().cluster) {
     <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the kaas cluster on the AZ.</spx-banner>
   }
@@ -118,6 +138,30 @@
                     <span class="product-details__card-line-right">
                       {{ kaas.gitops === 'true' ? 'Yes' : 'No' }}
                     </span>
+
+                    @if (kaas.outdated !== undefined) {
+                      <span class="product-details__card-line-left"> <strong>Version:</strong> </span>
+                      <span class="product-details__card-line-right">
+                        <mat-chip-set aria-label="Upgrade status">
+                          @if (kaas.outdated && canProjectKaaSWrite() && kaas.gitops !== 'true') {
+                            <mat-chip
+                              class="status-chip--warning status-chip--clickable"
+                              role="button"
+                              tabindex="0"
+                              (click)="upgradeKaaS()"
+                              (keydown.enter)="upgradeKaaS()"
+                              (keydown.space)="$event.preventDefault(); upgradeKaaS()">
+                              <mat-icon matChipAvatar>upgrade</mat-icon>
+                              Upgrade available
+                            </mat-chip>
+                          } @else if (kaas.outdated) {
+                            <mat-chip class="status-chip--warning" disabled="true">Upgrade available</mat-chip>
+                          } @else {
+                            <mat-chip class="status-chip--ready" disabled="true">Up to date</mat-chip>
+                          }
+                        </mat-chip-set>
+                      </span>
+                    }
                   </div>
                 </div>
               </div>

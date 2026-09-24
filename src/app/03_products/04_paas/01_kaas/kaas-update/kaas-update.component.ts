@@ -1,4 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { BannerComponent } from '@shared/components/banner/banner.component';
+import { BannerLevelEnum } from '@shared/models/enums';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -53,6 +55,7 @@ import { isEmpty } from '@shared/utils/utils';
 @Component({
   selector: 'spx-kaas-update',
   imports: [
+    BannerComponent,
     MatStepperModule,
     FormsModule,
     ReactiveFormsModule,
@@ -128,7 +131,8 @@ export class KaasUpdateComponent {
   protected drDisabled = computed(() => !this.drSupported() || this.kubeVersionChanged());
   protected drDisabledTooltip = computed(() => {
     if (!this.drSupported()) return 'Requires Kubernetes 1.35+';
-    if (this.kubeVersionChanged()) return 'Cannot change the dedicated datastore when the Kubernetes version is also changed';
+    if (this.kubeVersionChanged())
+      return 'Cannot change the dedicated datastore when the Kubernetes version is also changed';
     return '';
   });
 
@@ -159,6 +163,9 @@ export class KaasUpdateComponent {
   storageClassList = signal<string[]>([]);
   subnets = signal<ProductSubnet[]>([]);
   kubeVersions = signal<string[]>([]);
+  // Deployed kube version with no configured chart. Users must change it before upgrading.
+  unsupportedKubeVersion = signal('');
+  BannerLevelEnum = BannerLevelEnum;
 
   initNetworkList = Array<string[]>();
   networks = Array<CreateKaasNetwork[]>();
@@ -227,6 +234,10 @@ export class KaasUpdateComponent {
 
   loadKaaSCluser(kaas: UpdateKaaSProduct) {
     this.name = kaas.productName || kaas.eid;
+
+    if (kaas.chart?.outdated && !kaas.chart.target) {
+      this.unsupportedKubeVersion.set(kaas.spec?.kubeVersion || 'current');
+    }
 
     // Check advanced configuration
     let advancedConfiguration = false;

@@ -32,6 +32,24 @@
     );
   }
 
+  // Enabled state, for a warning chip that is also an action (e.g. KaaS "Upgrade available")
+  &--warning {
+    @include mat.chips-overrides(
+      (
+        outline-color: var(--custom-chips-warning),
+        elevated-container-color: var(--custom-chips-warning),
+        label-text-color: var(--custom-chips-on-warning),
+        with-icon-icon-color: var(--custom-chips-on-warning),
+      )
+    );
+  }
+
+  // A status chip that triggers an action
+  &--clickable,
+  &--clickable .mdc-evolution-chip__action {
+    cursor: pointer;
+  }
+
   &--succeeded,
   &--stopped,
   &--terminating,

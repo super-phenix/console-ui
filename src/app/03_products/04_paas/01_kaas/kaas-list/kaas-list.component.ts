@@ -70,7 +70,7 @@ export class KaasListComponent {
   );
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'gitops', 'version', 'actions'];
 
   kaasProduct;
 
@@ -95,7 +95,6 @@ export class KaasListComponent {
 
     return dataSource;
   });
-
 
   private needReload = signal(0);
 
@@ -130,6 +129,16 @@ export class KaasListComponent {
         this.reloadData();
       }
     });
+  }
+
+  upgradeKaaS(cluster: ProductKaaS) {
+    KaasActions.upgradeKaaS(this.kaasSvc, this.stateSvc, this.dialog, cluster, this.canProjectArgoCdRead()).then(
+      res => {
+        if (res) {
+          this.reloadData();
+        }
+      }
+    );
   }
 
   downloadKubeconfig(cluster: ProductKaaS) {

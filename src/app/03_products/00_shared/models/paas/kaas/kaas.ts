@@ -40,6 +40,21 @@ export class UpdateKaaSProduct extends Product {
     kaasEssentials?: CreateKaaSEssentials;
     controlPlane?: CreateKaasControlPlane;
   };
+  chart?: KaaSChartStatus;
+}
+
+export interface KaaSChartInfo {
+  repoURL: string;
+  chart?: string;
+  path?: string;
+  targetRevision: string;
+}
+
+export interface KaaSChartStatus {
+  current: KaaSChartInfo;
+  // Absent when the cluster's kube version is no longer supported
+  target?: KaaSChartInfo;
+  outdated: boolean;
 }
 
 export class UpdateKaaS {

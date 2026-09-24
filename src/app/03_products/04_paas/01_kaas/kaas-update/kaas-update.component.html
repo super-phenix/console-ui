@@ -1,6 +1,13 @@
 <div class="product-create main-content">
   <spx-content-header navBack titleOnly title="Update KaaS Cluster"></spx-content-header>
 
+  @if (unsupportedKubeVersion()) {
+    <spx-banner [level]="BannerLevelEnum.Warn">
+      Kubernetes {{ unsupportedKubeVersion() }} has reached end of support. Pick another version to upgrade this
+      cluster.
+    </spx-banner>
+  }
+
   <div class="product-create__scrollable">
     <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
       <!-- STEP 1 - GENERAL INFORMATION -->

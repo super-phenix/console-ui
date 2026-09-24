@@ -36,6 +36,31 @@
       emptyMessage="No clusters yet."
       emptyCreateLabel="Create a cluster"
       [canCreate]="canProjectKaaSWrite()">
+      <ng-container matColumnDef="version">
+        <mat-header-cell *matHeaderCellDef>Version</mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.data.outdated) {
+            <mat-chip-set aria-label="Upgrade status">
+              @if (canProjectKaaSWrite() && el.data.gitops !== 'true') {
+                <mat-chip
+                  class="status-chip--warning status-chip--clickable"
+                  role="button"
+                  aria-label="Outdated, upgrade cluster"
+                  tabindex="0"
+                  (click)="upgradeKaaS(el.data)"
+                  (keydown.enter)="upgradeKaaS(el.data)"
+                  (keydown.space)="$event.preventDefault(); upgradeKaaS(el.data)">
+                  <mat-icon matChipAvatar>upgrade</mat-icon>
+                  Outdated
+                </mat-chip>
+              } @else {
+                <mat-chip class="status-chip--warning" disabled="true">Outdated</mat-chip>
+              }
+            </mat-chip-set>
+          }
+        </mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="actions" stickyEnd>
         <mat-header-cell *matHeaderCellDef class="mat-column-actions--double-btn"></mat-header-cell>
         <mat-cell *matCellDef="let el" class="mat-column-actions--double-btn">
@@ -52,6 +77,13 @@
                 <mat-icon>edit</mat-icon>
                 Edit
               </a>
+            }
+
+            @if (canProjectKaaSWrite() && el.data.gitops !== 'true' && el.data.outdated) {
+              <button mat-menu-item aria-label="Upgrade Cluster button" (click)="upgradeKaaS(el.data)">
+                <mat-icon>upgrade</mat-icon>
+                Upgrade
+              </button>
             }
 
             @if (canProjectKaaSKubeConfig()) {
