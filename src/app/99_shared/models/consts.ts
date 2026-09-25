@@ -33,3 +33,5 @@ export const SHARED_SUBNET_LABEL = 'superphenix.net/shared-subnet';
 
 export const PROJECT_ID_LABEL_KEY = 'superphenix.net/projectID';
 export const ORGANIZATION_ID_LABEL_KEY = 'superphenix.net/organizationID';
+export const RESOURCE_LOCAL_ID_LABEL_KEY = 'superphenix.net/resourceLocalID';
+export const RESOURCE_EFFECTIVE_ID_LABEL_KEY = 'superphenix.net/resourceEffectiveID';

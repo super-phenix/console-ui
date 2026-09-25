@@ -2,6 +2,7 @@ import {
   extractNetworksFromInstance,
   buildUpdatePayloadFromInstance,
   parseIp,
+  redirectToParentKaas,
   InstanceActions,
 } from './instance-actions.utils';
 import { ProductInstance } from '@products/00_shared/models/product.model';
@@ -13,6 +14,10 @@ import {
 } from '@products/00_shared/models/compute/instance/instance';
 import { RunStrategy } from '@products/00_shared/models/compute/instance/enums/run-strategy.enum';
 import { AdvancedOptionsInput } from '@products/00_shared/models/compute/instance/advanced-options.model';
+import { Router, UrlTree } from '@angular/router';
+import { v5 as uuidv5 } from 'uuid';
+import { VirtualMachine } from '@products/00_shared/models/compute/instance/vm.model';
+import { VirtualMachineInstance } from '@products/00_shared/models/compute/instance/vmi.model';
 
 describe('InstanceActions Utilities', () => {
   describe('parseIp', () => {
@@ -424,11 +429,163 @@ describe('InstanceActions Utilities', () => {
     });
   });
 
+  describe('redirectToParentKaas', () => {
+    let mockRouter: jasmine.SpyObj<Router>;
+
+    beforeEach(() => {
+      mockRouter = jasmine.createSpyObj<Router>('Router', ['createUrlTree', 'serializeUrl']);
+      mockRouter.createUrlTree.and.callFake((commands: unknown[]) => commands as unknown as UrlTree);
+      mockRouter.serializeUrl.and.callFake((urlTree: UrlTree) => (urlTree as unknown as string[]).join('/'));
+      spyOn(window, 'open');
+    });
+
+    it('should extract uuid from localId and compute effectiveId using uuidv5 with projectId', () => {
+      const clusterUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+      const projectId = 'e82b7936-cb8c-4a37-b648-8df04e8aa153';
+      const az = 'fr-par-1';
+
+      const instance: ProductInstance = {
+        id: 'inst-1',
+        eid: 'inst-1',
+        productName: 'worker-node-1',
+        gitops: '',
+        vm: {
+          metadata: {
+            name: 'worker-node-1',
+            labels: {
+              'superphenix.net/resourceLocalID': `${clusterUuid}-worker-0`,
+              'superphenix.net/projectID': `spx-${projectId}`,
+            },
+          },
+        } as unknown as VirtualMachine,
+      };
+
+      const expectedEffectiveId = 'spx-' + uuidv5(clusterUuid, projectId);
+
+      redirectToParentKaas(mockRouter, az, instance);
+
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith([
+        '/products',
+        'paas',
+        'kaas',
+        'details',
+        az,
+        expectedEffectiveId,
+      ]);
+      expect(window.open).toHaveBeenCalledWith(`/products/paas/kaas/details/${az}/${expectedEffectiveId}`, '_blank');
+    });
+
+    it('should work when labels are present on vmi metadata', () => {
+      const clusterUuid = '886313e1-3b8a-5372-9b90-0c9aee199e5d';
+      const projectId = '7d29bc56-d760-4965-8b38-dcf82d6da8f6';
+      const az = 'fr-par-2';
+
+      const instance: ProductInstance = {
+        id: 'inst-2',
+        eid: 'inst-2',
+        productName: 'worker-node-2',
+        gitops: '',
+        vmi: {
+          metadata: {
+            name: 'worker-node-2',
+            labels: {
+              'superphenix.net/resourceLocalID': clusterUuid,
+              'superphenix.net/projectID': projectId,
+            },
+          },
+        } as unknown as VirtualMachineInstance,
+      };
+
+      const expectedEffectiveId = 'spx-' + uuidv5(clusterUuid, projectId);
+
+      redirectToParentKaas(mockRouter, az, instance);
+
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith([
+        '/products',
+        'paas',
+        'kaas',
+        'details',
+        az,
+        expectedEffectiveId,
+      ]);
+      expect(window.open).toHaveBeenCalledWith(`/products/paas/kaas/details/${az}/${expectedEffectiveId}`, '_blank');
+    });
+
+    it('should do nothing if resourceLocalID label is missing', () => {
+      const instance: ProductInstance = {
+        id: 'inst-3',
+        eid: 'inst-3',
+        productName: 'vm-no-local-id',
+        gitops: '',
+        vm: {
+          metadata: {
+            name: 'vm-no-local-id',
+            labels: {
+              'superphenix.net/projectID': 'spx-proj-1',
+            },
+          },
+        } as unknown as VirtualMachine,
+      };
+
+      redirectToParentKaas(mockRouter, 'fr-par-1', instance);
+
+      expect(mockRouter.createUrlTree).not.toHaveBeenCalled();
+      expect(window.open).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if resourceLocalID does not start with a valid uuid', () => {
+      const instance: ProductInstance = {
+        id: 'inst-4',
+        eid: 'inst-4',
+        productName: 'vm-invalid-uuid',
+        gitops: '',
+        vm: {
+          metadata: {
+            name: 'vm-invalid-uuid',
+            labels: {
+              'superphenix.net/resourceLocalID': 'not-a-valid-uuid-here',
+              'superphenix.net/projectID': 'spx-proj-1',
+            },
+          },
+        } as unknown as VirtualMachine,
+      };
+
+      redirectToParentKaas(mockRouter, 'fr-par-1', instance);
+
+      expect(mockRouter.createUrlTree).not.toHaveBeenCalled();
+      expect(window.open).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if projectId label is missing', () => {
+      const clusterUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+      const instance: ProductInstance = {
+        id: 'inst-5',
+        eid: 'inst-5',
+        productName: 'vm-no-project',
+        gitops: '',
+        vm: {
+          metadata: {
+            name: 'vm-no-project',
+            labels: {
+              'superphenix.net/resourceLocalID': clusterUuid,
+            },
+          },
+        } as unknown as VirtualMachine,
+      };
+
+      redirectToParentKaas(mockRouter, 'fr-par-1', instance);
+
+      expect(mockRouter.createUrlTree).not.toHaveBeenCalled();
+      expect(window.open).not.toHaveBeenCalled();
+    });
+  });
+
   describe('InstanceActions class bindings', () => {
     it('should expose utility functions as static methods on InstanceActions', () => {
       expect(InstanceActions.extractNetworksFromInstance).toBe(extractNetworksFromInstance);
       expect(InstanceActions.buildUpdatePayloadFromInstance).toBe(buildUpdatePayloadFromInstance);
       expect(InstanceActions.parseIp).toBe(parseIp);
+      expect(InstanceActions.redirectToParentKaas).toBe(redirectToParentKaas);
     });
   });
 });

@@ -12,7 +12,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProtocolEnum } from '@products/00_shared/models/network/subnet/protocol.enum';
 import { SecurityGroupService } from '@products/00_shared/services/security-group.service';
 import { SubnetService } from '@products/00_shared/services/subnet.service';
-import { ProductSubnet } from '@products/00_shared/models/product.model';
+import { ProductSecurityGroup, ProductSubnet } from '@products/00_shared/models/product.model';
 import { isClusterResource } from '@products/00_shared/utils/cluster-utils';
 import { getProductLabelInfo } from '@products/00_shared/utils/product-label-utils';
 import { BannerComponent } from '@shared/components/banner/banner.component';
@@ -74,6 +74,7 @@ export class SecurityGroupDetailsComponent {
     this.permissionSvc.permissions().includes(PermissionsEnum.ProjectSecurityGroupWrite)
   );
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
+  canProjectKaaSRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectKaaSRead));
 
   routeParams;
   sgProduct;
@@ -156,6 +157,10 @@ export class SecurityGroupDetailsComponent {
     if (this.sgProduct.hasValue() && this.sgProduct.value().gitops === 'true' && !this.isClusterSecurityGroup()) {
       SecurityGroupActions.openArgoCD(this.sgSvc, this.stateSvc, this.az(), this.sgProduct.value().eid);
     }
+  }
+
+  redirectToCluster(sgProduct: ProductSecurityGroup) {
+    SecurityGroupActions.redirectToParentKaas(this.router, this.az(), sgProduct);
   }
 
   deleteSecurityGroup() {

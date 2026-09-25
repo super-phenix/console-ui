@@ -89,6 +89,7 @@ export class InstanceDetailsComponent extends TabsBase {
   canProjectSnapshotWrite = computed(() =>
     this.permissionSvc.permissions().includes(PermissionsEnum.ProjectSnapshotWrite)
   );
+  canProjectKaaSRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectKaaSRead));
 
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
@@ -278,6 +279,10 @@ export class InstanceDetailsComponent extends TabsBase {
 
   openVNC(product: ProductInstance) {
     InstanceActions.openVNC(this.stateSvc, this.az(), product);
+  }
+
+  redirectToCluster(product: ProductInstance) {
+    InstanceActions.redirectToParentKaas(this.router, this.az(), product);
   }
 
   deleteInstance(instance: ProductInstance) {

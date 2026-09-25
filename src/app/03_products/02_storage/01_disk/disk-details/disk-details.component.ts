@@ -12,9 +12,9 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DiskActions } from '../disk-actions.utils';
-import { DiskDetailsReplicationComponent } from './disk-details-replication/disk-details-replication.component';
+import { environment } from '@env/environment';
 import { TabsBase } from '@products/00_shared/components/tabs-base/tab-base.component';
+import { ProductDisk } from '@products/00_shared/models/product.model';
 import { DiskService } from '@products/00_shared/services/disk.service';
 import { InstanceService } from '@products/00_shared/services/instance.service';
 import { SnapshotService } from '@products/00_shared/services/snapshot.service';
@@ -30,7 +30,8 @@ import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
 import { of } from 'rxjs';
-import { environment } from '@env/environment';
+import { DiskActions } from '../disk-actions.utils';
+import { DiskDetailsReplicationComponent } from './disk-details-replication/disk-details-replication.component';
 
 interface DiskStatus {
   isDR: boolean;
@@ -81,6 +82,7 @@ export class DiskDetailsComponent extends TabsBase {
     this.permissionSvc.permissions().includes(PermissionsEnum.ProjectSnapshotWrite)
   );
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
+  canProjectKaaSRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectKaaSRead));
 
   runningStatus = computed(() => {
     return this.diskProduct.hasValue()
@@ -228,6 +230,10 @@ export class DiskDetailsComponent extends TabsBase {
     if (this.diskProduct.hasValue()) {
       DiskActions.openArgoCD(this.diskSvc, this.stateSvc, this.az(), this.diskProduct.value());
     }
+  }
+
+  redirectToCluster(diskProduct: ProductDisk) {
+    DiskActions.redirectToParentKaas(this.router, this.az(), diskProduct);
   }
 
   deleteDisk() {

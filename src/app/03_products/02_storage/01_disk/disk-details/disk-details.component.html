@@ -15,6 +15,7 @@
           (canProjectSnapshotWrite() &&
             (disk?.disk?.status?.progress === '100.0%' || disk.pvc?.status?.phase === 'Bound')) ||
           (canProjectArgoCdRead() && diskProduct.value().gitops === 'true' && !isClusterInstance()) ||
+          (canProjectKaaSRead() && isClusterInstance()) ||
           (disk.gitops !== 'true' && canProjectDiskWrite())
         ) {
           <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
@@ -52,6 +53,14 @@
               <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
                 <mat-icon>open_in_new</mat-icon>
                 See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectKaaSRead() && isClusterInstance()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Redirect to cluster" (click)="redirectToCluster(disk)">
+                <mat-icon>open_in_new</mat-icon>
+                See cluster
               </button>
             }
 

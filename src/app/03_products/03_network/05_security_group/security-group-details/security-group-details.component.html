@@ -10,7 +10,8 @@
 
         @if (
           (canProjectSecurityGroupWrite() && sgProduct.value().gitops !== 'true') ||
-          (canProjectArgoCdRead() && sgProduct.value().gitops === 'true' && !isClusterSecurityGroup())
+          (canProjectArgoCdRead() && sgProduct.value().gitops === 'true' && !isClusterSecurityGroup()) ||
+          (canProjectKaaSRead() && isClusterSecurityGroup())
         ) {
           <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
 
@@ -35,6 +36,14 @@
               <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD()">
                 <mat-icon>open_in_new</mat-icon>
                 See in ArgoCD
+              </button>
+            }
+
+            @if (canProjectKaaSRead() && isClusterSecurityGroup()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Redirect to cluster" (click)="redirectToCluster(sgProduct.value())">
+                <mat-icon>open_in_new</mat-icon>
+                See cluster
               </button>
             }
 

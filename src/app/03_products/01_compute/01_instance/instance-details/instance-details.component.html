@@ -86,6 +86,14 @@
               </button>
             }
 
+            @if (canProjectKaaSRead() && isClusterInstance()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Redirect to cluster" (click)="redirectToCluster(instance)">
+                <mat-icon>open_in_new</mat-icon>
+                See cluster
+              </button>
+            }
+
             @if (instance.gitops !== 'true' && canProjectInstanceWrite()) {
               <mat-divider></mat-divider>
               <button

@@ -5,8 +5,44 @@ import { StateService } from '@shared/services/state.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { Router } from '@angular/router';
+import { getProductLabelInfo } from '@products/00_shared/utils/product-label-utils';
+import { RESOURCE_LOCAL_ID_LABEL_KEY } from '@shared/models/consts';
+import { v5 as uuidv5 } from 'uuid';
+
+export function redirectToParentKaas(
+  router: Router,
+  az: string | undefined,
+  disk: ProductDisk
+): void {
+  if (!az) {
+    return;
+  }
+
+  const labels = disk.disk?.metadata?.labels ?? disk.pvc?.metadata?.labels;
+  const rawLocalId = labels?.[RESOURCE_LOCAL_ID_LABEL_KEY];
+  if (!rawLocalId) {
+    return;
+  }
+
+  const uuidMatch = rawLocalId.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/);
+  if (!uuidMatch) {
+    return;
+  }
+  const uuid = uuidMatch[0];
+
+  const { projectId } = getProductLabelInfo(labels);
+  if (!projectId) {
+    return;
+  }
+
+  const effectiveId = 'spx-' + uuidv5(uuid, projectId);
+  const url = router.serializeUrl(router.createUrlTree(['/products', 'paas', 'kaas', 'details', az, effectiveId]));
+  window.open(url, '_blank');
+}
 
 export class DiskActions {
+  static redirectToParentKaas = redirectToParentKaas;
+
   static unmountDisk(
     diskSvc: DiskService,
     stateSvc: StateService,

@@ -27,7 +27,10 @@ import {
 import { RunStrategy } from '@products/00_shared/models/compute/instance/enums/run-strategy.enum';
 import { extractVolumeEID } from '@products/00_shared/models/compute/instance/utils';
 import { AdvancedOptionsInput } from '@products/00_shared/models/compute/instance/advanced-options.model';
-import { CUSTOM_USER_LABEL_PREFIX } from '@shared/models/consts';
+import { CUSTOM_USER_LABEL_PREFIX, RESOURCE_LOCAL_ID_LABEL_KEY } from '@shared/models/consts';
+import { Router } from '@angular/router';
+import { getProductLabelInfo } from '@products/00_shared/utils/product-label-utils';
+import { v5 as uuidv5 } from 'uuid';
 
 export function parseIp(ip: string): { v4?: string; v6?: string } {
   if (!ip) {
@@ -45,17 +48,13 @@ export function parseIp(ip: string): { v4?: string; v6?: string } {
   }
 }
 
-export function extractNetworksFromInstance(
-  instance: ProductInstance,
-  projectId: string
-): CreateInstanceNetwork[] {
+export function extractNetworksFromInstance(instance: ProductInstance, projectId: string): CreateInstanceNetwork[] {
   if (!instance) {
     return [];
   }
 
   const networkList: CreateInstanceNetwork[] = [];
-  const networks =
-    instance.vm?.spec?.template?.spec?.networks ?? instance.vmi?.spec?.networks ?? [];
+  const networks = instance.vm?.spec?.template?.spec?.networks ?? instance.vmi?.spec?.networks ?? [];
   const domainInterfaces =
     instance.vm?.spec?.template?.spec?.domain?.devices?.interfaces ??
     instance.vmi?.spec?.domain?.devices?.interfaces ??
@@ -233,10 +232,34 @@ export function buildUpdatePayloadFromInstance(
   return payload;
 }
 
+export function redirectToParentKaas(router: Router, az: string, instance: ProductInstance) {
+  const labels = instance.vm?.metadata?.labels ?? instance.vmi?.metadata?.labels ?? {};
+  const rawLocalId = labels[RESOURCE_LOCAL_ID_LABEL_KEY];
+  if (!rawLocalId) {
+    return;
+  }
+
+  const uuidMatch = rawLocalId.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/);
+  if (!uuidMatch) {
+    return;
+  }
+  const uuid = uuidMatch[0];
+
+  const { projectId } = getProductLabelInfo(labels);
+  if (!projectId) {
+    return;
+  }
+
+  const effectiveId = 'spx-' + uuidv5(uuid, projectId);
+  const url = router.serializeUrl(router.createUrlTree(['/products', 'paas', 'kaas', 'details', az, effectiveId]));
+  window.open(url, '_blank');
+}
+
 export class InstanceActions {
   static extractNetworksFromInstance = extractNetworksFromInstance;
   static buildUpdatePayloadFromInstance = buildUpdatePayloadFromInstance;
   static parseIp = parseIp;
+  static redirectToParentKaas = redirectToParentKaas;
   static async startInstance(
     instanceSvc: InstanceService,
     stateSvc: StateService,

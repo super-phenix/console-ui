@@ -7,7 +7,9 @@ import { PermissionService } from '@shared/services/permission.service';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { signal } from '@angular/core';
+import { APP_NAME_CLUSTER_LABEL_VALUE, APP_NAME_LABEL_KEY } from '@shared/models/consts';
 import { ProductSecurityGroup, ProductSubnet } from '@products/00_shared/models/product.model';
+import { SecurityGroupActions } from '../security-group-actions.utils';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -285,5 +287,36 @@ describe('SecurityGroupDetailsComponent', () => {
     fixture.detectChanges();
 
     expect(subnetServiceSpy.listByAZ).not.toHaveBeenCalled();
+  });
+
+  it('should identify cluster security group and call SecurityGroupActions.redirectToParentKaas on redirectToCluster', async () => {
+    const clusterSg: ProductSecurityGroup = {
+      ...baseSgProduct,
+      securityGroup: {
+        ...baseSgProduct.securityGroup!,
+        metadata: {
+          ...baseSgProduct.securityGroup!.metadata,
+          labels: {
+            [APP_NAME_LABEL_KEY]: APP_NAME_CLUSTER_LABEL_VALUE,
+            'superphenix.net/resourceLocalID': '6ba7b810-9dad-11d1-80b4-00c04fd430c8-sg',
+            'superphenix.net/projectID': 'spx-e82b7936-cb8c-4a37-b648-8df04e8aa153',
+          },
+        },
+      },
+    };
+    setup(clusterSg);
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.isClusterSecurityGroup()).toBeTrue();
+
+    spyOn(SecurityGroupActions, 'redirectToParentKaas');
+    component.redirectToCluster(clusterSg);
+    expect(SecurityGroupActions.redirectToParentKaas).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      'az-1',
+      clusterSg
+    );
   });
 });
