@@ -40,8 +40,6 @@
     <mat-cell *matCellDef="let el">
       @if (el.data.gitops === 'true') {
         <mat-icon>check</mat-icon>
-      } @else {
-        <mat-icon>close</mat-icon>
       }
     </mat-cell>
   </ng-container>
@@ -57,6 +55,7 @@
     </td>
     <td
       class="mat-mdc-cell mat-column-actions mat-column-actions--empty"
-      [class.mat-column-actions--double-btn]="actionsColumnWidth() === 'double'"></td>
+      [class.mat-column-actions--double-btn]="actionsColumnWidth() === 'double'"
+      [class.mat-column-actions--wide]="actionsColumnWidth() === 'wide'"></td>
   </tr>
 </ng-template>

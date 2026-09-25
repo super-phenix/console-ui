@@ -79,20 +79,6 @@
     </spx-banner>
   }
 
-  @if (kaasProduct.hasValue() && kaasProduct.value().outdated) {
-    <spx-banner [level]="BannerLevelEnum.Warn">
-      <div class="d-flex align-items-center justify-content-between gap-3 flex-grow">
-        <span>An upgrade is available for this cluster.</span>
-        @if (canProjectKaaSWrite() && kaasProduct.value().gitops !== 'true') {
-          <button matButton="outlined" (click)="upgradeKaaS()">
-            <mat-icon>upgrade</mat-icon>
-            Upgrade
-          </button>
-        }
-      </div>
-    </spx-banner>
-  }
-
   @if (kaasProduct.hasValue() && !kaasProduct.value().cluster) {
     <spx-banner [level]="BannerLevelEnum.Error">Problem while fetching the kaas cluster on the AZ.</spx-banner>
   }

@@ -1,5 +1,24 @@
-.mat-column-version {
+@use '@angular/material' as mat;
+
+// Fixed width so the view and menu buttons stay aligned whether or not a row is outdated
+.kaas-list__action-slot {
+  display: inline-flex;
+  flex-shrink: 0;
   justify-content: center;
-  --col-min-width: 140px;
-  max-width: var(--col-min-width);
+  width: 112px;
+}
+
+// Pill in the "outdated" warning colors: it flags the row and is the action to fix it
+.kaas-list__upgrade-btn {
+  @include mat.button-overrides(
+    (
+      tonal-container-height: 30px,
+      tonal-container-shape: 999px,
+      tonal-horizontal-padding: 12px,
+      tonal-icon-spacing: 4px,
+      tonal-icon-offset: -2px,
+      tonal-container-color: var(--custom-chips-warning),
+      tonal-label-text-color: var(--custom-chips-on-warning),
+    )
+  );
 }

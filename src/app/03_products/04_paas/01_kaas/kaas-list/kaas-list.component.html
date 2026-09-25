@@ -35,40 +35,36 @@
       [columns]="displayedColumns"
       emptyMessage="No clusters yet."
       emptyCreateLabel="Create a cluster"
+      actionsColumnWidth="wide"
       [canCreate]="canProjectKaaSWrite()">
-      <ng-container matColumnDef="version">
-        <mat-header-cell *matHeaderCellDef>Version</mat-header-cell>
-        <mat-cell *matCellDef="let el">
-          @if (el.data.outdated) {
-            <mat-chip-set aria-label="Upgrade status">
-              @if (canProjectKaaSWrite() && el.data.gitops !== 'true') {
-                <mat-chip
-                  class="status-chip--warning status-chip--clickable"
-                  role="button"
-                  aria-label="Outdated, upgrade cluster"
-                  tabindex="0"
-                  (click)="upgradeKaaS(el.data)"
-                  (keydown.enter)="upgradeKaaS(el.data)"
-                  (keydown.space)="$event.preventDefault(); upgradeKaaS(el.data)">
-                  <mat-icon matChipAvatar>upgrade</mat-icon>
-                  Outdated
-                </mat-chip>
-              } @else {
-                <mat-chip class="status-chip--warning" disabled="true">Outdated</mat-chip>
-              }
-            </mat-chip-set>
-          } @else if (el.data.outdated === false) {
-            <mat-icon matTooltip="Up to date" aria-label="Up to date">check</mat-icon>
-          }
-        </mat-cell>
-      </ng-container>
-
       <ng-container matColumnDef="actions" stickyEnd>
-        <mat-header-cell *matHeaderCellDef class="mat-column-actions--double-btn"></mat-header-cell>
-        <mat-cell *matCellDef="let el" class="mat-column-actions--double-btn">
+        <mat-header-cell *matHeaderCellDef class="mat-column-actions--wide"></mat-header-cell>
+        <mat-cell *matCellDef="let el" class="mat-column-actions--wide">
           <a matIconButton [routerLink]="['details', el.data.codeAZ, el.data.eid]" aria-label="Open Details button">
             <mat-icon class="icon-accent">visibility</mat-icon>
           </a>
+          <span class="kaas-list__action-slot">
+            @if (el.data.outdated && canProjectKaaSWrite()) {
+              @if (el.data.gitops === 'true') {
+                <!-- a disabled button emits no pointer events, so the tooltip lives on a wrapper -->
+                <span matTooltip="Managed by GitOps. Upgrade it from your GitOps repository.">
+                  <button matButton="tonal" class="kaas-list__upgrade-btn" disabled>
+                    <mat-icon>upgrade</mat-icon>
+                    Upgrade
+                  </button>
+                </span>
+              } @else {
+                <button
+                  matButton="tonal"
+                  class="kaas-list__upgrade-btn"
+                  aria-label="Upgrade cluster"
+                  (click)="upgradeKaaS(el.data)">
+                  <mat-icon>upgrade</mat-icon>
+                  Upgrade
+                </button>
+              }
+            }
+          </span>
           <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Action menu">
             <mat-icon>more_horiz</mat-icon>
           </button>
@@ -79,13 +75,6 @@
                 <mat-icon>edit</mat-icon>
                 Edit
               </a>
-            }
-
-            @if (canProjectKaaSWrite() && el.data.gitops !== 'true' && el.data.outdated) {
-              <button mat-menu-item aria-label="Upgrade Cluster button" (click)="upgradeKaaS(el.data)">
-                <mat-icon>upgrade</mat-icon>
-                Upgrade
-              </button>
             }
 
             @if (canProjectKaaSKubeConfig()) {

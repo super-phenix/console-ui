@@ -74,6 +74,11 @@ mat-table {
       --col-min-width: 100px;
     }
 
+    // Two icon buttons around a labelled button
+    &--wide {
+      --col-min-width: 224px;
+    }
+
     .mdc-icon-button {
       border: none !important;
     }

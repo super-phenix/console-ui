@@ -121,7 +121,7 @@ export class ProductTableWrapperComponent<T extends ProductItem> implements Afte
   // works too, for products created from somewhere else.
   readonly createLink = input('create');
   // Must match the width of the list's own `actions` column.
-  readonly actionsColumnWidth = input<'single' | 'double'>('double');
+  readonly actionsColumnWidth = input<'single' | 'double' | 'wide'>('double');
 
   constructor() {
     effect(() => {
