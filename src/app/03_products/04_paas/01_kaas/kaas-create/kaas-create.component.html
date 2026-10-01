@@ -27,11 +27,15 @@
                   <mat-form-field>
                     <mat-label>Kube Version</mat-label>
                     <mat-select spxAutoSelect formControlName="kubeVersion">
-                      @let versions = kubeVersions.hasValue() ? kubeVersions.value() : [];
-                      @for (version of versions; track version) {
+                      @for (version of kubeVersions.value(); track version) {
                         <mat-option [value]="version">{{ version }}</mat-option>
                       }
                     </mat-select>
+                    @if (!selectedAz()) {
+                      <mat-hint>Select an availability zone first.</mat-hint>
+                    } @else if (!kubeVersions.isLoading() && kubeVersions.value().length === 0) {
+                      <mat-hint>No Kubernetes version is available for this availability zone.</mat-hint>
+                    }
                   </mat-form-field>
                 </div>
 

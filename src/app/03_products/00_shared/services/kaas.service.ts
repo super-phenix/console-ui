@@ -40,9 +40,9 @@ export class KaasService extends BaseService<ProductKaaS, CreateKaaS> {
       .pipe(productOnceHandler(this.snackbar));
   }
 
-  getKubeVersions(orgaId: string, projectId: string) {
+  getKubeVersions(orgaId: string, projectId: string, az: string) {
     return this.http
-      .get<string[]>(`${this.getPath(orgaId, projectId)}/kube-versions`)
+      .get<string[]>(`${this.getPath(orgaId, projectId, az)}/kube-versions`)
       .pipe(productOnceHandler(this.snackbar));
   }
 
