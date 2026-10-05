@@ -76,6 +76,7 @@ mat-table {
 
     // Two icon buttons around a labelled button
     &--wide {
+      justify-content: end;
       --col-min-width: 224px;
     }
 

@@ -38,13 +38,16 @@
       actionsColumnWidth="wide"
       [canCreate]="canProjectKaaSWrite()">
       <ng-container matColumnDef="actions" stickyEnd>
-        <mat-header-cell *matHeaderCellDef class="mat-column-actions--wide"></mat-header-cell>
-        <mat-cell *matCellDef="let el" class="mat-column-actions--wide">
-          <a matIconButton [routerLink]="['details', el.data.codeAZ, el.data.eid]" aria-label="Open Details button">
-            <mat-icon class="icon-accent">visibility</mat-icon>
-          </a>
-          <span class="kaas-list__action-slot">
-            @if (el.data.outdated && canProjectKaaSWrite()) {
+        <mat-header-cell
+          *matHeaderCellDef
+          [class]="
+            hasOutdatedCluster() ? 'mat-column-actions--wide' : 'mat-column-actions--double-btn'
+          "></mat-header-cell>
+        <mat-cell
+          *matCellDef="let el"
+          [class]="hasOutdatedCluster() ? 'mat-column-actions--wide' : 'mat-column-actions--double-btn'">
+          @if (el.data.outdated && canProjectKaaSWrite()) {
+            <span class="kaas-list__action-slot">
               @if (el.data.gitops === 'true') {
                 <!-- a disabled button emits no pointer events, so the tooltip lives on a wrapper -->
                 <span matTooltip="Managed by GitOps. Upgrade it from your GitOps repository.">
@@ -63,8 +66,13 @@
                   Upgrade
                 </button>
               }
-            }
-          </span>
+            </span>
+          }
+
+          <a matIconButton [routerLink]="['details', el.data.codeAZ, el.data.eid]" aria-label="Open Details button">
+            <mat-icon class="icon-accent">visibility</mat-icon>
+          </a>
+
           <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Action menu">
             <mat-icon>more_horiz</mat-icon>
           </button>

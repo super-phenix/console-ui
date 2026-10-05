@@ -96,6 +96,11 @@ export class KaasListComponent {
     return dataSource;
   });
 
+  hasOutdatedCluster = computed(() => {
+    const clusters = this.kaasProduct.hasValue() ? this.kaasProduct.value()! : [];
+    return clusters.some(c => c.outdated === true);
+  });
+
   private needReload = signal(0);
 
   constructor() {
