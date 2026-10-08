@@ -27,7 +27,8 @@ import { BannerLevelEnum } from '@shared/models/enums';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
-import { InstanceSnapshotActions } from '../instance-snapshot-actions.utils';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { InstanceSnapshotActions, RESTORE_DISABLED_TOOLTIP } from '../instance-snapshot-actions.utils';
 import { EMPTY, forkJoin, Observable, of } from 'rxjs';
 import { environment } from '@env/environment';
 
@@ -49,6 +50,7 @@ import { environment } from '@env/environment';
     SpanCopyComponent,
     DatePipe,
     GridDirective,
+    MatTooltipModule,
   ],
   templateUrl: './instance-snapshot-details.component.html',
   styleUrl: './instance-snapshot-details.component.scss',
@@ -66,6 +68,7 @@ export class InstanceSnapshotDetailsComponent {
   private readonly snackbar = inject(MatSnackBar);
   protected readonly supportEmail = environment.supportEmail;
   BannerLevelEnum = BannerLevelEnum;
+  readonly restoreDisabledTooltip = RESTORE_DISABLED_TOOLTIP;
   az = computed(() => {
     return this.routeParams()?.['az'];
   });
@@ -94,6 +97,8 @@ export class InstanceSnapshotDetailsComponent {
 
     return false;
   });
+
+  sourceInstanceMissing = computed(() => !this.instanceProduct.isLoading() && !this.instanceProduct.hasValue());
 
   productLabelInfo = computed(() => {
     if (this.instanceSnapshotProduct.hasValue()) {
@@ -181,7 +186,7 @@ export class InstanceSnapshotDetailsComponent {
 
   restore() {
     const snapshot = this.instanceSnapshotProduct.value();
-    if (this.az() && snapshot) {
+    if (this.az() && snapshot && this.instanceProduct.hasValue()) {
       InstanceSnapshotActions.restoreSnapshot(
         this.instanceSnapshotSvc,
         this.stateSvc,
@@ -189,8 +194,7 @@ export class InstanceSnapshotDetailsComponent {
         this.router,
         this.az(),
         snapshot,
-        this.instanceProduct.hasValue() ? this.instanceProduct.value()!.productName : undefined,
-        this.instanceProduct.hasValue() ? this.instanceProduct.value()!.id : undefined
+        this.instanceProduct.value().productName
       );
     }
   }

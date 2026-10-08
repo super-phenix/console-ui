@@ -65,13 +65,18 @@
 
           <mat-menu #menu="matMenu">
             @if (canProjectInstanceWrite() && canProjectSnapshotWrite()) {
-              <button
-                mat-menu-item
-                aria-label="Restore snapshot button"
-                (click)="restoreSnapshot(el.data, el.data.vmSnapshot.spec.source.name)">
-                <mat-icon>settings_backup_restore</mat-icon>
-                Restore
-              </button>
+              <div
+                [matTooltip]="instances.hasValue() && !el.sourceInstance ? restoreDisabledTooltip : ''"
+                matTooltipPosition="left">
+                <button
+                  mat-menu-item
+                  aria-label="Restore snapshot button"
+                  [disabled]="!el.sourceInstance"
+                  (click)="restoreSnapshot(el.data, el.sourceInstance)">
+                  <mat-icon>settings_backup_restore</mat-icon>
+                  Restore
+                </button>
+              </div>
               <button mat-menu-item aria-label="Clone snapshot button" (click)="cloneSnapshot(el.data)">
                 <mat-icon>content_copy</mat-icon>
                 Clone

@@ -5,14 +5,13 @@ import { ProductInstanceSnapshot } from '@products/00_shared/models/product.mode
 import { InstanceSnapshotService } from '@products/00_shared/services/instance-snapshot.service';
 import { StateService } from '@shared/services/state.service';
 import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
-import {
-  InstanceSnapshotRestoreDialogComponent,
-  InstanceSnapshotRestoreResultDialog,
-} from './instance-snapshot-restore-dialog.component';
+import { InstanceSnapshotRestoreDialogComponent } from './instance-snapshot-restore-dialog.component';
 import {
   InstanceSnapshotCloneDialogComponent,
   InstanceSnapshotCloneResultDialog,
 } from './instance-snapshot-clone-dialog.component';
+
+export const RESTORE_DISABLED_TOOLTIP = 'The source instance no longer exists. Use Clone to create a new instance.';
 
 export class InstanceSnapshotActions {
   static restoreSnapshot(
@@ -22,30 +21,18 @@ export class InstanceSnapshotActions {
     router: Router,
     az: string,
     snapshot: ProductInstanceSnapshot,
-    instanceName?: string,
-    instanceId?: string
+    instanceName: string
   ) {
     if (az && snapshot.eid) {
       const ref = dialog.open(InstanceSnapshotRestoreDialogComponent, {
         data: {
-          name: instanceName || snapshot.productName,
-          showForm: !instanceName,
+          name: instanceName,
         },
       });
-      ref.afterClosed().subscribe((res: InstanceSnapshotRestoreResultDialog) => {
-        if (res && res.name) {
-          const finalName = instanceName || res.name;
-          const finalLocalId = instanceId || snapshot.vmSnapshotContent?.vm.localId || '';
-
+      ref.afterClosed().subscribe((confirmed: boolean) => {
+        if (confirmed) {
           firstValueFrom(
-            instanceSnapshotSvc.restore(
-              stateSvc.organization()!.id,
-              stateSvc.project()!.id,
-              az,
-              snapshot.eid!,
-              finalName,
-              finalLocalId
-            )
+            instanceSnapshotSvc.restore(stateSvc.organization()!.id, stateSvc.project()!.id, az, snapshot.eid!)
           ).then(() => router.navigate(['/products', 'compute', 'instance']));
         }
       });

@@ -16,10 +16,16 @@
           <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
           <mat-menu #menu="matMenu">
             @if (canProjectInstanceWrite() && canProjectSnapshotWrite()) {
-              <button mat-menu-item aria-label="Restore snapshot button" (click)="restore()">
-                <mat-icon>settings_backup_restore</mat-icon>
-                Restore
-              </button>
+              <div [matTooltip]="sourceInstanceMissing() ? restoreDisabledTooltip : ''" matTooltipPosition="left">
+                <button
+                  mat-menu-item
+                  aria-label="Restore snapshot button"
+                  [disabled]="!instanceProduct.hasValue()"
+                  (click)="restore()">
+                  <mat-icon>settings_backup_restore</mat-icon>
+                  Restore
+                </button>
+              </div>
               <button mat-menu-item aria-label="Clone snapshot button" (click)="clone()">
                 <mat-icon>content_copy</mat-icon>
                 Clone

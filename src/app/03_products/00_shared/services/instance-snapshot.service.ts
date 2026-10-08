@@ -10,14 +10,9 @@ import { productOnceHandler } from '@shared/http/customHandler';
 export class InstanceSnapshotService extends BaseService<ProductInstanceSnapshot, CreateInstanceSnapshot> {
   override ENDPOINT = '/instance-snapshot';
 
-  restore(orgaId: string, projectId: string, az: string, effectiveId: string, name: string, localId: string) {
+  restore(orgaId: string, projectId: string, az: string, effectiveId: string) {
     return this.http
-      .get(`${this.getPath(orgaId, projectId, az)}/${effectiveId}/restore`, {
-        params: {
-          name,
-          localId,
-        },
-      })
+      .post(`${this.getPath(orgaId, projectId, az)}/${effectiveId}/restore`, null)
       .pipe(productOnceHandler(this.snackbar));
   }
 
