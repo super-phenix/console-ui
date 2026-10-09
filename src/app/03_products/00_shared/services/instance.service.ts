@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AdvancedOptions } from '../models/compute/instance/advanced-options.model';
 import { ContainerDisk } from '../models/compute/instance/container-disk';
-import { CreateInstance, UpdateInstance } from '../models/compute/instance/instance';
+import { CreateInstance, GpuClass, UpdateInstance } from '../models/compute/instance/instance';
 import { VirtualMachinePreferenceView } from '../models/compute/instance/vm-preference.model';
 import { ProductInstance } from '../models/product.model';
 import { BaseService } from './base.service';
@@ -95,6 +95,16 @@ export class InstanceService extends BaseService<ProductInstance, CreateInstance
   listContainerDisks(orgaId: string, projectId: string, az: string) {
     return this.http
       .get<ContainerDisk[]>(`${this.getBasePath(orgaId, projectId, az)}/container-disks`)
+      .pipe(productOnceHandler(this.snackbar));
+  }
+
+  /**
+   * List the passthrough GPU classes available in this AZ.
+   * An empty list means the AZ has no GPU hardware.
+   */
+  listGpuClasses(orgaId: string, projectId: string, az: string) {
+    return this.http
+      .get<GpuClass[]>(`${this.getBasePath(orgaId, projectId, az)}/gpu-class`)
       .pipe(productOnceHandler(this.snackbar));
   }
 

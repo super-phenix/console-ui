@@ -39,6 +39,12 @@ interface Machine {
 interface Devices {
   disks: DiskElement[];
   interfaces: InterfaceElement[];
+  gpus?: GpuDevice[];
+}
+
+export interface GpuDevice {
+  name: string;
+  deviceName: string;
 }
 
 export interface DiskElement {

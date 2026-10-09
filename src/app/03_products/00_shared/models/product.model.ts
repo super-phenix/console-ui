@@ -1,4 +1,5 @@
 import { InstanceSnapshot, InstanceSnapshotContent } from './compute/instance-snapshot/instance-snapshot.model';
+import { GpuClass } from './compute/instance/instance';
 import { VirtualMachine } from './compute/instance/vm.model';
 import { VirtualMachineInstance } from './compute/instance/vmi.model';
 import { DNAT, EIP, FIP, SNAT } from './network/eip/eip.model';
@@ -46,6 +47,7 @@ export interface ProductInstance extends Product {
   vmi?: VirtualMachineInstance;
   cloudInit?: string;
   containerDisks?: string[];
+  gpus?: GpuClass[];
 }
 
 export interface ProductInstanceSnapshot extends Product {

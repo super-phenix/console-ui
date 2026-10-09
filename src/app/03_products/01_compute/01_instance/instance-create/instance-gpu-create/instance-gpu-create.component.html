@@ -1,0 +1,35 @@
+@if (options().length > 0) {
+  <div class="info-card">
+    <div class="info-card__title">
+      <div class="d-flex align-items-center gap-2">
+        <div class="mat-icon--with-bg">
+          <mat-icon aria-hidden="true">developer_board</mat-icon>
+        </div>
+        GPU
+      </div>
+    </div>
+    <div class="info-card__content info-card__content--multi-block">
+      <div class="info-card__block flex-column">
+        <span>
+          <i>
+            Attach a dedicated GPU to this instance (PCI passthrough).
+            @if (isEditMode()) {
+              Changes apply after the next restart.
+            }
+          </i>
+        </span>
+      </div>
+      <div class="info-card__block flex-column">
+        <mat-form-field class="info-card__item">
+          <mat-label>GPU</mat-label>
+          <mat-select [value]="selected()" (selectionChange)="select($event.value)" data-testid="gpu-select">
+            <mat-option [value]="NO_GPU">None</mat-option>
+            @for (gpu of options(); track gpu.id) {
+              <mat-option [value]="gpu.id">{{ gpu.displayName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+}

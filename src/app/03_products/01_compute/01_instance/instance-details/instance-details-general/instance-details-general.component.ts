@@ -49,6 +49,23 @@ export class InstanceDetailsGeneralComponent {
     return null;
   });
 
+  gpus = computed(() => this.instance()?.gpus ?? []);
+
+  /**
+   * True when the VMI does not have the GPUs requested in the VM spec yet.
+   * A stopped VM has no VMI: the API then returns an empty or finished one, which is not compared.
+   */
+  gpuPendingRestart = computed(() => {
+    const vmi = this.instance()?.vmi;
+    const phase = vmi?.status?.phase;
+    if (!vmi?.metadata?.name || !phase || phase === 'Succeeded' || phase === 'Failed') {
+      return false;
+    }
+    const requested = (this.instance()?.vm?.spec?.template?.spec?.domain?.devices?.gpus ?? []).map(g => g.deviceName);
+    const running = (vmi.spec?.domain?.devices?.gpus ?? []).map(g => g.deviceName);
+    return requested.join(',') !== running.join(',');
+  });
+
   isClusterInstance = computed(() => isClusterResource(this.instance()?.vm?.metadata.labels));
   productLabelInfo = computed(() => getProductLabelInfo(this.instance()?.vm?.metadata?.labels));
 

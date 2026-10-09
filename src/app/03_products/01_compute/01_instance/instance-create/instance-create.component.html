@@ -106,6 +106,8 @@
               </div>
             </div>
 
+            <spx-instance-gpu-create [az]="selectedAz()" (gpusChange)="gpus = $event"></spx-instance-gpu-create>
+
             <spx-instance-advanced-create
               [initial]="advancedDefaults.value()"
               [inherited]="advancedDefaults.value()"

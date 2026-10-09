@@ -56,6 +56,15 @@ runcmd:
   - systemctl restart systemd-resolved
 `;
 
+/**
+ * GpuClass is a passthrough GPU type, as declared in the AZ controller's deviceMapping.
+ * Returned by GET …/gpu-class and in ProductInstance.gpus. The KubeVirt device name stays server-side.
+ */
+export interface GpuClass {
+  id: string;
+  displayName: string;
+}
+
 export class CreateInstance {
   constructor(init: Partial<CreateInstance>) {
     Object.assign(this, init);
@@ -73,6 +82,8 @@ export class CreateInstance {
   compute!: {
     cpu: CpuValue;
     memory: MemoryValue;
+    // Passthrough GPUs by class (at most 1). Omit or [] for no GPU; on update, omit to keep the current ones.
+    gpu?: { device: string }[];
   };
   network!: CreateInstanceNetwork[] | null;
   disks?: CreateInstanceDisk[] | null;
@@ -93,6 +104,8 @@ export class UpdateInstance {
   compute!: {
     cpu: CpuValue;
     memory: MemoryValue;
+    // Passthrough GPUs by class (at most 1). Omit or [] for no GPU; on update, omit to keep the current ones.
+    gpu?: { device: string }[];
   };
   network!: CreateInstanceNetwork[] | null;
   disks?: CreateInstanceDisk[] | null;
