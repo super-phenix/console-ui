@@ -27,6 +27,7 @@ import {
   MEMORY_DEFAULT_VALUE,
   MEMORY_VALUE_LIST,
   MemoryValue,
+  GpuClass,
   UpdateInstance,
   VM_TYPE_DEFAULT,
 } from '@products/00_shared/models/compute/instance/instance';
@@ -48,6 +49,7 @@ import { StateService } from '@shared/services/state.service';
 import { firstValueFrom, of } from 'rxjs';
 import { InstanceCreateRunStrategyHelperDialog } from '../instance-create/dialogs/instance-create-run-strategy-helper-dialog.component';
 import { InstanceAdvancedCreateComponent } from '../instance-create/instance-advanced-create/instance-advanced-create.component';
+import { InstanceGpuCreateComponent } from '../instance-create/instance-gpu-create/instance-gpu-create.component';
 import { InstanceNetworkCreateComponent } from '../instance-create/instance-network-create/instance-network-create.component';
 import { InstanceSshCreateComponent } from '../instance-create/instance-ssh-create/instance-ssh-create.component';
 import { InstanceStorageCreateComponent } from '../instance-create/instance-storage-create/instance-storage-create.component';
@@ -59,6 +61,7 @@ import { InstanceStorageCreateComponent } from '../instance-create/instance-stor
     InstanceSshCreateComponent,
     InstanceNetworkCreateComponent,
     InstanceAdvancedCreateComponent,
+    InstanceGpuCreateComponent,
     MatFormFieldModule,
     MatInputModule,
     ReactiveFormsModule,
@@ -122,6 +125,8 @@ export class InstanceUpdateComponent {
   cloudInit?: CreateInstanceCloudInit;
   sshKeys?: CreateInstanceSsh[];
   containerDisks?: string[];
+  // Undefined until the user changes the GPU: compute.gpu is then omitted and the backend keeps the current GPUs.
+  gpus?: string[];
   advanced?: AdvancedOptionsInput;
   advancedInitial = signal<AdvancedOptions | undefined>(undefined);
 
@@ -131,6 +136,7 @@ export class InstanceUpdateComponent {
   initNetwork: CreateInstanceNetwork[] = [];
   initSshKeys: string[] = [];
   initContainerDisks: string[] = [];
+  initGpus: GpuClass[] = [];
 
   instance = signal<ProductInstance | undefined>(undefined);
 
@@ -273,6 +279,8 @@ export class InstanceUpdateComponent {
 
           this.initContainerDisks = res.containerDisks ?? [];
           this.containerDisks = [...this.initContainerDisks];
+
+          this.initGpus = res.gpus ?? [];
         }
 
         this.instance.set(res);
@@ -297,7 +305,7 @@ export class InstanceUpdateComponent {
           html: `
           <span>Are you sure you want to update "${this.instance()!.productName}"?</span>
           <br><br>
-          <span><strong>Warning: </strong><i>Resource changes (CPU/RAM) will only take effect after restarting the instance. Network interface link state changes apply dynamically at runtime without rebooting.</i></span>`,
+          <span><strong>Warning: </strong><i>Resource changes (CPU/RAM/GPU) will only take effect after restarting the instance. Network interface link state changes apply dynamically at runtime without rebooting.</i></span>`,
         },
       });
       ref.afterClosed().subscribe(async res => {
@@ -334,6 +342,10 @@ export class InstanceUpdateComponent {
 
         if (this.containerDisks !== undefined) {
           updateInstance.containerDisks = this.containerDisks;
+        }
+
+        if (this.gpus !== undefined) {
+          updateInstance.compute.gpu = this.gpus.map(device => ({ device }));
         }
 
         if (this.advanced !== undefined) {

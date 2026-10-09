@@ -85,6 +85,7 @@ describe('InstanceUpdateComponent', () => {
       'listInstanceType',
       'getInstanceTypeAdvancedOptions',
       'getAdvancedOptions',
+      'listGpuClasses',
     ]);
     instanceSvc.get.and.returnValue(
       of(
@@ -104,6 +105,9 @@ describe('InstanceUpdateComponent', () => {
     instanceSvc.listInstanceType.and.returnValue(of([]));
     instanceSvc.getInstanceTypeAdvancedOptions.and.returnValue(of({ blocks: [] }));
     instanceSvc.update.and.returnValue(of({}));
+    instanceSvc.listGpuClasses.and.returnValue(
+      of([{ id: 'nvidia-rtx-pro-6000-bse', displayName: 'NVIDIA RTX PRO 6000' }])
+    );
 
     subnetSvc = jasmine.createSpyObj<SubnetService>('SubnetService', ['listByAZ']);
     subnetSvc.listByAZ.and.returnValue(
@@ -238,7 +242,7 @@ describe('InstanceUpdateComponent', () => {
     expect(dialog.open).toHaveBeenCalled();
     const data = dialog.open.calls.mostRecent().args[1]?.data as ConfirmData;
     const html = data.html ?? '';
-    expect(html).toContain('Resource changes (CPU/RAM) will only take effect after restarting the instance');
+    expect(html).toContain('Resource changes (CPU/RAM/GPU) will only take effect after restarting the instance');
     expect(html).toContain('Network interface link state changes apply dynamically at runtime without rebooting');
   });
 
@@ -321,5 +325,55 @@ describe('InstanceUpdateComponent', () => {
         ],
       })
     );
+  });
+
+  describe('GPU', () => {
+    function instanceWithGpu(): ProductInstance {
+      const instance = createMockInstance(
+        [{ name: 'interface-0', model: 'virtio', state: 'up' }],
+        [{ name: 'interface-0', subnetEid: 'subnet-eid-0' }]
+      );
+      instance.gpus = [{ id: 'nvidia-rtx-pro-6000-bse', displayName: 'NVIDIA RTX PRO 6000' }];
+      return instance;
+    }
+
+    beforeEach(() => {
+      component.networks = [{ order: 0, subnetEId: 'subnet-eid-0', enabled: true }];
+    });
+
+    it('should seed initGpus from the loaded instance', () => {
+      instanceSvc.get.and.returnValue(of(instanceWithGpu()));
+      component.loadInstance();
+
+      expect(component.initGpus).toEqual([{ id: 'nvidia-rtx-pro-6000-bse', displayName: 'NVIDIA RTX PRO 6000' }]);
+    });
+
+    it('should omit compute.gpu when the GPU was not changed, so the backend keeps it', async () => {
+      instanceSvc.get.and.returnValue(of(instanceWithGpu()));
+      component.loadInstance();
+
+      await component.update();
+
+      const payload = instanceSvc.update.calls.mostRecent().args[4] as UpdateInstance;
+      expect(payload.compute.gpu).toBeUndefined();
+    });
+
+    it('should send an empty list when the GPU is removed', async () => {
+      component.gpus = [];
+
+      await component.update();
+
+      const payload = instanceSvc.update.calls.mostRecent().args[4] as UpdateInstance;
+      expect(payload.compute.gpu).toEqual([]);
+    });
+
+    it('should send the selected GPU class', async () => {
+      component.gpus = ['nvidia-rtx-pro-6000-bse'];
+
+      await component.update();
+
+      const payload = instanceSvc.update.calls.mostRecent().args[4] as UpdateInstance;
+      expect(payload.compute.gpu).toEqual([{ device: 'nvidia-rtx-pro-6000-bse' }]);
+    });
   });
 });

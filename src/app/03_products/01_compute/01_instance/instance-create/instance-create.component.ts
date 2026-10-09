@@ -36,6 +36,7 @@ import { StateService } from '@shared/services/state.service';
 import { firstValueFrom, of } from 'rxjs';
 import { InstanceCreateRunStrategyHelperDialog } from './dialogs/instance-create-run-strategy-helper-dialog.component';
 import { InstanceAdvancedCreateComponent } from './instance-advanced-create/instance-advanced-create.component';
+import { InstanceGpuCreateComponent } from './instance-gpu-create/instance-gpu-create.component';
 import { InstanceNetworkCreateComponent } from './instance-network-create/instance-network-create.component';
 import { InstanceSshCreateComponent } from './instance-ssh-create/instance-ssh-create.component';
 import { InstanceStorageCreateComponent } from './instance-storage-create/instance-storage-create.component';
@@ -59,6 +60,7 @@ import { InstanceStorageCreateComponent } from './instance-storage-create/instan
     InstanceStorageCreateComponent,
     InstanceSshCreateComponent,
     InstanceAdvancedCreateComponent,
+    InstanceGpuCreateComponent,
   ],
   templateUrl: './instance-create.component.html',
   styleUrl: './instance-create.component.scss',
@@ -132,6 +134,7 @@ export class InstanceCreateComponent {
   cloudInit?: CreateInstanceCloudInit;
   sshKeys?: CreateInstanceSsh[];
   containerDisks?: string[];
+  gpus: string[] = [];
   advanced?: AdvancedOptionsInput;
 
   labels = signal<string[]>([]);
@@ -172,6 +175,9 @@ export class InstanceCreateComponent {
       }
       if (this.containerDisks !== undefined) {
         createInstance.containerDisks = this.containerDisks;
+      }
+      if (this.gpus.length > 0) {
+        createInstance.compute.gpu = this.gpus.map(device => ({ device }));
       }
       if (this.advanced !== undefined) {
         createInstance.advanced = this.advanced;

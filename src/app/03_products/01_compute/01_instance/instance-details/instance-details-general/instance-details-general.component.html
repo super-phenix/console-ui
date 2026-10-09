@@ -123,6 +123,25 @@
         }
       </div>
     </div>
+    @if (gpus().length > 0 || gpuPendingRestart()) {
+      <div class="product-details__card sg-r1 sg-c1" data-testid="gpu-card">
+        <h3 class="mt-0">GPU</h3>
+
+        <div class="product-details__card-line product-details__card-line--split">
+          @for (gpu of gpus(); track $index) {
+            <span class="product-details__card-line-left"> <strong>Passthrough:</strong> </span>
+            <span class="product-details__card-line-right">{{ gpu.displayName }}</span>
+          } @empty {
+            <span class="product-details__card-line-left"> <strong>Passthrough:</strong> </span>
+            <span class="product-details__card-line-right">None</span>
+          }
+          @if (gpuPendingRestart()) {
+            <span class="product-details__card-line-left"></span>
+            <span class="product-details__card-line-right"><i>(applies after restart)</i></span>
+          }
+        </div>
+      </div>
+    }
   </div>
 
   <h2>Labels</h2>
