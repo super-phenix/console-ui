@@ -129,7 +129,7 @@
                 mat-menu-item
                 aria-label="Delete disk button"
                 (click)="deleteDisk(el.data)"
-                [disabled]="el.data?.mountStatus?.isMounted || el.isClusterDisk">
+                [disabled]="el.data?.mountStatus?.isMounted !== false || el.isClusterDisk">
                 <mat-icon>delete</mat-icon>
                 Delete
               </button>
