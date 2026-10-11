@@ -163,15 +163,19 @@ export class KaasCreateComponent {
     },
   });
 
+  // Supported versions depend on the SPX version of the selected AZ.
   kubeVersions = rxResource({
-    params: () => [this.stateSvc.organization(), this.stateSvc.project()],
+    params: () => [this.stateSvc.organization(), this.stateSvc.project(), this.selectedAz()],
     stream: () => {
-      if (this.stateSvc.organization()?.id && this.stateSvc.project()?.id) {
-        return this.kaasSvc.getKubeVersions(this.stateSvc.organization()!.id, this.stateSvc.project()!.id);
+      if (this.stateSvc.organization()?.id && this.stateSvc.project()?.id && this.selectedAz()) {
+        return this.kaasSvc
+          .getKubeVersions(this.stateSvc.organization()!.id, this.stateSvc.project()!.id, this.selectedAz()!)
+          .pipe(catchError(() => of<string[]>([])));
       } else {
-        return of([]);
+        return of<string[]>([]);
       }
     },
+    defaultValue: [],
   });
 
   networks = Array<CreateKaasNetwork[]>();
@@ -199,10 +203,12 @@ export class KaasCreateComponent {
       }
     });
 
+    // Select the first version of the AZ, or clear a version the new AZ doesn't list.
     effect(() => {
-      if (this.kubeVersions.hasValue() && this.kubeVersions.value()?.length > 0) {
-        this.firstFormGroup.get('kubeVersion')?.setValue(this.kubeVersions.value()[0]);
+      if (this.kubeVersions.isLoading()) {
+        return;
       }
+      this.firstFormGroup.controls.kubeVersion.setValue(this.kubeVersions.value()[0] ?? '');
     });
 
     effect(() => {

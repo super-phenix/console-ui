@@ -227,9 +227,12 @@ export class KaasUpdateComponent {
       this.subnetSvc.listByAZ(this.stateSvc.organization()!.id, this.stateSvc.project()!.id, this.selectedAz()!)
     ).then(v => this.subnets.set(v));
 
-    firstValueFrom(this.kaasSvc.getKubeVersions(this.stateSvc.organization()!.id, this.stateSvc.project()!.id)).then(
-      v => this.kubeVersions.set(v)
-    );
+    // Supported versions depend on the SPX version of the cluster AZ.
+    firstValueFrom(
+      this.kaasSvc
+        .getKubeVersions(this.stateSvc.organization()!.id, this.stateSvc.project()!.id, this.selectedAz())
+        .pipe(catchError(() => of<string[]>([])))
+    ).then(v => this.kubeVersions.set(v));
   }
 
   loadKaaSCluser(kaas: UpdateKaaSProduct) {
