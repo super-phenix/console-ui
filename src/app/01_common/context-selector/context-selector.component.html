@@ -11,17 +11,36 @@
         id="orgSelect"
         #orgSelect
         [value]="stateSvc.organization()?.id"
+        (openedChange)="orgSelectOpened($event)"
         (selectionChange)="orgChanged(orgSelect.value)">
         <mat-select-trigger>
           <div class="context-selector__organization-selection">
             <span> {{ stateSvc.organization()?.name }} </span>
           </div>
         </mat-select-trigger>
+        <div class="context-selector__search">
+          <mat-icon>search</mat-icon>
+          <input
+            #orgSearchInput
+            type="text"
+            placeholder="Search organization"
+            aria-label="Search organization"
+            [value]="orgFilter()"
+            (input)="orgFilter.set(orgSearchInput.value)"
+            (keydown)="onOrgSearchKeydown($event, orgSelect)" />
+        </div>
+        <!-- Non-matching options stay rendered (hidden + disabled) so mat-select keeps the selected one in its trigger. -->
         @for (org of orgList(); track org.id) {
-          <mat-option [value]="org.id">
+          <mat-option
+            [value]="org.id"
+            [disabled]="!visibleOrgIds().has(org.id)"
+            [class.context-selector__option--hidden]="!visibleOrgIds().has(org.id)">
             <mat-icon>{{ org.ownerId === auth.user()?.id ? 'person' : 'public' }}</mat-icon>
             {{ org.name }}
           </mat-option>
+        }
+        @if (filteredOrgList().length === 0) {
+          <div class="context-selector__search-empty">No organization found</div>
         }
       </mat-select>
     </mat-form-field>
@@ -34,7 +53,7 @@
         #projectSelect
         [value]="stateSvc.project()?.id"
         (selectionChange)="projectChanged(projectSelect.value)">
-        @for (p of stateSvc.organization()?.projects; track p.id) {
+        @for (p of projectList(); track p.id) {
           <mat-option [value]="p.id">{{ p.name }}</mat-option>
         }
       </mat-select>
