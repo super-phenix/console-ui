@@ -5,7 +5,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
-import { TabsBase } from '@products/00_shared/components/tabs-base/tab-base.component';
+import { TabsBase, tabIndexFromFragment } from '@products/00_shared/components/tabs-base/tab-base.component';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
@@ -19,9 +19,11 @@ import { AuthService } from '@shared/services/auth.service';
 import { OrganizationService, SaveOrganizationBody } from '@shared/services/organization.service';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
+import { QUOTA_SETTINGS_FRAGMENT } from '@shared/utils/quota';
 import { OrganizationDetailsComponent } from '../organization-details/organization-details.component';
 import { OrganizationIamComponent } from '../organization-iam/organization-iam.component';
 import { OrganizationProjectsComponent } from '../organization-projects/organization-projects.component';
+import { OrganizationQuotasComponent } from '../organization-quotas/organization-quotas.component';
 import { OrganizationUsersComponent } from '../organization-users/organization-users.component';
 
 @Component({
@@ -35,6 +37,7 @@ import { OrganizationUsersComponent } from '../organization-users/organization-u
     OrganizationProjectsComponent,
     OrganizationUsersComponent,
     OrganizationIamComponent,
+    OrganizationQuotasComponent,
     ContentHeaderComponent,
     SpanCopyComponent,
     DecimalPipe,
@@ -57,6 +60,21 @@ export class OrganizationSettingsComponent extends TabsBase {
   canOrganizationProjectManagement = computed(() =>
     this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectManagement)
   );
+
+  canOrganizationProjectQuotaRead = computed(() =>
+    this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead)
+  );
+
+  /** Names of the displayed tabs, in order: keep in sync with the template */
+  private tabNames = computed(() => [
+    'general',
+    ...(this.canOrganizationProjectManagement() ? ['projects'] : []),
+    ...(this.canOrganizationIAMRead() ? ['users', 'groups'] : []),
+    ...(this.canOrganizationProjectQuotaRead() ? [QUOTA_SETTINGS_FRAGMENT] : []),
+  ]);
+
+  /** The fragment is the index of the tab, or its name to link to it (e.g. `#quotas` from the dashboard) */
+  selectedIndex = computed(() => tabIndexFromFragment(this.initialIndex(), this.tabNames()));
 
   isOwner = computed(() => {
     if (this.stateSvc.organization() && this.auth.user()) {

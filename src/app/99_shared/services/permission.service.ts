@@ -66,6 +66,14 @@ export class PermissionService {
   }
 
   /**
+   * Get the user permissions on a given entity, without touching the current `permissions` state
+   */
+  getEntityPermissions(orgId: string, entityType: EntityTypeEnum, entityId: string) {
+    const body: PermissionListBody = { entityType, entityId };
+    return this.http.post<string[]>(`${this.getBaseUrl(orgId)}/permissions`, body).pipe(defaultOnceHandler());
+  }
+
+  /**
    * Get the list of role groups defined for an organization
    * @param orgaId
    * @returns

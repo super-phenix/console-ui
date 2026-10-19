@@ -1,0 +1,74 @@
+@let b = bar();
+<div class="quota-bar" [class.quota-bar--overcommitted]="b.overcommitted">
+  <div class="quota-bar__header">
+    <span class="quota-bar__title">
+      <mat-icon class="quota-bar__icon">{{ icon() }}</mat-icon>
+      {{ label() }}
+    </span>
+    <span class="quota-bar__summary">
+      @if (b.limit !== null) {
+        <span class="quota-bar__allocated">{{ format(b.allocated) }}</span> allocated /
+        <span class="quota-bar__limit">{{ format(b.limit) }}</span>
+        @if (b.overcommitted) {
+          <span class="quota-bar__warning" [matTooltip]="overcommittedTooltip()">
+            <mat-icon>warning</mat-icon> Overcommitted by {{ format(b.allocated - b.limit) }}
+          </span>
+        }
+      } @else {
+        <span class="quota-bar__allocated">{{ format(b.allocated) }}</span> allocated /
+        <span class="quota-bar__limit">No limit</span>
+      }
+    </span>
+  </div>
+
+  <div class="quota-bar__track" role="img" [attr.aria-label]="label() + ' quota distribution'">
+    @for (segment of b.segments; track segment.key) {
+      @if (segment.percent > 0) {
+        <div
+          class="quota-bar__segment"
+          [class]="colorClass(segment.colorIndex)"
+          [style.flex-basis.%]="segment.percent"
+          [matTooltip]="segment.label + ': ' + format(segment.value ?? 0)"></div>
+      }
+    }
+    @if (b.freePercent > 0) {
+      <div
+        class="quota-bar__segment quota-bar__segment--free"
+        [style.flex-basis.%]="b.freePercent"
+        [matTooltip]="'Free: ' + format(b.free!)"></div>
+    }
+  </div>
+
+  @if (b.segments.length > 0 || (b.free !== null && b.free > 0)) {
+    <ul class="quota-bar__legend">
+      @for (segment of b.segments; track segment.key) {
+        <li class="quota-bar__legend-item">
+          <span class="quota-bar__dot" [class]="colorClass(segment.colorIndex)"></span>
+          <span class="quota-bar__legend-label">{{ segment.label }}</span>
+          <span class="quota-bar__legend-value">
+            @if (segment.value !== null) {
+              {{ format(segment.value) }}
+              @if (segment.share !== null) {
+                <span class="quota-bar__legend-share">({{ segment.share | number: '1.0-1' }}%)</span>
+              }
+            } @else {
+              Unlimited
+            }
+          </span>
+        </li>
+      }
+      @if (b.free !== null && b.free > 0) {
+        <li class="quota-bar__legend-item">
+          <span class="quota-bar__dot quota-bar__dot--free"></span>
+          <span class="quota-bar__legend-label">Free</span>
+          <span class="quota-bar__legend-value">
+            {{ format(b.free) }}
+            @if (b.freePercent > 0) {
+              <span class="quota-bar__legend-share">({{ b.freePercent | number: '1.0-1' }}%)</span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</div>

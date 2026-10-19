@@ -1,0 +1,196 @@
+<div class="org-quotas">
+  @if (loading() && !orgOverview()) {
+    <div class="org-quotas__loading"><mat-spinner diameter="40"></mat-spinner></div>
+  } @else if (orgOverview(); as overview) {
+    <div class="info-card org-quotas__org">
+      <div class="info-card__title">
+        <span class="org-quotas__title">
+          Organization quota
+          @if (overview.unlimited) {
+            <span class="org-quotas__badge">Unlimited</span>
+          }
+        </span>
+        <button mat-icon-button matTooltip="Refresh" aria-label="Refresh the quotas" (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+      <div class="info-card__content info-card__content--multi-block">
+        <span class="org-quotas__hint">
+          @if (overview.unlimited) {
+            The organization has no quota: only the quotas of its projects apply.
+          } @else {
+            The organization quota is set by the platform administrators and shared among its projects.
+          }
+          Each segment is the quota of a project.
+        </span>
+        @for (bar of orgBars(); track bar.resource) {
+          <spx-quota-bar
+            parentType="organization"
+            [resource]="bar.resource"
+            [limit]="bar.limit"
+            [parts]="bar.parts"></spx-quota-bar>
+        }
+
+        <section class="org-quotas__children" aria-label="Quotas of the projects">
+          <div class="org-quotas__child org-quotas__child--header">
+            <span class="org-quotas__children-title">Projects of {{ stateSvc.organization()?.name }}</span>
+            <span class="org-quotas__hint">
+              Each project takes its share of the organization quota and splits it among its availability zones. The
+              table of each project shows what it currently uses in every availability zone.
+            </span>
+            @let orgUsage = usage();
+            @if (orgUsage === undefined) {
+              <span class="org-quotas__hint org-quotas__usage-status">
+                <mat-spinner diameter="14"></mat-spinner> Reading the usage from the availability zones…
+              </span>
+            } @else if (orgUsage === null) {
+              <span class="org-quotas__hint org-quotas__usage-status">
+                <mat-icon>error_outline</mat-icon> The usage could not be loaded.
+              </span>
+            }
+          </div>
+
+          @for (view of projectViews(); track view.project.id) {
+            <div class="org-quotas__child">
+              <div
+                class="info-card org-quotas__project"
+                [class.org-quotas__project--expanded]="isExpanded(view.project.id)"
+                [attr.data-project-id]="view.project.id">
+                <div
+                  class="info-card__title org-quotas__project-header"
+                  role="button"
+                  tabindex="0"
+                  [attr.aria-expanded]="isExpanded(view.project.id)"
+                  (click)="toggleProject(view.project.id)"
+                  (keydown.enter)="toggleProject(view.project.id)"
+                  (keydown.space)="$event.preventDefault(); toggleProject(view.project.id)">
+                  <span class="org-quotas__title">
+                    <mat-icon class="org-quotas__expand-icon">
+                      {{ isExpanded(view.project.id) ? 'expand_more' : 'chevron_right' }}
+                    </mat-icon>
+                    <span class="org-quotas__dot" [class]="view.colorClass"></span>
+                    {{ view.project.name }}
+                    @if (!view.quota) {
+                      <span class="org-quotas__badge">Unlimited</span>
+                    }
+                  </span>
+                  @if (canWriteProjectQuota()) {
+                    <div class="org-quotas__actions">
+                      <button
+                        mat-icon-button
+                        [matMenuTriggerFor]="menu"
+                        aria-label="More actions"
+                        (click)="$event.stopPropagation()">
+                        <mat-icon>more_horiz</mat-icon>
+                      </button>
+                      <mat-menu #menu="matMenu">
+                        <button mat-menu-item (click)="editProjectQuota(view)">
+                          <mat-icon>edit</mat-icon>
+                          <span>Edit project quota</span>
+                        </button>
+                        @if (canRemoveProjectQuota(view)) {
+                          <button mat-menu-item (click)="removeProjectQuota(view)">
+                            <mat-icon>delete_outline</mat-icon>
+                            <span>Remove project quota</span>
+                          </button>
+                        }
+                      </mat-menu>
+                    </div>
+                  }
+                </div>
+                @if (isExpanded(view.project.id)) {
+                  <div class="info-card__content info-card__content--multi-block">
+                    @if (view.overview) {
+                      @if (!view.usageComplete) {
+                        <span class="org-quotas__hint org-quotas__usage-status">
+                          <mat-icon>warning_amber</mat-icon> Some availability zones could not be reached: the usage of
+                          this project may be underestimated.
+                        </span>
+                      }
+                      @for (bar of view.bars; track bar.resource) {
+                        <spx-quota-bar
+                          parentType="project"
+                          [resource]="bar.resource"
+                          [limit]="bar.limit"
+                          [parts]="bar.parts"></spx-quota-bar>
+                      }
+
+                      @if (view.azRows.length > 0) {
+                        <div class="org-quotas__az-table" role="table" aria-label="Availability zone quotas">
+                          <div class="org-quotas__az-row org-quotas__az-row--header" role="row">
+                            <span role="columnheader">Availability Zones</span>
+                            @for (resource of resources; track resource) {
+                              <span role="columnheader">{{ labels[resource] }}</span>
+                            }
+                            <span role="columnheader"></span>
+                          </div>
+                          @for (row of view.azRows; track row.code) {
+                            <div class="org-quotas__az-row" role="row">
+                              <span role="cell">{{ row.name }}</span>
+                              @for (resource of resources; track resource) {
+                                <ng-container
+                                  *ngTemplateOutlet="
+                                    quotaCell;
+                                    context: { $implicit: row.cells[resource] }
+                                  "></ng-container>
+                              }
+                              <span role="cell" class="org-quotas__az-actions">
+                                @if (view.canWriteAZ) {
+                                  <button
+                                    mat-icon-button
+                                    matTooltip="Edit the availability zone quota"
+                                    [attr.aria-label]="'Edit the quota in ' + row.name"
+                                    (click)="editAZQuota(view, row)">
+                                    <mat-icon>edit</mat-icon>
+                                  </button>
+                                }
+                              </span>
+                            </div>
+                          }
+                          <div class="org-quotas__az-row org-quotas__az-row--total" role="row">
+                            <span role="cell">Total of the project</span>
+                            @for (resource of resources; track resource) {
+                              <ng-container
+                                *ngTemplateOutlet="
+                                  quotaCell;
+                                  context: { $implicit: view.totalCells[resource] }
+                                "></ng-container>
+                            }
+                            <span role="cell"></span>
+                          </div>
+                        </div>
+                      }
+                    } @else {
+                      <span class="org-quotas__hint">The quotas of this project could not be loaded.</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="org-quotas__child">
+              <span class="org-quotas__hint">This organization has no project yet.</span>
+            </div>
+          }
+        </section>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Quota of an AZ (or of the whole project) for a resource, with what is used of it -->
+<ng-template #quotaCell let-cell>
+  <span role="cell" class="org-quotas__az-cell">
+    <span>{{ cell.value }}</span>
+    @if (cell.usage; as cellUsage) {
+      @if (cellUsage.percent !== null) {
+        <span class="org-quotas__meter" [class.org-quotas__meter--over]="cellUsage.over" aria-hidden="true">
+          <span class="org-quotas__meter-fill" [style.width.%]="cellUsage.percent"></span>
+        </span>
+      }
+      <span class="org-quotas__az-usage" [class.org-quotas__az-usage--over]="cellUsage.over">
+        {{ cellUsage.text }}
+      </span>
+    }
+  </span>
+</ng-template>

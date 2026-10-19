@@ -1,0 +1,15 @@
+@use 'sass:list';
+
+// Colors of the children sharing a quota (projects of an organization, AZs of a project).
+// Keep QUOTA_BAR_COLORS (quota-bar.component.ts) in sync with the palette size.
+$quota-palette: (#4f6bed, #e8833a, #2fa37c, #c94f9b, #8a63d2, #d4b52c, #3aa7c9, #d0573f);
+
+// Generates `<selector>-<index>` classes setting `--quota-color` and the background with it.
+@mixin quota-colors($selector) {
+  @for $i from 1 through list.length($quota-palette) {
+    #{$selector}-#{$i - 1} {
+      --quota-color: #{list.nth($quota-palette, $i)};
+      background-color: var(--quota-color);
+    }
+  }
+}
