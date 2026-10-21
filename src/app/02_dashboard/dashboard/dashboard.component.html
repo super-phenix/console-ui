@@ -52,7 +52,7 @@
         <div class="info-card dashboard__quotas">
           <div class="info-card__title">
             <span>Quota usage</span>
-            @if (canReadOrgQuota()) {
+            @if (canOpenQuotaSettings()) {
               <button mat-icon-button [matMenuTriggerFor]="quotaMenu" aria-label="Quota actions">
                 <mat-icon>more_vert</mat-icon>
               </button>
@@ -195,9 +195,23 @@
 
 <!-- How full a quota is: what is used of what is allocated, red once everything is used -->
 <ng-template #fill let-fill>
-  <span class="dashboard__fill" [class.dashboard__fill--full]="fill.full">
+  <span
+    class="dashboard__fill"
+    [class.dashboard__fill--full]="fill.full"
+    [class.dashboard__fill--nothing-allocated]="fill.nothingAllocated">
     <span class="dashboard__fill-text">
-      <span>{{ fill.text }}</span>
+      <span class="dashboard__fill-label">
+        @if (fill.text === '∞') {
+          <span class="dashboard__infinity">∞</span>
+        } @else if (fill.text.endsWith(' / ∞')) {
+          <span>{{ fill.text.slice(0, -4) }} / </span><span class="dashboard__infinity">∞</span>
+        } @else {
+          <span>{{ fill.text }}</span>
+        }
+        @if (fill.nothingAllocated) {
+          <mat-icon class="dashboard__fill-warning">warning</mat-icon>
+        }
+      </span>
       @if (fill.percent !== null) {
         <span class="dashboard__fill-percent">{{ fill.percent | number: '1.0-0' }}%</span>
       }

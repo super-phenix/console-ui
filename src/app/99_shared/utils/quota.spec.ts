@@ -1,5 +1,12 @@
 import { QuotaResourceEnum } from '@shared/models/data/quota';
-import { buildQuotaBar, formatQuotaQuantity, parseQuotaQuantity, toQuotaFormValue, toQuotaQuantity } from './quota';
+import {
+  buildQuotaBar,
+  formatQuotaQuantity,
+  parseQuotaQuantity,
+  quotaFill,
+  toQuotaFormValue,
+  toQuotaQuantity,
+} from './quota';
 
 const { CPU, Memory, Disk } = QuotaResourceEnum;
 const GI = 2 ** 30;
@@ -98,5 +105,79 @@ describe('buildQuotaBar', () => {
     const bar = buildQuotaBar(0, [{ key: 'a', label: 'A', value: 0 }]);
     expect(bar.segments[0].percent).toBe(0);
     expect(bar.freePercent).toBe(0);
+  });
+});
+
+describe('quotaFill', () => {
+  it('should format normal consumption vs limit', () => {
+    const fill = quotaFill(CPU, 2000, 4000);
+    expect(fill).toEqual({
+      text: '2 vCPU / 4 vCPU',
+      percent: 50,
+      meter: 50,
+      full: false,
+      unavailable: false,
+    });
+  });
+
+  it('should flag full or overcommitted allocations', () => {
+    const fill = quotaFill(Memory, 25 * GI, 20 * GI);
+    expect(fill).toEqual({
+      text: '25 GiB / 20 GiB',
+      percent: 125,
+      meter: 100,
+      full: true,
+      unavailable: false,
+    });
+  });
+
+  it('should handle zero allocation and zero usage as Nothing allocated', () => {
+    const fill = quotaFill(CPU, 0, 0);
+    expect(fill).toEqual({
+      text: 'Nothing allocated',
+      percent: null,
+      meter: 0,
+      full: false,
+      nothingAllocated: true,
+      unavailable: false,
+    });
+  });
+
+  it('should handle unavailable usage', () => {
+    const fill = quotaFill(CPU, null, 4000);
+    expect(fill).toEqual({
+      text: 'Usage unavailable',
+      percent: null,
+      meter: 0,
+      full: false,
+      unavailable: true,
+    });
+  });
+
+  it('should handle unlimited resources', () => {
+    expect(quotaFill(Disk, undefined, null)).toEqual({
+      text: '∞',
+      percent: null,
+      meter: 0,
+      full: false,
+      unavailable: false,
+    });
+    expect(quotaFill(Disk, 10 * GI, null)).toEqual({
+      text: '10 GiB / ∞',
+      percent: null,
+      meter: 0,
+      full: false,
+      unavailable: false,
+    });
+  });
+
+  it('should handle loading state with limit', () => {
+    expect(quotaFill(CPU, undefined, 4000)).toEqual({
+      text: '4 vCPU allocated',
+      percent: null,
+      meter: 0,
+      full: false,
+      unavailable: false,
+    });
   });
 });

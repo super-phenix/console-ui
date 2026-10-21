@@ -1,13 +1,17 @@
 <div class="org-quotas">
-  @if (loading() && !orgOverview()) {
+  @if (loading() && !hasLoaded()) {
     <div class="org-quotas__loading"><mat-spinner diameter="40"></mat-spinner></div>
-  } @else if (orgOverview(); as overview) {
+  } @else {
     <div class="info-card org-quotas__org">
       <div class="info-card__title">
         <span class="org-quotas__title">
-          Organization quota
-          @if (overview.unlimited) {
-            <span class="org-quotas__badge">Unlimited</span>
+          @if (orgOverview(); as overview) {
+            Organization quota
+            @if (overview.unlimited) {
+              <span class="org-quotas__badge">Unlimited</span>
+            }
+          } @else {
+            Project quotas
           }
         </span>
         <button mat-icon-button matTooltip="Refresh" aria-label="Refresh the quotas" (click)="reload()">
@@ -15,20 +19,22 @@
         </button>
       </div>
       <div class="info-card__content info-card__content--multi-block">
-        <span class="org-quotas__hint">
-          @if (overview.unlimited) {
-            The organization has no quota: only the quotas of its projects apply.
-          } @else {
-            The organization quota is set by the platform administrators and shared among its projects.
+        @if (orgOverview(); as overview) {
+          <span class="org-quotas__hint">
+            @if (overview.unlimited) {
+              The organization has no quota: only the quotas of its projects apply.
+            } @else {
+              The organization quota is set by the platform administrators and shared among its projects.
+            }
+            Each segment is the quota of a project.
+          </span>
+          @for (bar of orgBars(); track bar.resource) {
+            <spx-quota-bar
+              parentType="organization"
+              [resource]="bar.resource"
+              [limit]="bar.limit"
+              [parts]="bar.parts"></spx-quota-bar>
           }
-          Each segment is the quota of a project.
-        </span>
-        @for (bar of orgBars(); track bar.resource) {
-          <spx-quota-bar
-            parentType="organization"
-            [resource]="bar.resource"
-            [limit]="bar.limit"
-            [parts]="bar.parts"></spx-quota-bar>
         }
 
         <section class="org-quotas__children" aria-label="Quotas of the projects">
@@ -126,13 +132,15 @@
                           </div>
                           @for (row of view.azRows; track row.code) {
                             <div class="org-quotas__az-row" role="row">
-                              <span role="cell">{{ row.name }}</span>
+                              <span role="rowheader">{{ row.name }}</span>
                               @for (resource of resources; track resource) {
-                                <ng-container
-                                  *ngTemplateOutlet="
-                                    quotaCell;
-                                    context: { $implicit: row.cells[resource] }
-                                  "></ng-container>
+                                <span role="cell" class="org-quotas__az-cell">
+                                  <ng-container
+                                    *ngTemplateOutlet="
+                                      quotaCell;
+                                      context: { $implicit: row.cells[resource] }
+                                    "></ng-container>
+                                </span>
                               }
                               <span role="cell" class="org-quotas__az-actions">
                                 @if (view.canWriteAZ) {
@@ -148,13 +156,15 @@
                             </div>
                           }
                           <div class="org-quotas__az-row org-quotas__az-row--total" role="row">
-                            <span role="cell">Total of the project</span>
+                            <span role="rowheader">Total of the project</span>
                             @for (resource of resources; track resource) {
-                              <ng-container
-                                *ngTemplateOutlet="
-                                  quotaCell;
-                                  context: { $implicit: view.totalCells[resource] }
-                                "></ng-container>
+                              <span role="cell" class="org-quotas__az-cell">
+                                <ng-container
+                                  *ngTemplateOutlet="
+                                    quotaCell;
+                                    context: { $implicit: view.totalCells[resource] }
+                                  "></ng-container>
+                              </span>
                             }
                             <span role="cell"></span>
                           </div>
@@ -178,18 +188,32 @@
   }
 </div>
 
-<!-- Quota of an AZ (or of the whole project) for a resource, with what is used of it -->
+<!-- How full a quota is: what is used of what is allocated, red once everything is used -->
 <ng-template #quotaCell let-cell>
-  <span role="cell" class="org-quotas__az-cell">
-    <span>{{ cell.value }}</span>
-    @if (cell.usage; as cellUsage) {
-      @if (cellUsage.percent !== null) {
-        <span class="org-quotas__meter" [class.org-quotas__meter--over]="cellUsage.over" aria-hidden="true">
-          <span class="org-quotas__meter-fill" [style.width.%]="cellUsage.percent"></span>
-        </span>
+  <span
+    class="org-quotas__fill"
+    [class.org-quotas__fill--full]="cell.full"
+    [class.org-quotas__fill--nothing-allocated]="cell.nothingAllocated">
+    <span class="org-quotas__fill-text">
+      <span class="org-quotas__fill-label">
+        @if (cell.text === '∞') {
+          <span class="org-quotas__infinity">∞</span>
+        } @else if (cell.text.endsWith(' / ∞')) {
+          <span>{{ cell.text.slice(0, -4) }} / </span><span class="org-quotas__infinity">∞</span>
+        } @else {
+          <span>{{ cell.text }}</span>
+        }
+        @if (cell.nothingAllocated) {
+          <mat-icon class="org-quotas__fill-warning">warning</mat-icon>
+        }
+      </span>
+      @if (cell.percent !== null) {
+        <span class="org-quotas__fill-percent">{{ cell.percent | number: '1.0-0' }}%</span>
       }
-      <span class="org-quotas__az-usage" [class.org-quotas__az-usage--over]="cellUsage.over">
-        {{ cellUsage.text }}
+    </span>
+    @if (cell.percent !== null) {
+      <span class="org-quotas__fill-meter" aria-hidden="true">
+        <span class="org-quotas__fill-meter-value" [style.width.%]="cell.meter"></span>
       </span>
     }
   </span>

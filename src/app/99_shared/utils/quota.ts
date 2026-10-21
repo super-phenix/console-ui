@@ -101,6 +101,55 @@ export function toQuotaFormValue(resource: QuotaResourceEnum, value: number): { 
 export const QUOTA_SETTINGS_LINK = ['/organization', 'settings'];
 export const QUOTA_SETTINGS_FRAGMENT = 'quotas';
 
+/** How full a quota is: what is used of what is allocated. */
+export interface QuotaFill {
+  /** e.g. "3 vCPU / 6 vCPU", or why there is nothing to compare */
+  text: string;
+  /** Share of the allocation used (can exceed 100), null when there is nothing to compare */
+  percent: number | null;
+  /** Width of the meter, capped at 100 */
+  meter: number;
+  /** Everything allocated is used */
+  full: boolean;
+  /** Nothing is allocated to this resource */
+  nothingAllocated?: boolean;
+  /** The AZ could not be reached */
+  unavailable: boolean;
+}
+
+/**
+ * How full a quota is. `used` is null when the usage is unavailable, undefined when Kubernetes does not
+ * track it (nothing limits the resource) or while loading; `limit` is null when not limited.
+ */
+export function quotaFill(
+  resource: QuotaResourceEnum,
+  used: number | null | undefined,
+  limit: number | null
+): QuotaFill {
+  const empty = { percent: null, meter: 0, full: false, unavailable: false };
+  if (used === null) {
+    return { ...empty, text: 'Usage unavailable', unavailable: true };
+  }
+  if (used === undefined) {
+    return { ...empty, text: limit === null ? '∞' : `${formatQuotaQuantity(resource, limit)} allocated` };
+  }
+  const format = (value: number) => formatQuotaQuantity(resource, value);
+  if (limit === null) {
+    return { ...empty, text: `${format(used)} / ∞` };
+  }
+  if (limit === 0 && used === 0) {
+    return { ...empty, text: 'Nothing allocated', nothingAllocated: true };
+  }
+  const percent = limit > 0 ? (used / limit) * 100 : 100;
+  return {
+    text: `${format(used)} / ${format(limit)}`,
+    percent,
+    meter: Math.min(percent, 100),
+    full: percent >= 100,
+    unavailable: false,
+  };
+}
+
 /** A child sharing the quota of its parent; a null value means the child is not limited. */
 export interface QuotaBarPart {
   key: string;

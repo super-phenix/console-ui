@@ -65,12 +65,16 @@ export class OrganizationSettingsComponent extends TabsBase {
     this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead)
   );
 
+  canProjectAZQuotaRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectAZQuotaRead));
+
+  canQuotaRead = computed(() => this.canOrganizationProjectQuotaRead() || this.canProjectAZQuotaRead());
+
   /** Names of the displayed tabs, in order: keep in sync with the template */
   private tabNames = computed(() => [
     'general',
     ...(this.canOrganizationProjectManagement() ? ['projects'] : []),
     ...(this.canOrganizationIAMRead() ? ['users', 'groups'] : []),
-    ...(this.canOrganizationProjectQuotaRead() ? [QUOTA_SETTINGS_FRAGMENT] : []),
+    ...(this.canQuotaRead() ? [QUOTA_SETTINGS_FRAGMENT] : []),
   ]);
 
   /** The fragment is the index of the tab, or its name to link to it (e.g. `#quotas` from the dashboard) */

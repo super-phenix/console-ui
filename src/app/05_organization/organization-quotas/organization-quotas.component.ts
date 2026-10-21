@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -27,9 +27,10 @@ import { QuotaService } from '@shared/services/quota.service';
 import { StateService } from '@shared/services/state.service';
 import {
   enforcedQuotaValue,
-  formatQuotaQuantity,
   QUOTA_RESOURCE_LABELS,
   QuotaBarPart,
+  QuotaFill,
+  quotaFill,
   quotaValue,
 } from '@shared/utils/quota';
 import { QuotaBarComponent, quotaColorClass } from '@shared/components/quota-bar/quota-bar.component';
@@ -56,20 +57,7 @@ export interface ResourceBarView {
   parts: QuotaBarPart[];
 }
 
-/** Usage of a resource in an AZ, for the AZ table */
-export interface AZUsageCell {
-  text: string;
-  /** Filled part of the meter, null without quota to compare with */
-  percent: number | null;
-  over: boolean;
-}
-
-export interface AZQuotaCell {
-  /** Quota of the AZ */
-  value: string;
-  /** undefined when the usage is not displayed */
-  usage?: AZUsageCell;
-}
+export type AZQuotaCell = QuotaFill;
 
 export interface AZQuotaRow {
   code: string;
@@ -92,6 +80,7 @@ export interface ProjectQuotaView extends ProjectQuotaData {
 @Component({
   selector: 'spx-organization-quotas',
   imports: [
+    DecimalPipe,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
@@ -113,6 +102,7 @@ export class OrganizationQuotasComponent {
   readonly labels = QUOTA_RESOURCE_LABELS;
 
   loading = signal(false);
+  hasLoaded = signal(false);
   orgOverview = signal<OrganizationQuotaOverview | undefined>(undefined);
   projectsData = signal<ProjectQuotaData[]>([]);
   /** Projects currently maximized */
@@ -178,11 +168,8 @@ export class OrganizationQuotasComponent {
         this.resources.map(resource => {
           const value = this.projectAllocation(data, resource);
           const azValues = azs.map(az => this.azValue(data, az.code, resource));
-          const cell: AZQuotaCell = {
-            value: value === null ? 'Unlimited' : `${formatQuotaQuantity(resource, value)} allocated`,
-            usage: this.usageCell(resource, value, this.parentUsage(projectUsage, resource, value, azValues)),
-          };
-          return [resource, cell];
+          const used = this.parentUsage(projectUsage, resource, value, azValues);
+          return [resource, quotaFill(resource, used, value)];
         })
       ) as Record<QuotaResourceEnum, AZQuotaCell>;
 
@@ -193,11 +180,8 @@ export class OrganizationQuotasComponent {
         cells: Object.fromEntries(
           this.resources.map(resource => {
             const value = this.azValue(data, az.code, resource);
-            const cell: AZQuotaCell = {
-              value: value === null ? 'Unlimited' : `${formatQuotaQuantity(resource, value)} allocated`,
-              usage: this.usageCell(resource, value, this.childUsage(az.usage, resource, value)),
-            };
-            return [resource, cell];
+            const used = this.childUsage(az.usage, resource, value);
+            return [resource, quotaFill(resource, used, value)];
           })
         ) as Record<QuotaResourceEnum, AZQuotaCell>,
       }));
@@ -227,6 +211,8 @@ export class OrganizationQuotasComponent {
     // The usage is read from every AZ: it may come later than the quotas, which are shown meanwhile
     this.loadUsage(org);
     const projects = org.projects ?? [];
+    const canReadOrg = this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead);
+
     // A project that cannot be loaded is still displayed, without its AZ quotas
     const projectRequests: Observable<ProjectRequestResult[]> =
       projects.length === 0
@@ -242,20 +228,35 @@ export class OrganizationQuotasComponent {
             )
           );
 
+    const orgQuotaRequest = canReadOrg
+      ? this.quotaSvc.getOrganizationQuota(org.id).pipe(catchError(() => of(undefined)))
+      : of(undefined);
+
     try {
-      const [overview, results] = await Promise.all([
-        firstValueFrom(this.quotaSvc.getOrganizationQuota(org.id)),
-        firstValueFrom(projectRequests),
-      ]);
+      const [overview, results] = await Promise.all([firstValueFrom(orgQuotaRequest), firstValueFrom(projectRequests)]);
       this.orgOverview.set(overview);
-      this.projectsData.set(
-        projects.map((project, i) => ({
+      const validProjectsData: ProjectQuotaData[] = [];
+      for (let i = 0; i < projects.length; i++) {
+        const project = projects[i];
+        const projectOverview = results[i]?.overview ?? null;
+        if (!projectOverview) {
+          continue;
+        }
+        let quota: ProjectQuota | undefined;
+        if (overview !== undefined) {
+          quota = overview.projectQuotas?.find(pq => pq.ProjectId === project.id);
+        } else if (projectOverview.resources) {
+          quota = { ProjectId: project.id, OrganizationId: org.id, Resources: projectOverview.resources };
+        }
+        validProjectsData.push({
           project,
-          quota: overview.projectQuotas?.find(pq => pq.ProjectId === project.id),
-          overview: results[i]?.overview ?? null,
+          quota,
+          overview: projectOverview,
           canWriteAZ: (results[i]?.permissions ?? []).includes(PermissionsEnum.ProjectAZQuotaWrite),
-        }))
-      );
+        });
+      }
+      this.projectsData.set(validProjectsData);
+      this.hasLoaded.set(true);
     } finally {
       this.loading.set(false);
     }
@@ -352,10 +353,37 @@ export class OrganizationQuotasComponent {
   async loadUsage(org: Organization) {
     this.usage.set(undefined);
     let usage: QuotaOrganizationUsage | null;
-    try {
-      usage = await firstValueFrom(this.quotaSvc.getOrganizationUsage(org.id));
-    } catch {
-      usage = null;
+    const canReadOrg = this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead);
+    if (canReadOrg) {
+      try {
+        usage = await firstValueFrom(this.quotaSvc.getOrganizationUsage(org.id));
+      } catch {
+        usage = null;
+      }
+    } else {
+      const projects = org.projects ?? [];
+      if (projects.length === 0) {
+        usage = { organizationId: org.id, complete: true, used: {}, projects: [] };
+      } else {
+        try {
+          const projectUsages = await firstValueFrom(
+            forkJoin(projects.map(p => this.quotaSvc.getProjectUsage(org.id, p.id).pipe(catchError(() => of(null)))))
+          );
+          const valid = projectUsages.filter((u): u is QuotaProjectUsage => u !== null);
+          if (valid.length > 0 || projectUsages.length === 0) {
+            usage = {
+              organizationId: org.id,
+              complete: valid.every(u => u.complete),
+              used: {},
+              projects: valid,
+            };
+          } else {
+            usage = null;
+          }
+        } catch {
+          usage = null;
+        }
+      }
     }
     // Ignore the answer of an organization that is no longer displayed
     if (this.stateSvc.organization()?.id === org.id) {
@@ -462,28 +490,6 @@ export class OrganizationQuotasComponent {
       return undefined;
     }
     return usage ? 0 : null;
-  }
-
-  private usageCell(
-    resource: QuotaResourceEnum,
-    value: number | null,
-    used: number | null | undefined
-  ): AZUsageCell | undefined {
-    if (used === undefined) {
-      return undefined;
-    }
-    if (used === null) {
-      return { text: 'Usage unavailable', percent: null, over: false };
-    }
-    const text = `${formatQuotaQuantity(resource, used)} used`;
-    if (value === null) {
-      return { text, percent: null, over: false };
-    }
-    if (value === 0) {
-      return { text, percent: 100, over: true };
-    }
-    const percent = Math.min((used / value) * 100, 100);
-    return { text, percent, over: used >= value };
   }
 
   private azResources(data: ProjectQuotaData, codeAZ: string): QuotaResources {

@@ -41,6 +41,13 @@
     color: var(--mat-sys-on-surface);
   }
 
+  &__limit--infinity {
+    font-size: 2em;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
   &__warning {
     display: inline-flex;
     align-items: center;
@@ -59,7 +66,7 @@
     gap: 2px;
     height: 14px;
     overflow: hidden;
-    border-radius: var(--br-full);
+    border-radius: var(--br-small);
     background-color: var(--mat-sys-surface-container-highest);
   }
 

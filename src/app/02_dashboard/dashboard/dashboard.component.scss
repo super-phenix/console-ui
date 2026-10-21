@@ -243,6 +243,24 @@
       white-space: nowrap;
     }
 
+    &-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    &-warning {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    & &__infinity {
+      font-size: 2em;
+      line-height: 1;
+      display: inline-block;
+    }
+
     &-percent {
       font-weight: 600;
     }
@@ -261,7 +279,8 @@
       background-color: var(--mat-sys-primary);
     }
 
-    &--full {
+    &--full,
+    &--nothing-allocated {
       color: var(--text-error);
     }
 

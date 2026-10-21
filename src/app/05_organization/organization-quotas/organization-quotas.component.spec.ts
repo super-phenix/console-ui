@@ -126,7 +126,18 @@ describe('OrganizationQuotasComponent', () => {
   }
 
   function text(el: Element | null): string {
-    return (el?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    if (!el) {
+      return '';
+    }
+    const texts: string[] = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const t = walker.currentNode.textContent!.trim();
+      if (t && !walker.currentNode.parentElement?.closest('mat-icon')) {
+        texts.push(t);
+      }
+    }
+    return texts.join(' ');
   }
 
   beforeEach(async () => {
@@ -180,10 +191,10 @@ describe('OrganizationQuotasComponent', () => {
     expect(cpu.limit).toBe(4000);
     expect(cpu.parts.map(p => p.value)).toEqual([2000, 1000]);
 
-    // A resource limited by a parent without AZ allocation is enforced at 0
-    expect(p1.azRows[1].cells[QuotaResourceEnum.Memory].value).toBe('0 B allocated');
+    // A resource limited by a parent without AZ allocation is enforced at 0 (and unavailable because az2 could not be reached)
+    expect(p1.azRows[1].cells[QuotaResourceEnum.Memory].text).toBe('Usage unavailable');
     // Not limited by any level
-    expect(p1.azRows[0].cells[QuotaResourceEnum.Disk].value).toBe('Unlimited');
+    expect(p1.azRows[0].cells[QuotaResourceEnum.Disk].text).toBe('∞');
   });
 
   it('should nest the projects inside the organization card, with their color in its bars', async () => {
@@ -238,34 +249,36 @@ describe('OrganizationQuotasComponent', () => {
     expect(p2.usageComplete).toBeTrue();
 
     const memoryCell = p1.azRows[0].cells[QuotaResourceEnum.Memory];
-    expect(memoryCell.usage).toEqual({ text: '25 GiB used', percent: 100, over: true });
+    expect(memoryCell.text).toBe('25 GiB / 20 GiB');
+    expect(memoryCell.percent).toBe(125);
+    expect(memoryCell.full).toBeTrue();
     // az2 could not be reached
-    expect(p1.azRows[1].cells[QuotaResourceEnum.CPU].usage?.text).toBe('Usage unavailable');
+    expect(p1.azRows[1].cells[QuotaResourceEnum.CPU].text).toBe('Usage unavailable');
     // Not limited by anyone: not tracked by Kubernetes
-    expect(p1.azRows[0].cells[QuotaResourceEnum.Disk].usage).toBeUndefined();
+    expect(p1.azRows[0].cells[QuotaResourceEnum.Disk].text).toBe('∞');
 
     // Total of the project, compared with what it takes from the organization quota
-    expect(p1.totalCells[QuotaResourceEnum.CPU]).toEqual({
-      value: '4 vCPU allocated',
-      usage: { text: '2.5 vCPU used', percent: 62.5, over: false },
-    });
-    expect(p1.totalCells[QuotaResourceEnum.Disk].usage).toBeUndefined();
-    // Limited at 0 by the organization: tracked, so 0 allocated and marked as full/over
-    expect(p2.totalCells[QuotaResourceEnum.Memory].usage).toEqual({ text: '0 B used', percent: 100, over: true });
+    expect(p1.totalCells[QuotaResourceEnum.CPU].text).toBe('2.5 vCPU / 4 vCPU');
+    expect(p1.totalCells[QuotaResourceEnum.CPU].percent).toBe(62.5);
+    expect(p1.totalCells[QuotaResourceEnum.CPU].full).toBeFalse();
+    expect(p1.totalCells[QuotaResourceEnum.Disk].text).toBe('∞');
+    // Limited at 0 by the organization: tracked, so 0 allocated and marked as Nothing allocated
+    expect(p2.totalCells[QuotaResourceEnum.Memory].text).toBe('Nothing allocated');
+    expect(p2.totalCells[QuotaResourceEnum.Memory].nothingAllocated).toBeTrue();
 
     const card = fixture.nativeElement.querySelector('.org-quotas__project');
     // CPU and RAM of Zone 1 exceed their quota
-    expect(card.querySelectorAll('.org-quotas__meter--over').length).toBe(2);
+    expect(card.querySelectorAll('.org-quotas__fill--full').length).toBe(2);
     const total = card.querySelector('.org-quotas__az-row--total');
-    expect(text(total)).toContain('4 vCPU allocated 2.5 vCPU used 40 GiB allocated 25 GiB used');
+    expect(text(total)).toContain('2.5 vCPU / 4 vCPU 63% 25 GiB / 40 GiB 63%');
     expect(text(card)).toContain('the usage of this project may be underestimated');
   });
 
   it('should display the quotas while the usage is loading', async () => {
     await createComponent(orgOverview(), undefined, 'pending');
 
-    expect(component.projectViews()[0].azRows[0].cells[QuotaResourceEnum.CPU].usage).toBeUndefined();
-    expect(component.projectViews()[0].totalCells[QuotaResourceEnum.CPU].usage).toBeUndefined();
+    expect(component.projectViews()[0].azRows[0].cells[QuotaResourceEnum.CPU].text).toBe('2 vCPU allocated');
+    expect(component.projectViews()[0].totalCells[QuotaResourceEnum.CPU].text).toBe('4 vCPU allocated');
     expect(text(fixture.nativeElement.querySelector('.org-quotas__children'))).toContain('Reading the usage');
     expect(fixture.nativeElement.querySelectorAll('.org-quotas__project').length).toBe(2);
   });
@@ -273,8 +286,8 @@ describe('OrganizationQuotasComponent', () => {
   it('should tell when the usage cannot be loaded', async () => {
     await createComponent(orgOverview(), undefined, null);
 
-    expect(component.projectViews()[0].azRows[0].cells[QuotaResourceEnum.CPU].usage?.text).toBe('Usage unavailable');
-    expect(component.projectViews()[0].totalCells[QuotaResourceEnum.CPU].usage?.text).toBe('Usage unavailable');
+    expect(component.projectViews()[0].azRows[0].cells[QuotaResourceEnum.CPU].text).toBe('Usage unavailable');
+    expect(component.projectViews()[0].totalCells[QuotaResourceEnum.CPU].text).toBe('Usage unavailable');
     expect(text(fixture.nativeElement.querySelector('.org-quotas__children'))).toContain(
       'The usage could not be loaded'
     );
@@ -315,5 +328,84 @@ describe('OrganizationQuotasComponent', () => {
     expect(component.orgBars().every(b => b.limit === null)).toBeTrue();
     expect(text(fixture.nativeElement.querySelector('.org-quotas__org .org-quotas__badge'))).toBe('Unlimited');
     expect(component.projectViews().every(v => component.canRemoveProjectQuota(v))).toBeTrue();
+  });
+
+  it('should display project quotas and AZs without OrganizationProjectQuotaRead permission', async () => {
+    TestBed.inject(PermissionService).permissions.set([
+      PermissionsEnum.ProjectAZQuotaRead,
+      PermissionsEnum.ProjectAZQuotaWrite,
+    ]);
+
+    organization.set({ id: orgId, projects });
+    fixture = TestBed.createComponent(OrganizationQuotasComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    // Org quota and org usage should NOT be requested
+    httpMock.expectNone(`${baseUrl}/quota`);
+    httpMock.expectNone(`${baseUrl}/quota/usage`);
+
+    // Individual project quotas and project usages should be requested
+    const overviews = projectOverviews();
+    const usage = orgUsage();
+    for (const p of projects) {
+      httpMock.expectOne(`${baseUrl}/project/${p.id}/quota`).flush(overviews[p.id]);
+      httpMock
+        .expectOne(`${baseUrl}/project/${p.id}/quota/usage`)
+        .flush(usage.projects!.find(u => u.projectId === p.id)!);
+    }
+    const permissionRequests = httpMock.match(`${baseUrl}/iam/permissions`);
+    expect(permissionRequests.length).toBe(projects.length);
+    permissionRequests.forEach(req => req.flush([PermissionsEnum.ProjectAZQuotaWrite]));
+
+    await new Promise(resolve => setTimeout(resolve));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.orgBars().length).toBe(0);
+    expect(text(fixture.nativeElement.querySelector('.org-quotas__title'))).toContain('Project quotas');
+
+    const [p1] = component.projectViews();
+    expect(p1.bars.length).toBe(3);
+    expect(p1.azRows.length).toBe(2);
+    expect(p1.azRows[0].cells[QuotaResourceEnum.CPU].text).toBe('2.5 vCPU / 2 vCPU');
+    expect(p1.azRows[0].cells[QuotaResourceEnum.Memory].text).toBe('25 GiB / 20 GiB');
+    expect(p1.totalCells[QuotaResourceEnum.CPU].text).toBe('2.5 vCPU / 4 vCPU');
+
+    component.expandedProjects.set(new Set(['p1', 'p2']));
+    fixture.detectChanges();
+
+    const p1Card = fixture.nativeElement.querySelector('[data-project-id="p1"]');
+    expect(p1Card.querySelectorAll('spx-quota-bar').length).toBe(3);
+    expect(p1Card.querySelectorAll('.org-quotas__az-actions button').length).toBe(2);
+  });
+
+  it('should not display projects where quota read returns 403', async () => {
+    organization.set({ id: orgId, projects });
+    fixture = TestBed.createComponent(OrganizationQuotasComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    httpMock.expectOne(`${baseUrl}/quota/usage`).flush(orgUsage());
+    httpMock.expectOne(`${baseUrl}/quota`).flush(orgOverview());
+
+    // Project 1 returns 200, Project 2 returns 403
+    httpMock.expectOne(`${baseUrl}/project/p1/quota`).flush(projectOverviews()['p1']);
+    httpMock.expectOne(`${baseUrl}/project/p2/quota`).flush('forbidden', { status: 403, statusText: 'Forbidden' });
+
+    const permissionRequests = httpMock.match(`${baseUrl}/iam/permissions`);
+    expect(permissionRequests.length).toBe(projects.length);
+    permissionRequests.forEach(req => req.flush([PermissionsEnum.ProjectAZQuotaWrite]));
+
+    await new Promise(resolve => setTimeout(resolve));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    // Only p1 should be in projectViews, p2 should not be displayed
+    expect(component.projectViews().length).toBe(1);
+    expect(component.projectViews()[0].project.id).toBe('p1');
+    const projectCards = fixture.nativeElement.querySelectorAll('.org-quotas__project');
+    expect(projectCards.length).toBe(1);
+    expect(projectCards[0].getAttribute('data-project-id')).toBe('p1');
   });
 });

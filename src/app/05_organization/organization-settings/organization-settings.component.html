@@ -84,7 +84,7 @@
         <ng-template matTabContent> <spx-organization-iam></spx-organization-iam></ng-template>
       </mat-tab>
     }
-    @if (canOrganizationProjectQuotaRead()) {
+    @if (canQuotaRead()) {
       <mat-tab label="Quotas">
         <ng-template matTabContent> <spx-organization-quotas></spx-organization-quotas></ng-template>
       </mat-tab>

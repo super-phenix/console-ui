@@ -28,11 +28,12 @@ import { PermissionService } from '@shared/services/permission.service';
 import { QuotaService } from '@shared/services/quota.service';
 import {
   enforcedQuotaValue,
-  formatQuotaQuantity,
   QUOTA_RESOURCE_ICONS,
   QUOTA_RESOURCE_LABELS,
   QUOTA_SETTINGS_FRAGMENT,
   QUOTA_SETTINGS_LINK,
+  QuotaFill,
+  quotaFill,
   quotaValue,
 } from '@shared/utils/quota';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -91,20 +92,6 @@ const TYPES_WITHOUT_DETAILS = ['ssh'];
 /** Above this share of the quota, the meter is highlighted so the limit becomes noticeable. */
 const QUOTA_WARN_PERCENT = 80;
 
-/** How full a quota is: what is used of what is allocated. */
-interface QuotaFill {
-  /** e.g. "3 vCPU / 6 vCPU", or why there is nothing to compare */
-  text: string;
-  /** Share of the allocation used (can exceed 100), null when there is nothing to compare */
-  percent: number | null;
-  /** Width of the meter, capped at 100 */
-  meter: number;
-  /** Everything allocated is used */
-  full: boolean;
-  /** The AZ could not be reached */
-  unavailable: boolean;
-}
-
 interface QuotaFills {
   /** The whole project, per resource */
   project: Record<QuotaResourceEnum, QuotaFill>;
@@ -112,35 +99,6 @@ interface QuotaFills {
   azs: { code: string; name: string; cells: Record<QuotaResourceEnum, QuotaFill> }[];
   /** Nothing limits the project: Kubernetes does not track its usage */
   unlimited: boolean;
-}
-
-/**
- * How full a quota is. `used` is null when the usage is unavailable, undefined when Kubernetes does not
- * track it (nothing limits the resource); `limit` is null when not limited.
- */
-function quotaFill(resource: QuotaResourceEnum, used: number | null | undefined, limit: number | null): QuotaFill {
-  const empty = { percent: null, meter: 0, full: false, unavailable: false };
-  if (used === null) {
-    return { ...empty, text: 'Usage unavailable', unavailable: true };
-  }
-  if (used === undefined) {
-    return { ...empty, text: 'Unlimited' };
-  }
-  const format = (value: number) => formatQuotaQuantity(resource, value);
-  if (limit === null) {
-    return { ...empty, text: `${format(used)} used · Unlimited` };
-  }
-  if (limit === 0 && used === 0) {
-    return { ...empty, text: 'Nothing allocated' };
-  }
-  const percent = limit > 0 ? (used / limit) * 100 : 100;
-  return {
-    text: `${format(used)} / ${format(limit)}`,
-    percent,
-    meter: Math.min(percent, 100),
-    full: percent >= 100,
-    unavailable: false,
-  };
 }
 
 @Component({
@@ -241,6 +199,7 @@ export class DashboardComponent {
   protected canReadOrgQuota = computed(() =>
     this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead)
   );
+  protected canOpenQuotaSettings = computed(() => this.canReadQuota() || this.canReadOrgQuota());
   protected readonly quotaSettingsLink = QUOTA_SETTINGS_LINK;
   protected readonly quotaSettingsFragment = QUOTA_SETTINGS_FRAGMENT;
   protected readonly quotaResources = QUOTA_RESOURCES;

@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { defaultOnceHandler } from '../http/customHandler';
+import { IGNORE_ERROR_STATUSES } from '../interceptor/errors.interceptor';
 import {
   OrganizationQuotaOverview,
   ProjectAZQuota,
@@ -19,26 +20,34 @@ export class QuotaService {
   protected http = inject(HttpClient);
 
   /** Organization quota and its distribution to projects (`OrganizationProjectQuotaRead`) */
-  getOrganizationQuota(orgId: string) {
-    return this.http.get<OrganizationQuotaOverview>(`${this.getBaseUrl(orgId)}/quota`).pipe(defaultOnceHandler());
+  getOrganizationQuota(orgId: string, context?: HttpContext) {
+    const httpContext = this.ensureIgnore403(context);
+    return this.http
+      .get<OrganizationQuotaOverview>(`${this.getBaseUrl(orgId)}/quota`, { context: httpContext })
+      .pipe(defaultOnceHandler());
   }
 
   /** Project quota and its distribution to AZs (`ProjectAZQuotaRead`) */
-  getProjectQuota(orgId: string, projectId: string) {
+  getProjectQuota(orgId: string, projectId: string, context?: HttpContext) {
+    const httpContext = this.ensureIgnore403(context);
     return this.http
-      .get<ProjectQuotaOverview>(`${this.getBaseUrl(orgId)}/project/${projectId}/quota`)
+      .get<ProjectQuotaOverview>(`${this.getBaseUrl(orgId)}/project/${projectId}/quota`, { context: httpContext })
       .pipe(defaultOnceHandler());
   }
 
   /** Current usage of the organization, per project and AZ (`OrganizationProjectQuotaRead`) */
-  getOrganizationUsage(orgId: string) {
-    return this.http.get<QuotaOrganizationUsage>(`${this.getBaseUrl(orgId)}/quota/usage`).pipe(defaultOnceHandler());
+  getOrganizationUsage(orgId: string, context?: HttpContext) {
+    const httpContext = this.ensureIgnore403(context);
+    return this.http
+      .get<QuotaOrganizationUsage>(`${this.getBaseUrl(orgId)}/quota/usage`, { context: httpContext })
+      .pipe(defaultOnceHandler());
   }
 
   /** Current usage of a project, per AZ (`ProjectAZQuotaRead`) */
-  getProjectUsage(orgId: string, projectId: string) {
+  getProjectUsage(orgId: string, projectId: string, context?: HttpContext) {
+    const httpContext = this.ensureIgnore403(context);
     return this.http
-      .get<QuotaProjectUsage>(`${this.getBaseUrl(orgId)}/project/${projectId}/quota/usage`)
+      .get<QuotaProjectUsage>(`${this.getBaseUrl(orgId)}/project/${projectId}/quota/usage`, { context: httpContext })
       .pipe(defaultOnceHandler());
   }
 
@@ -59,6 +68,16 @@ export class QuotaService {
     return this.http
       .put<ProjectAZQuota>(`${this.getBaseUrl(orgId)}/project/${projectId}/quota/az/${codeAZ}`, resources)
       .pipe(defaultOnceHandler());
+  }
+
+  private ensureIgnore403(context?: HttpContext): HttpContext {
+    if (context) {
+      if (!context.has(IGNORE_ERROR_STATUSES)) {
+        context.set(IGNORE_ERROR_STATUSES, [403]);
+      }
+      return context;
+    }
+    return new HttpContext().set(IGNORE_ERROR_STATUSES, [403]);
   }
 
   private getBaseUrl(orgId: string) {

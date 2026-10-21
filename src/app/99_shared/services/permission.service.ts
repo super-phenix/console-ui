@@ -1,10 +1,11 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, signal, WritableSignal, inject } from '@angular/core';
 import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { EntityTypeEnum, Group, PermissionListBody, PermissionSetMap } from '@shared/models/permissions/permission';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { combineLatest, firstValueFrom, Observable, ReplaySubject, timeout } from 'rxjs';
 import { defaultOnceHandler } from '../http/customHandler';
+import { IGNORE_ERROR_STATUSES } from '../interceptor/errors.interceptor';
 
 interface CacheObject {
   permissions: string[];
@@ -68,9 +69,12 @@ export class PermissionService {
   /**
    * Get the user permissions on a given entity, without touching the current `permissions` state
    */
-  getEntityPermissions(orgId: string, entityType: EntityTypeEnum, entityId: string) {
+  getEntityPermissions(orgId: string, entityType: EntityTypeEnum, entityId: string, context?: HttpContext) {
+    const httpContext = this.ensureIgnore403(context);
     const body: PermissionListBody = { entityType, entityId };
-    return this.http.post<string[]>(`${this.getBaseUrl(orgId)}/permissions`, body).pipe(defaultOnceHandler());
+    return this.http
+      .post<string[]>(`${this.getBaseUrl(orgId)}/permissions`, body, { context: httpContext })
+      .pipe(defaultOnceHandler());
   }
 
   /**
@@ -134,6 +138,16 @@ export class PermissionService {
       timestamp: Date.now(),
       permissions,
     });
+  }
+
+  private ensureIgnore403(context?: HttpContext): HttpContext {
+    if (context) {
+      if (!context.has(IGNORE_ERROR_STATUSES)) {
+        context.set(IGNORE_ERROR_STATUSES, [403]);
+      }
+      return context;
+    }
+    return new HttpContext().set(IGNORE_ERROR_STATUSES, [403]);
   }
 
   private getBaseUrl(orgId: string) {

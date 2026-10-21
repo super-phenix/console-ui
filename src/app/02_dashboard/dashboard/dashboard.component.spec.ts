@@ -331,15 +331,18 @@ describe('DashboardComponent', () => {
 
       // The project, compared with its own quota
       const projectRow = projectText();
-      expect(projectRow).toBe('Total of the project 3.5 vCPU / 8 vCPU 44% 4 GiB / 32 GiB 13% Unlimited');
+      expect(projectRow).toBe('Total of the project 3.5 vCPU / 8 vCPU 44% 4 GiB / 32 GiB 13% ∞');
 
       // Each AZ, compared with its own quota, without its share of the project
       const rows = azRows();
       expect(Object.keys(rows)).toEqual(['Zone 1', 'Zone 2']);
-      expect(rows['Zone 1']).toBe('Zone 1 3 vCPU / 6 vCPU 50% 4 GiB / 16 GiB 25% Unlimited');
+      expect(rows['Zone 1']).toBe('Zone 1 3 vCPU / 6 vCPU 50% 4 GiB / 16 GiB 25% ∞');
       // The project limits the memory and az2 has no memory quota: nothing is allocated to it
-      expect(rows['Zone 2']).toBe('Zone 2 0.5 vCPU / 2 vCPU 25% Nothing allocated Unlimited');
+      expect(rows['Zone 2']).toBe('Zone 2 0.5 vCPU / 2 vCPU 25% Nothing allocated ∞');
       expect(fixture.nativeElement.querySelector('.dashboard__fill--full')).toBeNull();
+      const nothingAllocated = fixture.nativeElement.querySelector('.dashboard__fill--nothing-allocated');
+      expect(nothingAllocated).toBeTruthy();
+      expect(nothingAllocated.querySelector('mat-icon')?.textContent).toBe('warning');
       expect(fixture.nativeElement.querySelector('spx-quota-bar')).toBeNull();
     });
 
@@ -398,22 +401,14 @@ describe('DashboardComponent', () => {
 
       expect(projectText()).toContain('3.5 vCPU / 8 vCPU 44%');
       // az2 has no memory quota: the project memory is not limited, and az2 memory is not tracked
-      expect(projectText()).toContain('4 GiB used · Unlimited');
-      expect(azRows()['Zone 2']).toContain('25% Unlimited');
+      expect(projectText()).toContain('4 GiB / ∞');
+      expect(azRows()['Zone 2']).toContain('25% ∞');
     });
 
-    it('should link to the quota settings with OrganizationProjectQuotaRead', async () => {
-      TestBed.inject(PermissionService).permissions.set([
-        PermissionsEnum.ProjectAZQuotaRead,
-        PermissionsEnum.OrganizationProjectQuotaRead,
-      ]);
+    it('should link to the quota settings with ProjectAZQuotaRead', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
 
-      await createWithQuotas(projectOverview(), {
-        organizationId: orgId,
-        unlimited: true,
-        allocated: {},
-        projectQuotas: [],
-      });
+      await createWithQuotas(projectOverview());
 
       const trigger = fixture.nativeElement.querySelector('.dashboard__quotas .info-card__title button');
       expect(trigger).toBeTruthy();
@@ -421,14 +416,6 @@ describe('DashboardComponent', () => {
       fixture.detectChanges();
       const link = document.querySelector('.mat-mdc-menu-panel a[mat-menu-item]') as HTMLAnchorElement;
       expect(link.getAttribute('href')).toBe('/organization/settings#quotas');
-    });
-
-    it('should not link to the quota settings without OrganizationProjectQuotaRead', async () => {
-      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
-
-      await createWithQuotas(projectOverview());
-
-      expect(fixture.nativeElement.querySelector('.dashboard__quotas .info-card__title button')).toBeNull();
     });
 
     it('should tell when an AZ cannot be reached', async () => {
