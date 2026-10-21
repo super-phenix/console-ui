@@ -13,6 +13,7 @@ export class CreateLoadBalancer {
   };
   spec!: {
     vip: string;
+    subnetEId: string;
     selectors: string[];
     endpoints: string[];
     ports: RulePort[];
@@ -25,6 +26,7 @@ export class UpdateLoadBalancer {
   };
   spec!: {
     vip: string;
+    subnetEId: string;
     selectors: string[];
     endpoints: string[];
     ports: RulePort[];

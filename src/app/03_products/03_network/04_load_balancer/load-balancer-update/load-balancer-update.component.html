@@ -14,6 +14,45 @@
               <div class="info-card__title">
                 <div class="d-flex align-items-center gap-2">
                   <div class="mat-icon--with-bg">
+                    <mat-icon>lan</mat-icon>
+                  </div>
+                  Subnet
+                </div>
+              </div>
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span>
+                    @if (pinnedSubnet()) {
+                      <i>You can't change the subnet of a load balancer.</i>
+                    } @else {
+                      <i>Pick the subnet of your backends. You can't change it after saving.</i>
+                    }
+                  </span>
+                </div>
+                <div class="info-card__block">
+                  <mat-form-field class="info-card__item--form">
+                    <mat-label>Subnet</mat-label>
+                    <mat-select formControlName="subnetEId">
+                      @for (subnet of subnetsProduct.value(); track subnet.eid) {
+                        <mat-option [value]="subnet.eid">
+                          {{ subnet.productName || subnet.eid }} ({{ subnet.subnet?.spec?.cidrBlock }})
+                        </mat-option>
+                      } @empty {
+                        <mat-option disabled>No subnet in this AZ. Create one first.</mat-option>
+                      }
+                    </mat-select>
+                    @if (firstFormGroup.get('subnetEId')?.hasError('required')) {
+                      <mat-error>This field is required.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
                     <mat-icon>network_manage</mat-icon>
                   </div>
                   Virtual IP
@@ -22,17 +61,20 @@
               <div class="info-card__content info-card__content--multi-block">
                 <div class="info-card__block">
                   <span>
-                    <i>The virtual IP must be in the {{ VIRTUAL_IP_RANGE }} subnet</i>
+                    <i
+                      >Clients in every subnet of the VPC reach the load balancer on this address. Pick a free address
+                      in {{ VIRTUAL_IP_RANGE }}.</i
+                    >
                   </span>
                 </div>
                 <div class="info-card__block">
                   <mat-form-field class="info-card__item--form">
                     <mat-label>Virtual IP</mat-label>
-                    <input matInput formControlName="vip" placeholder="198.18.0.0" />
+                    <input matInput formControlName="vip" placeholder="198.18.0.10" />
                     @if (firstFormGroup.get('vip')?.errors?.['ip']) {
-                      <mat-error>Invalid IP address</mat-error>
+                      <mat-error>Enter a valid IP address.</mat-error>
                     } @else if (firstFormGroup.get('vip')?.errors?.['ipRange']) {
-                      <mat-error>IP not in subnet range</mat-error>
+                      <mat-error>Use an address in {{ VIRTUAL_IP_RANGE }}.</mat-error>
                     }
                   </mat-form-field>
                 </div>
@@ -63,6 +105,17 @@
                 </div>
               </div>
               <div class="info-card__content info-card__content--multi-block">
+                @if (selectedSubnet(); as subnet) {
+                  <div class="info-card__block">
+                    <span>
+                      <i
+                        >Backends must be in subnet {{ subnet.productName || subnet.eid }} ({{
+                          subnet.subnet?.spec?.cidrBlock
+                        }}).</i
+                      >
+                    </span>
+                  </div>
+                }
                 <div class="info-card__block">
                   <span>Select mapping type:</span>
                 </div>
@@ -106,6 +159,8 @@
                         <input matInput type="text" autocomplete="off" formControlName="value" placeholder="10.0.0.1" />
                         @if (endpointsForm.get('value')?.hasError('ipv4')) {
                           <mat-error>Invalid IPv4 address</mat-error>
+                        } @else if (endpointsForm.get('value')?.hasError('subnet')) {
+                          <mat-error>Use an address in {{ subnetCidr() }}.</mat-error>
                         }
                       </mat-form-field>
 

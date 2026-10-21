@@ -13,6 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProtocolEnum } from '@products/00_shared/models/network/subnet/protocol.enum';
 import { LoadBalancerService } from '@products/00_shared/services/load-balancer.service';
+import { SubnetService } from '@products/00_shared/services/subnet.service';
 import { getProductLabelInfo } from '@products/00_shared/utils/product-label-utils';
 import { BannerComponent } from '@shared/components/banner/banner.component';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
@@ -50,6 +51,7 @@ export class LoadBalancerDetailsComponent {
   protected stateSvc = inject(StateService);
   protected permissionSvc = inject(PermissionService);
   protected lbSvc = inject(LoadBalancerService);
+  protected subnetSvc = inject(SubnetService);
   protected clipboard = inject(Clipboard);
   protected router = inject(Router);
 
@@ -80,6 +82,26 @@ export class LoadBalancerDetailsComponent {
       }
     }
     return [];
+  });
+
+  subnetEId = computed(() => (this.lbProduct.hasValue() ? this.lbProduct.value().loadBalancer?.subnetEId : undefined));
+
+  subnets = rxResource({
+    params: () => [this.subnetEId(), this.az()],
+    stream: () => {
+      if (this.subnetEId() && this.az() && this.stateSvc.organization()?.id && this.stateSvc.project()?.id) {
+        return this.subnetSvc.listByAZ(this.stateSvc.organization()!.id, this.stateSvc.project()!.id, this.az());
+      } else {
+        return of([]);
+      }
+    },
+    defaultValue: [],
+  });
+
+  // Shared subnets of another project are not listed: fall back to the effective ID
+  subnetName = computed(() => {
+    const eid = this.subnetEId();
+    return this.subnets.value().find(s => s.eid === eid)?.productName || eid;
   });
 
   isDR = computed(() => {

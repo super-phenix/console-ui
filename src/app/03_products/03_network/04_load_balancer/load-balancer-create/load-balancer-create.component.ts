@@ -1,6 +1,6 @@
 import { transferArrayItem } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -26,12 +26,13 @@ import { CreateLoadBalancer } from '@products/00_shared/models/network/load-bala
 import { RulePort } from '@products/00_shared/models/network/load-balancer/load-balancer.model';
 import { AZService } from '@products/00_shared/services/az.service';
 import { LoadBalancerService } from '@products/00_shared/services/load-balancer.service';
-import { IsIPinRange } from '@products/00_shared/utils/ip';
+import { SubnetService } from '@products/00_shared/services/subnet.service';
+import { CidrForVersion, IsIPinRange, IsValidIPv4 } from '@products/00_shared/utils/ip';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { MAX_NAME_LENGTH, VIRTUAL_IP_RANGE } from '@shared/models/consts';
 import { StateService } from '@shared/services/state.service';
 import { ipValidator, ipv4Validator } from '@shared/utils/validators';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 
 @Component({
   selector: 'spx-load-balancer-create',
@@ -58,6 +59,7 @@ export class LoadBalancerCreateComponent {
   protected lbService = inject(LoadBalancerService);
   protected stateSvc = inject(StateService);
   protected azSvc = inject(AZService);
+  protected subnetSvc = inject(SubnetService);
   protected route = inject(ActivatedRoute);
   protected router = inject(Router);
 
@@ -69,6 +71,7 @@ export class LoadBalancerCreateComponent {
   firstFormGroup = this.fb.group({
     productName: this.fb.nonNullable.control('', Validators.required),
     az: this.fb.nonNullable.control('', Validators.required),
+    subnetEId: this.fb.nonNullable.control('', Validators.required),
     vip: this.fb.nonNullable.control('', [Validators.required, ipValidator(), this.ipInRangeValidator()]),
   });
 
@@ -88,12 +91,40 @@ export class LoadBalancerCreateComponent {
 
   endpointsList: string[] = [];
   endpointsForm = this.fb.group({
-    value: new FormControl<string>('', [Validators.required, ipv4Validator()]),
+    value: new FormControl<string>('', [Validators.required, ipv4Validator(), this.endpointInSubnetValidator()]),
   });
 
   labelsSelector = signal<string[]>([]);
 
+  selectedAz = toSignal(this.firstFormGroup.controls.az.valueChanges, { initialValue: '' });
+
+  subnetsProduct = rxResource({
+    params: () => this.selectedAz(),
+    stream: () => {
+      if (this.selectedAz() && this.stateSvc.organization()?.id && this.stateSvc.project()?.id) {
+        return this.subnetSvc.listByAZ(
+          this.stateSvc.organization()!.id,
+          this.stateSvc.project()!.id,
+          this.selectedAz()
+        );
+      } else {
+        return of([]);
+      }
+    },
+    defaultValue: [],
+  });
+
+  selectedSubnetEId = toSignal(this.firstFormGroup.controls.subnetEId.valueChanges, { initialValue: '' });
+  selectedSubnet = computed(() => this.subnetsProduct.value().find(s => s.eid === this.selectedSubnetEId()));
+  subnetCidr = computed(() => CidrForVersion(this.selectedSubnet()?.subnet?.spec?.cidrBlock ?? '', 4) ?? '');
+
   constructor() {
+    // Subnets are per AZ: reset the choice when the AZ changes
+    effect(() => {
+      this.selectedAz();
+      this.firstFormGroup.controls.subnetEId.setValue('');
+    });
+
     this.secondFormGroup
       .get('type')
       ?.valueChanges.pipe(takeUntilDestroyed())
@@ -167,6 +198,7 @@ export class LoadBalancerCreateComponent {
         },
         spec: {
           vip: firstValues.vip,
+          subnetEId: firstValues.subnetEId,
           ports: secondValues.ports,
           selectors: [],
           endpoints: [],
@@ -185,6 +217,16 @@ export class LoadBalancerCreateComponent {
       );
       this.router.navigate(['..', 'details', az, created.eid], { relativeTo: this.route });
     }
+  }
+
+  endpointInSubnetValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const ip = control.value;
+      if (!ip || !IsValidIPv4(ip) || !this.subnetCidr()) {
+        return null;
+      }
+      return IsIPinRange(this.subnetCidr(), ip) ? null : { subnet: true };
+    };
   }
 
   ipInRangeValidator(): ValidatorFn {

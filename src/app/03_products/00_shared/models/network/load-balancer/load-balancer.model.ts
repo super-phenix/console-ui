@@ -4,6 +4,10 @@ export interface LoadBalancer {
   kind: string;
   apiVersion: string;
   metadata: ObjectMeta;
+  // Subnet the load balancer is pinned to, empty for load balancers created before pinning
+  subnetEId?: string;
+  // Source IP of the health checks
+  healthCheckIP?: string;
   spec: LoadBalancerSpec;
   status: LoadBalancerStatus;
 }

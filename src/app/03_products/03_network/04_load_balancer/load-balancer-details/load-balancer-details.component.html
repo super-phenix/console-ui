@@ -109,6 +109,19 @@
           <span class="product-details__card-line">
             <strong>Virtual IP: </strong> {{ lb.loadBalancer?.spec?.vip }}
           </span>
+          <span class="product-details__card-line">
+            <strong>Subnet: </strong>
+            @if (subnetEId()) {
+              <a [routerLink]="['/products', 'network', 'subnet', 'details', az(), subnetEId()]">{{ subnetName() }}</a>
+            } @else {
+              <i>None, edit the load balancer to select one</i>
+            }
+          </span>
+          @if (lb.loadBalancer?.healthCheckIP) {
+            <span class="product-details__card-line">
+              <strong>Health check source: </strong> {{ lb.loadBalancer.healthCheckIP }}
+            </span>
+          }
           <div class="product-details__card-line">
             <div class="d-flex flex-column my-1">
               <strong>{{ lb.loadBalancer?.spec?.selector ? 'Selectors' : 'Endpoints' }}</strong>
