@@ -122,15 +122,28 @@ export class OrganizationQuotasComponent {
     if (!overview) {
       return [];
     }
-    return this.resources.map(resource => ({
-      resource,
-      limit: this.orgLimit(resource),
-      parts: this.projectsData().map(data => ({
+    const knownProjectIds = new Set(this.projectsData().map(data => data.project.id));
+    const unknownProjectQuotas = (overview.projectQuotas ?? []).filter(pq => !knownProjectIds.has(pq.projectId));
+
+    return this.resources.map(resource => {
+      const knownParts: QuotaBarPart[] = this.projectsData().map(data => ({
         key: data.project.id,
         label: data.project.name,
         value: this.projectAllocation(data, resource),
-      })),
-    }));
+      }));
+
+      const unknownParts: QuotaBarPart[] = unknownProjectQuotas.map(pq => ({
+        key: pq.projectId,
+        label: 'Unknown quota',
+        value: quotaValue(pq.limit, resource),
+      }));
+
+      return {
+        resource,
+        limit: this.orgLimit(resource),
+        parts: [...knownParts, ...unknownParts],
+      };
+    });
   });
 
   /** Project quotas, split among the AZs (allocation only, the usage is in the AZ tables) */
@@ -202,41 +215,69 @@ export class OrganizationQuotasComponent {
     const projects = org.projects ?? [];
     const canReadOrg = this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead);
 
-    // A project that cannot be loaded is still displayed, without its AZ quotas
-    const projectRequests: Observable<ProjectRequestResult[]> =
-      projects.length === 0
-        ? of([])
-        : forkJoin(
-            projects.map(project =>
-              forkJoin({
-                overview: this.quotaSvc.getProjectQuota(org.id, project.id).pipe(catchError(() => of(null))),
-                permissions: this.permissionSvc
-                  .getEntityPermissions(org.id, EntityTypeEnum.Project, project.id)
-                  .pipe(catchError(() => of([]))),
-              })
-            )
-          );
-
     const orgQuotaRequest = canReadOrg
       ? this.quotaSvc.getOrganizationQuota(org.id).pipe(catchError(() => of(undefined)))
       : of(undefined);
 
     try {
-      const [overview, results] = await Promise.all([firstValueFrom(orgQuotaRequest), firstValueFrom(projectRequests)]);
+      const overview = await firstValueFrom(orgQuotaRequest);
       this.orgOverview.set(overview);
+
+      // Collect all candidate projects: known projects from org.projects, plus projects from overview.projectQuotas
+      const allProjects: Project[] = [...projects];
+      if (overview?.projectQuotas) {
+        for (const pq of overview.projectQuotas) {
+          if (!allProjects.some(p => p.id === pq.projectId)) {
+            allProjects.push({ id: pq.projectId, name: pq.projectId });
+          }
+        }
+      }
+
+      const projectRequests: Observable<ProjectRequestResult[]> =
+        allProjects.length === 0
+          ? of([])
+          : forkJoin(
+              allProjects.map(project =>
+                forkJoin({
+                  overview: this.quotaSvc.getProjectQuota(org.id, project.id).pipe(catchError(() => of(null))),
+                  permissions: this.permissionSvc
+                    .getEntityPermissions(org.id, EntityTypeEnum.Project, project.id)
+                    .pipe(catchError(() => of([]))),
+                })
+              )
+            );
+
+      const results = await firstValueFrom(projectRequests);
       const validProjectsData: ProjectQuotaData[] = [];
-      for (let i = 0; i < projects.length; i++) {
-        const project = projects[i];
-        const projectOverview = results[i]?.overview ?? null;
+      for (let i = 0; i < allProjects.length; i++) {
+        const project = allProjects[i];
+        let projectOverview = results[i]?.overview ?? null;
+        const pq = overview?.projectQuotas?.find(p => p.projectId === project.id);
+
+        if (!projectOverview && pq) {
+          // If retrieving project overview failed (e.g. 403), fallback to quota from org overview
+          projectOverview = {
+            projectId: project.id,
+            organizationId: org.id,
+            unlimited: !pq.limit || Object.keys(pq.limit).length === 0,
+            limit: pq.limit,
+            allocated: {},
+            remaining: {},
+            azQuotas: [],
+          };
+        }
+
         if (!projectOverview) {
           continue;
         }
+
         let quota: ProjectQuota | undefined;
         if (overview !== undefined) {
-          quota = overview.projectQuotas?.find(pq => pq.projectId === project.id);
+          quota = overview.projectQuotas?.find(p => p.projectId === project.id);
         } else if (projectOverview.limit) {
           quota = { projectId: project.id, organizationId: org.id, limit: projectOverview.limit };
         }
+
         validProjectsData.push({
           project,
           quota,
@@ -244,6 +285,7 @@ export class OrganizationQuotasComponent {
           canWriteAZ: (results[i]?.permissions ?? []).includes(PermissionsEnum.ProjectAZQuotaWrite),
         });
       }
+
       this.projectsData.set(validProjectsData);
       this.hasLoaded.set(true);
     } finally {
@@ -263,10 +305,13 @@ export class OrganizationQuotasComponent {
         if (remaining !== null) {
           return [resource, Math.max(remaining + currentAllocation, 0)];
         }
-        const others = this.projectsData()
+        const knownOthers = this.projectsData()
           .filter(data => data.project.id !== view.project.id)
           .reduce((acc, data) => acc + (this.projectAllocation(data, resource) ?? 0), 0);
-        return [resource, Math.max(limit - others, 0)];
+        const unknownOthers = (this.orgOverview()?.projectQuotas ?? [])
+          .filter(pq => !this.projectsData().some(d => d.project.id === pq.projectId))
+          .reduce((acc, pq) => acc + (quotaValue(pq.limit, resource) ?? 0), 0);
+        return [resource, Math.max(limit - (knownOthers + unknownOthers), 0)];
       })
     );
 

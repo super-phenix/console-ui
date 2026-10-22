@@ -105,11 +105,22 @@ describe('OrganizationQuotasComponent', () => {
     fixture.detectChanges();
 
     httpMock.expectOne(`${baseUrl}/quota`).flush(overview);
-    for (const p of projects) {
-      httpMock.expectOne(`${baseUrl}/project/${p.id}/quota`).flush(overviews[p.id]);
+    await new Promise(resolve => setTimeout(resolve));
+
+    const expectedProjectIds = new Set(projects.map(p => p.id));
+    if (overview.projectQuotas) {
+      overview.projectQuotas.forEach(pq => expectedProjectIds.add(pq.projectId));
+    }
+    for (const pid of expectedProjectIds) {
+      const req = httpMock.expectOne(`${baseUrl}/project/${pid}/quota`);
+      if (overviews[pid]) {
+        req.flush(overviews[pid]);
+      } else {
+        req.flush('forbidden', { status: 403, statusText: 'Forbidden' });
+      }
     }
     const permissionRequests = httpMock.match(`${baseUrl}/iam/permissions`);
-    expect(permissionRequests.length).toBe(projects.length);
+    expect(permissionRequests.length).toBe(expectedProjectIds.size);
     permissionRequests.forEach(req => req.flush(permissionsByProject[req.request.body.entityId] ?? []));
 
     // Let the loading promise settle before rendering
@@ -317,6 +328,7 @@ describe('OrganizationQuotasComponent', () => {
 
     // Org quota should NOT be requested
     httpMock.expectNone(`${baseUrl}/quota`);
+    await new Promise(resolve => setTimeout(resolve));
 
     // Individual project quotas should be requested
     const overviews = projectOverviews();
@@ -349,13 +361,14 @@ describe('OrganizationQuotasComponent', () => {
     expect(p1Card.querySelectorAll('.org-quotas__az-actions button').length).toBe(2);
   });
 
-  it('should not display projects where quota read returns 403', async () => {
+  it('should display projects from organization quota even if their individual quota read returns 403', async () => {
     organization.set({ id: orgId, projects });
     fixture = TestBed.createComponent(OrganizationQuotasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
 
     httpMock.expectOne(`${baseUrl}/quota`).flush(orgOverview());
+    await new Promise(resolve => setTimeout(resolve));
 
     // Project 1 returns 200, Project 2 returns 403
     httpMock.expectOne(`${baseUrl}/project/p1/quota`).flush(projectOverviews()['p1']);
@@ -369,11 +382,93 @@ describe('OrganizationQuotasComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    // Only p1 should be in projectViews, p2 should not be displayed
-    expect(component.projectViews().length).toBe(1);
-    expect(component.projectViews()[0].project.id).toBe('p1');
+    // Both p1 and p2 should be in projectViews because p2 falls back to the organization quota
+    expect(component.projectViews().length).toBe(2);
+    expect(component.projectViews().map(v => v.project.id)).toEqual(['p1', 'p2']);
     const projectCards = fixture.nativeElement.querySelectorAll('.org-quotas__project');
-    expect(projectCards.length).toBe(1);
-    expect(projectCards[0].getAttribute('data-project-id')).toBe('p1');
+    expect(projectCards.length).toBe(2);
+
+    const cpuBar = component.orgBars().find(b => b.resource === QuotaResourceEnum.CPU)!;
+    expect(cpuBar.parts).toEqual([
+      { key: 'p1', label: 'Project 1', value: 4000 },
+      { key: 'p2', label: 'Project 2', value: 8000 },
+    ]);
+  });
+
+  it('should display projects returned in organization quota that are not in the organization projects list and fetch their stats', async () => {
+    const overviewWithUnknownProjects: OrganizationQuotaOverview = {
+      organizationId: orgId,
+      unlimited: false,
+      limit: { cpu: '20', memory: '100Gi' },
+      allocated: { cpu: '16', memory: '60Gi' },
+      remaining: { cpu: '4', memory: '40Gi' },
+      projectQuotas: [
+        { projectId: 'p1', organizationId: orgId, limit: { cpu: '4', memory: '40Gi' } },
+        { projectId: 'p2', organizationId: orgId, limit: { cpu: '8', memory: '0' } },
+        { projectId: 'p3-hidden', organizationId: orgId, limit: { cpu: '4', memory: '20Gi' } },
+      ],
+    };
+
+    const overviewsWithP3: Record<string, ProjectQuotaOverview> = {
+      ...projectOverviews(),
+      'p3-hidden': {
+        projectId: 'p3-hidden',
+        organizationId: orgId,
+        unlimited: false,
+        limit: { cpu: '4', memory: '20Gi' },
+        allocated: { cpu: '2', memory: '10Gi' },
+        remaining: { cpu: '2', memory: '10Gi' },
+        azQuotas: [
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '2', memory: '10Gi' },
+            available: true,
+            used: { cpu: '1500m', memory: '5Gi' },
+          },
+        ],
+      },
+    };
+
+    await createComponent(
+      overviewWithUnknownProjects,
+      { p1: [PermissionsEnum.ProjectAZQuotaWrite], p2: [] },
+      overviewsWithP3
+    );
+
+    // p1, p2, and p3-hidden are all visible in projectViews
+    expect(component.projectViews().length).toBe(3);
+    expect(component.projectViews().map(v => v.project.id)).toEqual(['p1', 'p2', 'p3-hidden']);
+
+    // All 3 appear in orgBars with their names
+    const [cpu, memory] = component.orgBars();
+    expect(cpu.parts).toEqual([
+      { key: 'p1', label: 'Project 1', value: 4000 },
+      { key: 'p2', label: 'Project 2', value: 8000 },
+      { key: 'p3-hidden', label: 'p3-hidden', value: 4000 },
+    ]);
+    expect(memory.parts).toEqual([
+      { key: 'p1', label: 'Project 1', value: 40 * GI },
+      { key: 'p2', label: 'Project 2', value: 0 },
+      { key: 'p3-hidden', label: 'p3-hidden', value: 20 * GI },
+    ]);
+
+    const orgCard = fixture.nativeElement.querySelector('.org-quotas__org');
+    const bars = orgCard.querySelectorAll('spx-quota-bar');
+    const cpuLegend = text(bars[0].querySelector('.quota-bar__legend'));
+    expect(cpuLegend).toContain('p3-hidden 4 vCPU (20%)');
+
+    // Also check that p3-hidden has a card and renders its quota and AZ stats when expanded
+    component.expandedProjects.set(new Set(['p3-hidden']));
+    fixture.detectChanges();
+
+    const p3Card = fixture.nativeElement.querySelector('[data-project-id="p3-hidden"]');
+    expect(p3Card).toBeTruthy();
+    expect(text(p3Card)).toContain('p3-hidden');
+    expect(p3Card.querySelectorAll('spx-quota-bar').length).toBe(3);
+
+    const p3View = component.projectViews().find(v => v.project.id === 'p3-hidden')!;
+    expect(p3View.azRows.length).toBe(2);
+    expect(p3View.azRows[0].cells[QuotaResourceEnum.CPU].text).toBe('1.5 vCPU / 2 vCPU');
+    expect(p3View.azRows[0].cells[QuotaResourceEnum.Memory].text).toBe('5 GiB / 10 GiB');
   });
 });
