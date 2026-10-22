@@ -1,8 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterLink } from '@angular/router';
 import { BannerComponent } from '@shared/components/banner/banner.component';
@@ -21,6 +22,19 @@ import {
   ProductPaas,
   ProductStorage,
 } from '@shared/models/data/product.enum';
+import { QUOTA_RESOURCES, QuotaResourceEnum, QuotaResources } from '@shared/models/data/quota';
+import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
+import { PermissionService } from '@shared/services/permission.service';
+import { QuotaService } from '@shared/services/quota.service';
+import {
+  QUOTA_RESOURCE_ICONS,
+  QUOTA_RESOURCE_LABELS,
+  QUOTA_SETTINGS_FRAGMENT,
+  QUOTA_SETTINGS_LINK,
+  QuotaFill,
+  quotaFill,
+  quotaValue,
+} from '@shared/utils/quota';
 import { catchError, of } from 'rxjs';
 import { DashboardService, RecentProduct } from '../dashboard.service';
 
@@ -77,6 +91,17 @@ const TYPES_WITHOUT_DETAILS = ['ssh'];
 /** Above this share of the quota, the meter is highlighted so the limit becomes noticeable. */
 const QUOTA_WARN_PERCENT = 80;
 
+interface QuotaFills {
+  /** The whole project, per resource */
+  project: Record<QuotaResourceEnum, QuotaFill>;
+  /** Each AZ the project has something allocated or used in */
+  azs: { code: string; name: string; cells: Record<QuotaResourceEnum, QuotaFill> }[];
+  /** Nothing limits the project: Kubernetes does not track its usage */
+  unlimited: boolean;
+  /** false when some AZ could not be reached */
+  complete: boolean;
+}
+
 @Component({
   selector: 'spx-dashboard',
   imports: [
@@ -84,7 +109,9 @@ const QUOTA_WARN_PERCENT = 80;
     DecimalPipe,
     MatButtonModule,
     MatIconModule,
+    MatMenuModule,
     MatProgressBarModule,
+    NgTemplateOutlet,
     RouterLink,
     BannerComponent,
     ContentHeaderComponent,
@@ -97,6 +124,8 @@ export class DashboardComponent {
   protected stateSvc = inject(StateService);
   protected screenSvc = inject(ScreenService);
   private dashboardSvc = inject(DashboardService);
+  private permissionSvc = inject(PermissionService);
+  private quotaSvc = inject(QuotaService);
 
   protected announcement: Announcement | undefined = environment.announcement;
 
@@ -163,6 +192,113 @@ export class DashboardComponent {
     return { ...quota, percent, nearLimit: percent >= QUOTA_WARN_PERCENT };
   });
 
+  /** The project quota can be read; the organization one is only needed to apply its limits to the project. */
+  protected canReadQuota = computed(() =>
+    this.permissionSvc.permissions().includes(PermissionsEnum.ProjectAZQuotaRead)
+  );
+  /** Also needed to open the Quotas tab of the organization settings */
+  protected canReadOrgQuota = computed(() =>
+    this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead)
+  );
+  protected canOpenQuotaSettings = computed(() => this.canReadQuota() || this.canReadOrgQuota());
+  protected readonly quotaSettingsLink = QUOTA_SETTINGS_LINK;
+  protected readonly quotaSettingsFragment = QUOTA_SETTINGS_FRAGMENT;
+  protected readonly quotaResources = QUOTA_RESOURCES;
+  protected readonly quotaLabels = QUOTA_RESOURCE_LABELS;
+  protected readonly quotaIcons = QUOTA_RESOURCE_ICONS;
+
+  /** Quota and usage of the current project. */
+  protected quotas = rxResource({
+    params: computed(() => [this.stateSvc.organization(), this.stateSvc.project(), this.canReadQuota()]),
+    stream: () => {
+      const org = this.stateSvc.organization();
+      const project = this.stateSvc.project();
+      if (!org || !project || !this.canReadQuota()) {
+        return of(undefined);
+      }
+
+      return this.quotaSvc.getProjectQuota(org.id, project.id).pipe(
+        catchError(err => {
+          console.error(err);
+          return of(undefined);
+        })
+      );
+    },
+  });
+
+  /**
+   * How full the project and each of its AZs are: what is used of what is allocated, per resource.
+   */
+  protected quotaFills = computed<QuotaFills | undefined>(() => {
+    const project = this.quotas.value();
+    if (!project) {
+      return undefined;
+    }
+
+    const azList = this.stateSvc.azList();
+    const azQuotas = project.azQuotas ?? [];
+    const complete = azQuotas.every(az => az.available);
+
+    const codes = new Set(azList.map(az => az.code));
+    azQuotas.forEach(azq => codes.add(azq.codeAZ));
+    const azs = [...codes].map(code => {
+      const azq = azQuotas.find(q => q.codeAZ === code);
+      return {
+        code,
+        name: azList.find(az => az.code === code)?.name ?? code,
+        limit: azq?.limit,
+        available: azq?.available ?? true,
+        used: azq?.used ?? {},
+      };
+    });
+
+    const limits = QUOTA_RESOURCES.map(resource => {
+      const projectLimit = quotaValue(project.limit, resource);
+      const azLimits = azs.map(az => quotaValue(az.limit, resource));
+      const limit =
+        projectLimit ??
+        (azLimits.length > 0 && azLimits.every(v => v !== null) ? azLimits.reduce((acc, v) => acc + v!, 0) : null);
+      const tracked = projectLimit !== null || azLimits.some(v => v !== null);
+      return { resource, limit, azLimits, tracked };
+    });
+    if (limits.every(l => !l.tracked)) {
+      return { project: {} as Record<QuotaResourceEnum, QuotaFill>, azs: [], unlimited: true, complete };
+    }
+
+    const projectFills = Object.fromEntries(
+      limits.map(({ resource, limit, tracked }) => {
+        let sum = 0;
+        let hasUsage = false;
+        for (const az of azs) {
+          if (az.available) {
+            const val = quotaValue(az.used, resource);
+            if (val !== null) {
+              sum += val;
+              hasUsage = true;
+            }
+          }
+        }
+        const totalUsed = hasUsage || tracked ? sum : undefined;
+        return [resource, quotaFill(resource, totalUsed, limit)];
+      })
+    ) as Record<QuotaResourceEnum, QuotaFill>;
+
+    const rows = azs
+      .map((az, i) => {
+        const cells = Object.fromEntries(
+          limits.map(({ resource, azLimits }) => [
+            resource,
+            quotaFill(resource, this.azUsedValue(az, resource, azLimits[i]), azLimits[i]),
+          ])
+        ) as Record<QuotaResourceEnum, QuotaFill>;
+        return { code: az.code, name: az.name, cells };
+      })
+      // Nothing allocated nor used in the AZ: nothing to tell about it
+      .filter(row => Object.values(row.cells).some(cell => cell.percent !== null || cell.unavailable));
+
+    return { project: projectFills, azs: rows, unlimited: false, complete };
+  });
+
   /** Last created resources, with their label, their AZ logo and the page to open. */
   protected recent = computed(() => {
     const azList = this.stateSvc.azList();
@@ -192,6 +328,22 @@ export class DashboardComponent {
       }))
       .sort((a, b) => b.count - a.count || a.code.localeCompare(b.code));
   });
+
+  /**
+   * What the project uses of `resource` in an AZ, see quotaFill. Kubernetes only tracks the limited
+   * resources: a missing usage is 0 when the AZ is limited, and not tracked otherwise. An AZ missing from a
+   * complete usage holds nothing.
+   */
+  private azUsedValue(
+    az: { available: boolean; used: QuotaResources },
+    resource: QuotaResourceEnum,
+    azLimit: number | null
+  ): number | null | undefined {
+    if (!az.available) {
+      return null;
+    }
+    return quotaValue(az.used, resource) ?? (azLimit !== null ? 0 : undefined);
+  }
 
   /** Deep link to a recent resource: its details page, or the product list when it has none. */
   private recentLink(product: RecentProduct) {
