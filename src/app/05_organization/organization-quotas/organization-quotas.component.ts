@@ -14,9 +14,6 @@ import {
   ProjectQuota,
   ProjectQuotaOverview,
   QUOTA_RESOURCES,
-  QuotaAZUsage,
-  QuotaOrganizationUsage,
-  QuotaProjectUsage,
   QuotaResourceEnum,
   QuotaResources,
 } from '@shared/models/data/quota';
@@ -25,14 +22,7 @@ import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { QuotaService } from '@shared/services/quota.service';
 import { StateService } from '@shared/services/state.service';
-import {
-  enforcedQuotaValue,
-  QUOTA_RESOURCE_LABELS,
-  QuotaBarPart,
-  QuotaFill,
-  quotaFill,
-  quotaValue,
-} from '@shared/utils/quota';
+import { QUOTA_RESOURCE_LABELS, QuotaBarPart, QuotaFill, quotaFill, quotaValue } from '@shared/utils/quota';
 import { QuotaBarComponent, quotaColorClass } from '@shared/components/quota-bar/quota-bar.component';
 import { catchError, firstValueFrom, forkJoin, Observable, of } from 'rxjs';
 
@@ -107,8 +97,6 @@ export class OrganizationQuotasComponent {
   projectsData = signal<ProjectQuotaData[]>([]);
   /** Projects currently maximized */
   expandedProjects = signal<Set<string>>(new Set());
-  /** Current usage: undefined while loading, null when it could not be loaded */
-  usage = signal<QuotaOrganizationUsage | null | undefined>(undefined);
 
   isExpanded(projectId: string): boolean {
     return this.expandedProjects().has(projectId);
@@ -149,14 +137,17 @@ export class OrganizationQuotasComponent {
   projectViews = computed<ProjectQuotaView[]>(() => {
     const azList = this.stateSvc.azList();
     return this.projectsData().map((data, index) => {
-      const projectUsage = this.projectUsage(data.project.id);
+      const azQuotas = data.overview?.azQuotas ?? [];
       const codes = new Set(azList.map(az => az.code));
-      data.overview?.azQuotas?.forEach(azq => codes.add(azq.CodeAZ));
-      const azs = [...codes].map(code => ({
-        code,
-        name: azList.find(az => az.code === code)?.name ?? code,
-        usage: this.azUsage(projectUsage, code),
-      }));
+      azQuotas.forEach(azq => codes.add(azq.codeAZ));
+      const azs = [...codes].map(code => {
+        const azq = azQuotas.find(q => q.codeAZ === code);
+        return {
+          code,
+          name: azList.find(az => az.code === code)?.name ?? code,
+          azq,
+        };
+      });
 
       const bars = this.resources.map(resource => ({
         resource,
@@ -168,7 +159,7 @@ export class OrganizationQuotasComponent {
         this.resources.map(resource => {
           const value = this.projectAllocation(data, resource);
           const azValues = azs.map(az => this.azValue(data, az.code, resource));
-          const used = this.parentUsage(projectUsage, resource, value, azValues);
+          const used = this.projectTotalUsed(azs, resource, value, azValues);
           return [resource, quotaFill(resource, used, value)];
         })
       ) as Record<QuotaResourceEnum, AZQuotaCell>;
@@ -180,7 +171,7 @@ export class OrganizationQuotasComponent {
         cells: Object.fromEntries(
           this.resources.map(resource => {
             const value = this.azValue(data, az.code, resource);
-            const used = this.childUsage(az.usage, resource, value);
+            const used = this.childUsage(az.azq, resource, value);
             return [resource, quotaFill(resource, used, value)];
           })
         ) as Record<QuotaResourceEnum, AZQuotaCell>,
@@ -192,7 +183,7 @@ export class OrganizationQuotasComponent {
         bars,
         azRows,
         totalCells,
-        usageComplete: projectUsage?.complete ?? true,
+        usageComplete: azQuotas.every(azq => azq.available),
       };
     });
   });
@@ -208,8 +199,6 @@ export class OrganizationQuotasComponent {
 
   async load(org: Organization) {
     this.loading.set(true);
-    // The usage is read from every AZ: it may come later than the quotas, which are shown meanwhile
-    this.loadUsage(org);
     const projects = org.projects ?? [];
     const canReadOrg = this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead);
 
@@ -244,9 +233,9 @@ export class OrganizationQuotasComponent {
         }
         let quota: ProjectQuota | undefined;
         if (overview !== undefined) {
-          quota = overview.projectQuotas?.find(pq => pq.ProjectId === project.id);
-        } else if (projectOverview.resources) {
-          quota = { ProjectId: project.id, OrganizationId: org.id, Resources: projectOverview.resources };
+          quota = overview.projectQuotas?.find(pq => pq.projectId === project.id);
+        } else if (projectOverview.limit) {
+          quota = { projectId: project.id, organizationId: org.id, limit: projectOverview.limit };
         }
         validProjectsData.push({
           project,
@@ -269,6 +258,11 @@ export class OrganizationQuotasComponent {
         if (limit === null) {
           return [resource, null];
         }
+        const remaining = quotaValue(this.orgOverview()?.remaining, resource);
+        const currentAllocation = this.projectAllocation(view, resource) ?? 0;
+        if (remaining !== null) {
+          return [resource, Math.max(remaining + currentAllocation, 0)];
+        }
         const others = this.projectsData()
           .filter(data => data.project.id !== view.project.id)
           .reduce((acc, data) => acc + (this.projectAllocation(data, resource) ?? 0), 0);
@@ -280,7 +274,7 @@ export class OrganizationQuotasComponent {
       title: `Quota of the project '${view.project.name}'`,
       description: 'Share of the organization quota allocated to this project.',
       parentType: 'organization',
-      resources: view.quota?.Resources ?? {},
+      resources: view.quota?.limit ?? {},
       available,
       emptyHint:
         'Leave a field empty to not limit the resource. When the organization limits it, the project gets none of it.',
@@ -302,6 +296,11 @@ export class OrganizationQuotasComponent {
         const limit = this.projectLimit(view, resource);
         if (limit === null) {
           return [resource, null];
+        }
+        const remaining = quotaValue(view.overview?.remaining, resource);
+        const currentAllocation = this.azValue(view, row.code, resource) ?? 0;
+        if (remaining !== null) {
+          return [resource, Math.max(remaining + currentAllocation, 0)];
         }
         const others = view.azRows
           .filter(r => r.code !== row.code)
@@ -350,47 +349,6 @@ export class OrganizationQuotasComponent {
     });
   }
 
-  async loadUsage(org: Organization) {
-    this.usage.set(undefined);
-    let usage: QuotaOrganizationUsage | null;
-    const canReadOrg = this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationProjectQuotaRead);
-    if (canReadOrg) {
-      try {
-        usage = await firstValueFrom(this.quotaSvc.getOrganizationUsage(org.id));
-      } catch {
-        usage = null;
-      }
-    } else {
-      const projects = org.projects ?? [];
-      if (projects.length === 0) {
-        usage = { organizationId: org.id, complete: true, used: {}, projects: [] };
-      } else {
-        try {
-          const projectUsages = await firstValueFrom(
-            forkJoin(projects.map(p => this.quotaSvc.getProjectUsage(org.id, p.id).pipe(catchError(() => of(null)))))
-          );
-          const valid = projectUsages.filter((u): u is QuotaProjectUsage => u !== null);
-          if (valid.length > 0 || projectUsages.length === 0) {
-            usage = {
-              organizationId: org.id,
-              complete: valid.every(u => u.complete),
-              used: {},
-              projects: valid,
-            };
-          } else {
-            usage = null;
-          }
-        } catch {
-          usage = null;
-        }
-      }
-    }
-    // Ignore the answer of an organization that is no longer displayed
-    if (this.stateSvc.organization()?.id === org.id) {
-      this.usage.set(usage);
-    }
-  }
-
   reload() {
     const org = this.stateSvc.organization();
     if (org) {
@@ -404,55 +362,31 @@ export class OrganizationQuotasComponent {
     if (!overview || overview.unlimited) {
       return null;
     }
-    return quotaValue(overview.resources, resource);
+    return quotaValue(overview.limit, resource);
   }
 
   /**
-   * What a project takes from the organization quota (same as the API): its project quota when it has
+   * What a project takes from the organization quota: its project quota or effective limit when it has
    * one, otherwise the sum of its AZ quotas. null when the project is not limited on this resource.
    */
   projectAllocation(data: ProjectQuotaData, resource: QuotaResourceEnum): number | null {
-    if (data.quota) {
-      return this.projectLimit(data, resource);
+    const limit = this.projectLimit(data, resource);
+    if (limit !== null) {
+      return limit;
     }
-    const values = (data.overview?.azQuotas ?? [])
-      .map(azq => quotaValue(azq.Resources, resource))
-      .filter((v): v is number => v !== null);
-    if (values.length > 0) {
-      return values.reduce((acc, v) => acc + v, 0);
-    }
-    return this.orgLimit(resource) !== null ? 0 : null;
+    return quotaValue(data.overview?.allocated, resource);
   }
 
   /**
-   * Limit the AZ quotas of a project must fit in (same as the API): the project quota, or 0 when the
-   * organization limits a resource the project quota does not. null when not limited.
+   * Limit the AZ quotas of a project must fit in: the project's effective limit, null when not limited.
    */
   projectLimit(data: ProjectQuotaData, resource: QuotaResourceEnum): number | null {
-    return enforcedQuotaValue(data.quota?.Resources ?? data.overview?.resources, resource, this.orgLimit(resource));
+    return quotaValue(data.overview?.limit ?? data.quota?.limit, resource);
   }
 
-  /** Enforced quota of a project in an AZ: an AZ without allocation for a resource limited by a parent gets 0 */
+  /** Quota of a project in an AZ */
   azValue(data: ProjectQuotaData, codeAZ: string, resource: QuotaResourceEnum): number | null {
-    return enforcedQuotaValue(this.azResources(data, codeAZ), resource, this.projectLimit(data, resource));
-  }
-
-  /** Usage of a project: undefined while loading, null when unavailable */
-  private projectUsage(projectId: string): QuotaProjectUsage | null | undefined {
-    const usage = this.usage();
-    if (!usage) {
-      return usage;
-    }
-    return usage.projects?.find(p => p.projectId === projectId) ?? null;
-  }
-
-  /** Usage of a project in an AZ: undefined while loading, null when unavailable */
-  private azUsage(usage: QuotaProjectUsage | null | undefined, codeAZ: string): QuotaAZUsage | null | undefined {
-    if (!usage) {
-      return usage;
-    }
-    const azUsage = usage.azs?.find(az => az.codeAZ === codeAZ);
-    return azUsage?.available ? azUsage : null;
+    return quotaValue(this.azResources(data, codeAZ), resource);
   }
 
   /**
@@ -461,39 +395,46 @@ export class OrganizationQuotasComponent {
    * displayed for an unlimited one.
    */
   private childUsage(
-    usage: { used: QuotaResources } | null | undefined,
+    azq: { available: boolean; used: QuotaResources } | undefined,
     resource: QuotaResourceEnum,
     value: number | null
   ): number | null | undefined {
-    if (!usage) {
-      return usage;
+    if (!azq) {
+      return value !== null ? 0 : undefined;
     }
-    return quotaValue(usage.used, resource) ?? (value !== null ? 0 : undefined);
+    if (!azq.available) {
+      return null;
+    }
+    return quotaValue(azq.used, resource) ?? (value !== null ? 0 : undefined);
   }
 
-  /** Total usage of a parent, only displayed once loaded and when it or one of its children (`values`) is limited */
-  private parentUsage(
-    usage: { used: QuotaResources } | null | undefined,
+  /** Total usage of a project, only displayed once loaded and when it or one of its children (`values`) is limited */
+  private projectTotalUsed(
+    azs: { azq?: { available: boolean; used: QuotaResources } }[],
     resource: QuotaResourceEnum,
     limit: number | null,
     values: (number | null)[]
   ): number | null | undefined {
-    if (usage === undefined) {
-      return undefined;
-    }
     const tracked = limit !== null || values.some(v => v !== null);
-    const used = usage ? quotaValue(usage.used, resource) : null;
-    if (used !== null) {
-      return used;
+    let totalUsed = 0;
+    let hasAnyUsage = false;
+    for (const az of azs) {
+      if (az.azq?.available) {
+        const val = quotaValue(az.azq.used, resource);
+        if (val !== null) {
+          totalUsed += val;
+          hasAnyUsage = true;
+        }
+      }
     }
-    if (!tracked) {
-      return undefined;
+    if (hasAnyUsage || tracked) {
+      return totalUsed;
     }
-    return usage ? 0 : null;
+    return undefined;
   }
 
   private azResources(data: ProjectQuotaData, codeAZ: string): QuotaResources {
-    return data.overview?.azQuotas?.find(azq => azq.CodeAZ === codeAZ)?.Resources ?? {};
+    return data.overview?.azQuotas?.find(azq => azq.codeAZ === codeAZ)?.limit ?? {};
   }
 
   private orgId() {

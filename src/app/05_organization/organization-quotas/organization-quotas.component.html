@@ -44,16 +44,6 @@
               Each project takes its share of the organization quota and splits it among its availability zones. The
               table of each project shows what it currently uses in every availability zone.
             </span>
-            @let orgUsage = usage();
-            @if (orgUsage === undefined) {
-              <span class="org-quotas__hint org-quotas__usage-status">
-                <mat-spinner diameter="14"></mat-spinner> Reading the usage from the availability zones…
-              </span>
-            } @else if (orgUsage === null) {
-              <span class="org-quotas__hint org-quotas__usage-status">
-                <mat-icon>error_outline</mat-icon> The usage could not be loaded.
-              </span>
-            }
           </div>
 
           @for (view of projectViews(); track view.project.id) {

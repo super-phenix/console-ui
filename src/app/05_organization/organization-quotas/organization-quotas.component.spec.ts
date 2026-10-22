@@ -3,12 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
-import {
-  OrganizationQuotaOverview,
-  ProjectQuotaOverview,
-  QuotaOrganizationUsage,
-  QuotaResourceEnum,
-} from '@shared/models/data/quota';
+import { OrganizationQuotaOverview, ProjectQuotaOverview, QuotaResourceEnum } from '@shared/models/data/quota';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
@@ -40,12 +35,12 @@ describe('OrganizationQuotasComponent', () => {
     return {
       organizationId: orgId,
       unlimited: false,
-      resources: { cpu: '10', memory: '100Gi' },
+      limit: { cpu: '10', memory: '100Gi' },
       allocated: { cpu: '12', memory: '40Gi' },
       remaining: { cpu: '0', memory: '60Gi' },
       projectQuotas: [
-        { ProjectId: 'p1', OrganizationId: orgId, Resources: { cpu: '4', memory: '40Gi' } },
-        { ProjectId: 'p2', OrganizationId: orgId, Resources: { cpu: '8' } },
+        { projectId: 'p1', organizationId: orgId, limit: { cpu: '4', memory: '40Gi' } },
+        { projectId: 'p2', organizationId: orgId, limit: { cpu: '8', memory: '0' } },
       ],
     };
   }
@@ -55,63 +50,61 @@ describe('OrganizationQuotasComponent', () => {
       p1: {
         projectId: 'p1',
         organizationId: orgId,
-        resources: { cpu: '4', memory: '40Gi' },
+        unlimited: false,
+        limit: { cpu: '4', memory: '40Gi' },
+        allocated: { cpu: '3', memory: '20Gi' },
+        remaining: { cpu: '1', memory: '20Gi' },
         azQuotas: [
-          { ID: 'q1', ProjectId: 'p1', CodeAZ: 'az1', Resources: { cpu: '2', memory: '20Gi' } },
-          { ID: 'q2', ProjectId: 'p1', CodeAZ: 'az2', Resources: { cpu: '1' } },
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '2', memory: '20Gi' },
+            available: true,
+            used: { cpu: '2500m', memory: '25Gi' },
+          },
+          {
+            codeAZ: 'az2',
+            limit: { cpu: '1', memory: '0' },
+            available: false,
+            used: {},
+          },
         ],
       },
-      p2: { projectId: 'p2', organizationId: orgId, resources: { cpu: '8' }, azQuotas: [] },
+      p2: {
+        projectId: 'p2',
+        organizationId: orgId,
+        unlimited: false,
+        limit: { cpu: '8', memory: '0' },
+        allocated: { cpu: '1', memory: '0' },
+        remaining: { cpu: '7', memory: '0' },
+        azQuotas: [
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '1', memory: '0' },
+            available: true,
+            used: { cpu: '1' },
+          },
+          {
+            codeAZ: 'az2',
+            limit: { cpu: '0', memory: '0' },
+            available: true,
+            used: {},
+          },
+        ],
+      },
     };
   }
 
-  function orgUsage(): QuotaOrganizationUsage {
-    return {
-      organizationId: orgId,
-      complete: false,
-      used: { cpu: '3500m', memory: '25Gi' },
-      projects: [
-        {
-          projectId: 'p1',
-          complete: false,
-          used: { cpu: '2500m', memory: '25Gi' },
-          azs: [
-            { codeAZ: 'az1', available: true, used: { cpu: '2500m', memory: '25Gi' } },
-            { codeAZ: 'az2', available: false, used: {} },
-          ],
-        },
-        {
-          projectId: 'p2',
-          complete: true,
-          used: { cpu: '1' },
-          azs: [
-            { codeAZ: 'az1', available: true, used: { cpu: '1' } },
-            { codeAZ: 'az2', available: true, used: {} },
-          ],
-        },
-      ],
-    };
-  }
-
-  /** Usage answer: `'pending'` to leave the request pending, `null` to fail it */
   async function createComponent(
     overview: OrganizationQuotaOverview = orgOverview(),
     permissionsByProject: Record<string, string[]> = { p1: [PermissionsEnum.ProjectAZQuotaWrite], p2: [] },
-    usage: QuotaOrganizationUsage | null | 'pending' = orgUsage()
+    overviews: Record<string, ProjectQuotaOverview> = projectOverviews()
   ) {
     organization.set({ id: orgId, projects });
     fixture = TestBed.createComponent(OrganizationQuotasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    const usageRequest = httpMock.expectOne(`${baseUrl}/quota/usage`);
-    if (usage === null) {
-      usageRequest.flush('error', { status: 500, statusText: 'Internal Server Error' });
-    } else if (usage !== 'pending') {
-      usageRequest.flush(usage);
-    }
     httpMock.expectOne(`${baseUrl}/quota`).flush(overview);
-    const overviews = projectOverviews();
     for (const p of projects) {
       httpMock.expectOne(`${baseUrl}/project/${p.id}/quota`).flush(overviews[p.id]);
     }
@@ -274,25 +267,6 @@ describe('OrganizationQuotasComponent', () => {
     expect(text(card)).toContain('the usage of this project may be underestimated');
   });
 
-  it('should display the quotas while the usage is loading', async () => {
-    await createComponent(orgOverview(), undefined, 'pending');
-
-    expect(component.projectViews()[0].azRows[0].cells[QuotaResourceEnum.CPU].text).toBe('2 vCPU allocated');
-    expect(component.projectViews()[0].totalCells[QuotaResourceEnum.CPU].text).toBe('4 vCPU allocated');
-    expect(text(fixture.nativeElement.querySelector('.org-quotas__children'))).toContain('Reading the usage');
-    expect(fixture.nativeElement.querySelectorAll('.org-quotas__project').length).toBe(2);
-  });
-
-  it('should tell when the usage cannot be loaded', async () => {
-    await createComponent(orgOverview(), undefined, null);
-
-    expect(component.projectViews()[0].azRows[0].cells[QuotaResourceEnum.CPU].text).toBe('Usage unavailable');
-    expect(component.projectViews()[0].totalCells[QuotaResourceEnum.CPU].text).toBe('Usage unavailable');
-    expect(text(fixture.nativeElement.querySelector('.org-quotas__children'))).toContain(
-      'The usage could not be loaded'
-    );
-  });
-
   it('should only allow editing the AZ quotas with ProjectAZQuotaWrite', async () => {
     await createComponent();
     component.expandedProjects.set(new Set(['p1', 'p2']));
@@ -307,7 +281,7 @@ describe('OrganizationQuotasComponent', () => {
   it('should show "Unlimited" badge when a project has no quota', async () => {
     const overviewWithoutP2Quota = {
       ...orgOverview(),
-      projectQuotas: [{ ProjectId: 'p1', OrganizationId: orgId, Resources: { cpu: '4', memory: '40Gi' } }],
+      projectQuotas: [{ projectId: 'p1', organizationId: orgId, limit: { cpu: '4', memory: '40Gi' } }],
     };
     await createComponent(overviewWithoutP2Quota);
 
@@ -323,7 +297,7 @@ describe('OrganizationQuotasComponent', () => {
   });
 
   it('should show the organization as unlimited', async () => {
-    await createComponent({ ...orgOverview(), unlimited: true, resources: undefined, remaining: undefined });
+    await createComponent({ ...orgOverview(), unlimited: true, limit: undefined, remaining: undefined });
 
     expect(component.orgBars().every(b => b.limit === null)).toBeTrue();
     expect(text(fixture.nativeElement.querySelector('.org-quotas__org .org-quotas__badge'))).toBe('Unlimited');
@@ -341,18 +315,13 @@ describe('OrganizationQuotasComponent', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    // Org quota and org usage should NOT be requested
+    // Org quota should NOT be requested
     httpMock.expectNone(`${baseUrl}/quota`);
-    httpMock.expectNone(`${baseUrl}/quota/usage`);
 
-    // Individual project quotas and project usages should be requested
+    // Individual project quotas should be requested
     const overviews = projectOverviews();
-    const usage = orgUsage();
     for (const p of projects) {
       httpMock.expectOne(`${baseUrl}/project/${p.id}/quota`).flush(overviews[p.id]);
-      httpMock
-        .expectOne(`${baseUrl}/project/${p.id}/quota/usage`)
-        .flush(usage.projects!.find(u => u.projectId === p.id)!);
     }
     const permissionRequests = httpMock.match(`${baseUrl}/iam/permissions`);
     expect(permissionRequests.length).toBe(projects.length);
@@ -386,7 +355,6 @@ describe('OrganizationQuotasComponent', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    httpMock.expectOne(`${baseUrl}/quota/usage`).flush(orgUsage());
     httpMock.expectOne(`${baseUrl}/quota`).flush(orgOverview());
 
     // Project 1 returns 200, Project 2 returns 403

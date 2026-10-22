@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { API_ENDPOINT, CONTROLLER_PATH, HTTP_PROTOCOL, environment } from '@env/environment';
-import { OrganizationQuotaOverview, ProjectQuotaOverview, QuotaProjectUsage } from '@shared/models/data/quota';
+import { ProjectQuotaOverview } from '@shared/models/data/quota';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { ScreenService } from '@shared/services/screen.service';
@@ -218,46 +218,34 @@ describe('DashboardComponent', () => {
       return {
         projectId,
         organizationId: orgId,
-        resources: { cpu: '8', memory: '32Gi' },
+        unlimited: false,
+        limit: { cpu: '8', memory: '32Gi' },
+        allocated: { cpu: '8', memory: '16Gi' },
+        remaining: { cpu: '0', memory: '16Gi' },
         azQuotas: [
-          { ID: 'q1', ProjectId: projectId, CodeAZ: 'az1', Resources: { cpu: '6', memory: '16Gi' } },
-          { ID: 'q2', ProjectId: projectId, CodeAZ: 'az2', Resources: { cpu: '2' } },
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '6', memory: '16Gi' },
+            available: true,
+            used: { cpu: '3', memory: '4Gi' },
+          },
+          {
+            codeAZ: 'az2',
+            limit: { cpu: '2', memory: '0' },
+            available: true,
+            used: { cpu: '500m' },
+          },
         ],
       };
     }
 
-    function projectUsage(): QuotaProjectUsage {
-      return {
-        projectId,
-        complete: true,
-        used: { cpu: '3500m', memory: '4Gi' },
-        azs: [
-          { codeAZ: 'az1', available: true, used: { cpu: '3', memory: '4Gi' } },
-          { codeAZ: 'az2', available: true, used: { cpu: '500m' } },
-        ],
-      };
-    }
-
-    /** Build the component and answer the summary, the usage and the quota requests. */
-    async function createWithQuotas(
-      projectQuota: ProjectQuotaOverview | 'error',
-      org?: OrganizationQuotaOverview,
-      usage: QuotaProjectUsage | 'error' = projectUsage()
-    ) {
+    /** Build the component and answer the summary and the quota requests. */
+    async function createWithQuotas(projectQuota: ProjectQuotaOverview | 'error') {
       fixture = TestBed.createComponent(DashboardComponent);
       component = fixture.componentInstance;
       fixture.detectChanges();
 
       httpMock.expectOne(summaryUrl).flush(emptySummary());
-      const usageReq = httpMock.expectOne(`${quotaBaseUrl}/project/${projectId}/quota/usage`);
-      if (usage === 'error') {
-        usageReq.flush('boom', { status: 500, statusText: 'Server Error' });
-      } else {
-        usageReq.flush(usage);
-      }
-      if (org) {
-        httpMock.expectOne(`${quotaBaseUrl}/quota`).flush(org);
-      }
       const projectReq = httpMock.expectOne(`${quotaBaseUrl}/project/${projectId}/quota`);
       if (projectQuota === 'error') {
         projectReq.flush('boom', { status: 500, statusText: 'Server Error' });
@@ -316,7 +304,6 @@ describe('DashboardComponent', () => {
       await createComponent(emptySummary());
 
       httpMock.expectNone(`${quotaBaseUrl}/project/${projectId}/quota`);
-      httpMock.expectNone(`${quotaBaseUrl}/project/${projectId}/quota/usage`);
       expect(fixture.nativeElement.querySelector('.dashboard__quotas')).toBeNull();
     });
 
@@ -348,14 +335,13 @@ describe('DashboardComponent', () => {
 
     it('should show in red the AZs and the project whose allocation is full', async () => {
       TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
-      const usage = projectUsage();
-      usage.used = { cpu: '9', memory: '4Gi' };
-      usage.azs = [
-        { codeAZ: 'az1', available: true, used: { cpu: '7', memory: '4Gi' } },
-        { codeAZ: 'az2', available: true, used: { cpu: '2' } },
+      const overview = projectOverview();
+      overview.azQuotas = [
+        { codeAZ: 'az1', limit: { cpu: '6', memory: '16Gi' }, available: true, used: { cpu: '7', memory: '4Gi' } },
+        { codeAZ: 'az2', limit: { cpu: '2' }, available: true, used: { cpu: '2' } },
       ];
 
-      await createWithQuotas(projectOverview(), undefined, usage);
+      await createWithQuotas(overview);
 
       expect(azRows()['Zone 1']).toContain('7 vCPU / 6 vCPU 117%');
       const full: Element[] = Array.from(fixture.nativeElement.querySelectorAll('.dashboard__fill--full'));
@@ -375,21 +361,29 @@ describe('DashboardComponent', () => {
       expect(Object.keys(azRows())).toEqual(['Zone 1', 'Zone 2']);
     });
 
-    it('should apply the organization limits to a project without quota on a resource', async () => {
-      TestBed.inject(PermissionService).permissions.set([
-        PermissionsEnum.ProjectAZQuotaRead,
-        PermissionsEnum.OrganizationProjectQuotaRead,
-      ]);
+    it('should show 0 allocation for a resource limited to 0 by the parent', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
 
-      await createWithQuotas(projectOverview(), {
-        organizationId: orgId,
-        unlimited: false,
-        resources: { cpu: '10', memory: '64Gi', disk: '1Ti' },
-        allocated: {},
-        projectQuotas: [],
+      await createWithQuotas({
+        ...projectOverview(),
+        limit: { cpu: '8', memory: '32Gi', disk: '0' },
+        azQuotas: [
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '6', memory: '16Gi', disk: '0' },
+            available: true,
+            used: { cpu: '3', memory: '4Gi' },
+          },
+          {
+            codeAZ: 'az2',
+            limit: { cpu: '2', disk: '0' },
+            available: true,
+            used: { cpu: '500m' },
+          },
+        ],
       });
 
-      // The organization limits the disk and the project quota does not: the project gets none
+      // The organization limits the disk and the project quota does not: the project gets none (disk: '0')
       expect(projectText()).toContain('Nothing allocated');
       expect(azRows()['Zone 1']).toContain('Nothing allocated');
     });
@@ -397,7 +391,26 @@ describe('DashboardComponent', () => {
     it('should compare the project with the sum of the AZ quotas when it has no quota', async () => {
       TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
 
-      await createWithQuotas({ ...projectOverview(), resources: undefined });
+      await createWithQuotas({
+        ...projectOverview(),
+        unlimited: true,
+        limit: undefined,
+        allocated: { cpu: '8', memory: '16Gi' },
+        azQuotas: [
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '6', memory: '16Gi' },
+            available: true,
+            used: { cpu: '3', memory: '4Gi' },
+          },
+          {
+            codeAZ: 'az2',
+            limit: { cpu: '2' },
+            available: true,
+            used: { cpu: '500m' },
+          },
+        ],
+      });
 
       expect(projectText()).toContain('3.5 vCPU / 8 vCPU 44%');
       // az2 has no memory quota: the project memory is not limited, and az2 memory is not tracked
@@ -420,11 +433,10 @@ describe('DashboardComponent', () => {
 
     it('should tell when an AZ cannot be reached', async () => {
       TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
-      const usage = projectUsage();
-      usage.complete = false;
-      usage.azs![1] = { codeAZ: 'az2', available: false, used: {} };
+      const overview = projectOverview();
+      overview.azQuotas![1] = { codeAZ: 'az2', limit: { cpu: '2' }, available: false, used: {} };
 
-      await createWithQuotas(projectOverview(), undefined, usage);
+      await createWithQuotas(overview);
 
       expect(quotasText()).toContain('the usage may be underestimated');
       expect(azRows()['Zone 2']).toBe('Zone 2 Usage unavailable Usage unavailable Usage unavailable');
@@ -433,19 +445,10 @@ describe('DashboardComponent', () => {
     it('should tell when no quota applies to the project', async () => {
       TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
 
-      await createWithQuotas({ projectId, organizationId: orgId, azQuotas: [] });
+      await createWithQuotas({ projectId, organizationId: orgId, unlimited: true, allocated: {}, azQuotas: [] });
 
       expect(fixture.nativeElement.querySelector('.dashboard__quota-azs')).toBeNull();
       expect(quotasText()).toContain('No quota applies to this project.');
-    });
-
-    it('should tell when the usage cannot be loaded', async () => {
-      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
-
-      await createWithQuotas(projectOverview(), undefined, 'error');
-
-      expect(fixture.nativeElement.querySelector('.dashboard__quota-azs')).toBeNull();
-      expect(quotasText()).toContain('The usage of the project could not be loaded.');
     });
 
     it('should tell when the quotas cannot be loaded', async () => {

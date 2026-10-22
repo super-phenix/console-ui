@@ -8,8 +8,6 @@ import {
   ProjectAZQuota,
   ProjectQuota,
   ProjectQuotaOverview,
-  QuotaOrganizationUsage,
-  QuotaProjectUsage,
   QuotaResources,
 } from '../models/data/quota';
 
@@ -27,27 +25,11 @@ export class QuotaService {
       .pipe(defaultOnceHandler());
   }
 
-  /** Project quota and its distribution to AZs (`ProjectAZQuotaRead`) */
+  /** Project quota, what is allocated to its AZs and usage per AZ (`ProjectAZQuotaRead`) */
   getProjectQuota(orgId: string, projectId: string, context?: HttpContext) {
     const httpContext = this.ensureIgnore403(context);
     return this.http
       .get<ProjectQuotaOverview>(`${this.getBaseUrl(orgId)}/project/${projectId}/quota`, { context: httpContext })
-      .pipe(defaultOnceHandler());
-  }
-
-  /** Current usage of the organization, per project and AZ (`OrganizationProjectQuotaRead`) */
-  getOrganizationUsage(orgId: string, context?: HttpContext) {
-    const httpContext = this.ensureIgnore403(context);
-    return this.http
-      .get<QuotaOrganizationUsage>(`${this.getBaseUrl(orgId)}/quota/usage`, { context: httpContext })
-      .pipe(defaultOnceHandler());
-  }
-
-  /** Current usage of a project, per AZ (`ProjectAZQuotaRead`) */
-  getProjectUsage(orgId: string, projectId: string, context?: HttpContext) {
-    const httpContext = this.ensureIgnore403(context);
-    return this.http
-      .get<QuotaProjectUsage>(`${this.getBaseUrl(orgId)}/project/${projectId}/quota/usage`, { context: httpContext })
       .pipe(defaultOnceHandler());
   }
 

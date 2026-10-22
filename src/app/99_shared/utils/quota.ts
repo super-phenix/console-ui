@@ -204,19 +204,3 @@ export function buildQuotaBar(limit: number | null, parts: QuotaBarPart[]): Quot
 export function quotaValue(resources: QuotaResources | undefined | null, resource: QuotaResourceEnum): number | null {
   return parseQuotaQuantity(resource, resources?.[resource]);
 }
-
-/**
- * Enforced value of `resource` for a child (same as the API): its own value, or 0 when the parent limits
- * the resource (`parentLimit` not null) and the child does not. null when not limited.
- */
-export function enforcedQuotaValue(
-  resources: QuotaResources | undefined | null,
-  resource: QuotaResourceEnum,
-  parentLimit: number | null
-): number | null {
-  const value = quotaValue(resources, resource);
-  if (value !== null) {
-    return value;
-  }
-  return parentLimit !== null ? 0 : null;
-}

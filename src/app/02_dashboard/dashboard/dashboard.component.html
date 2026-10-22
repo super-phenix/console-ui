@@ -70,12 +70,10 @@
               <span class="dashboard__row-empty">Loading quotas…</span>
             } @else if (!quotaData) {
               <span class="dashboard__row-empty">The quotas could not be loaded.</span>
-            } @else if (!quotaData.usage) {
-              <span class="dashboard__row-empty">The usage of the project could not be loaded.</span>
             } @else if (quotaFills()?.unlimited) {
               <span class="dashboard__row-empty">No quota applies to this project.</span>
             } @else if (quotaFills(); as fills) {
-              @if (!quotaData.usage.complete) {
+              @if (!fills.complete) {
                 <span class="dashboard__row-empty dashboard__quotas-warning">
                   <mat-icon>warning_amber</mat-icon> Some availability zones could not be reached: the usage may be
                   underestimated.

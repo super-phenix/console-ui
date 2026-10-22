@@ -22,12 +22,11 @@ import {
   ProductPaas,
   ProductStorage,
 } from '@shared/models/data/product.enum';
-import { QUOTA_RESOURCES, QuotaAZUsage, QuotaResourceEnum } from '@shared/models/data/quota';
+import { QUOTA_RESOURCES, QuotaResourceEnum, QuotaResources } from '@shared/models/data/quota';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { QuotaService } from '@shared/services/quota.service';
 import {
-  enforcedQuotaValue,
   QUOTA_RESOURCE_ICONS,
   QUOTA_RESOURCE_LABELS,
   QUOTA_SETTINGS_FRAGMENT,
@@ -36,7 +35,7 @@ import {
   quotaFill,
   quotaValue,
 } from '@shared/utils/quota';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { DashboardService, RecentProduct } from '../dashboard.service';
 
 /**
@@ -99,6 +98,8 @@ interface QuotaFills {
   azs: { code: string; name: string; cells: Record<QuotaResourceEnum, QuotaFill> }[];
   /** Nothing limits the project: Kubernetes does not track its usage */
   unlimited: boolean;
+  /** false when some AZ could not be reached */
+  complete: boolean;
 }
 
 @Component({
@@ -206,14 +207,9 @@ export class DashboardComponent {
   protected readonly quotaLabels = QUOTA_RESOURCE_LABELS;
   protected readonly quotaIcons = QUOTA_RESOURCE_ICONS;
 
-  /** Quota and usage of the current project, and quota of its organization (when readable). */
+  /** Quota and usage of the current project. */
   protected quotas = rxResource({
-    params: computed(() => [
-      this.stateSvc.organization(),
-      this.stateSvc.project(),
-      this.canReadQuota(),
-      this.canReadOrgQuota(),
-    ]),
+    params: computed(() => [this.stateSvc.organization(), this.stateSvc.project(), this.canReadQuota()]),
     stream: () => {
       const org = this.stateSvc.organization();
       const project = this.stateSvc.project();
@@ -221,14 +217,7 @@ export class DashboardComponent {
         return of(undefined);
       }
 
-      return forkJoin({
-        project: this.quotaSvc.getProjectQuota(org.id, project.id),
-        // Told apart from the quotas, which are needed to know what the usage is compared with
-        usage: this.quotaSvc.getProjectUsage(org.id, project.id).pipe(catchError(() => of(null))),
-        organization: this.canReadOrgQuota()
-          ? this.quotaSvc.getOrganizationQuota(org.id).pipe(catchError(() => of(undefined)))
-          : of(undefined),
-      }).pipe(
+      return this.quotaSvc.getProjectQuota(org.id, project.id).pipe(
         catchError(err => {
           console.error(err);
           return of(undefined);
@@ -238,46 +227,60 @@ export class DashboardComponent {
   });
 
   /**
-   * How full the project and each of its AZs are: what is used of what is allocated, per resource. The
-   * allocation is the one the API enforces: the project quota (0 when the organization limits a resource
-   * the project does not, or the sum of the AZ quotas when only the AZs are limited), and the AZ quotas
-   * (0 when the project limits a resource the AZ does not).
+   * How full the project and each of its AZs are: what is used of what is allocated, per resource.
    */
   protected quotaFills = computed<QuotaFills | undefined>(() => {
-    const quotas = this.quotas.value();
-    if (!quotas?.usage) {
+    const project = this.quotas.value();
+    if (!project) {
       return undefined;
     }
 
     const azList = this.stateSvc.azList();
-    const usage = quotas.usage;
-    const codes = new Set(azList.map(az => az.code));
-    quotas.project.azQuotas?.forEach(azq => codes.add(azq.CodeAZ));
-    usage.azs?.forEach(az => codes.add(az.codeAZ));
-    const azs = [...codes].map(code => ({
-      code,
-      name: azList.find(az => az.code === code)?.name ?? code,
-      resources: quotas.project.azQuotas?.find(azq => azq.CodeAZ === code)?.Resources,
-      usage: usage.azs?.find(az => az.codeAZ === code),
-    }));
+    const azQuotas = project.azQuotas ?? [];
+    const complete = azQuotas.every(az => az.available);
 
-    const org = quotas.organization;
+    const codes = new Set(azList.map(az => az.code));
+    azQuotas.forEach(azq => codes.add(azq.codeAZ));
+    const azs = [...codes].map(code => {
+      const azq = azQuotas.find(q => q.codeAZ === code);
+      return {
+        code,
+        name: azList.find(az => az.code === code)?.name ?? code,
+        limit: azq?.limit,
+        available: azq?.available ?? true,
+        used: azq?.used ?? {},
+      };
+    });
+
     const limits = QUOTA_RESOURCES.map(resource => {
-      const orgLimit = org && !org.unlimited ? quotaValue(org.resources, resource) : null;
-      const projectLimit = enforcedQuotaValue(quotas.project.resources, resource, orgLimit);
-      const azLimits = azs.map(az => enforcedQuotaValue(az.resources, resource, projectLimit));
-      const limit = projectLimit ?? (azLimits.every(v => v !== null) ? azLimits.reduce((acc, v) => acc + v!, 0) : null);
-      return { resource, limit, azLimits, tracked: projectLimit !== null || azLimits.some(v => v !== null) };
+      const projectLimit = quotaValue(project.limit, resource);
+      const azLimits = azs.map(az => quotaValue(az.limit, resource));
+      const limit =
+        projectLimit ??
+        (azLimits.length > 0 && azLimits.every(v => v !== null) ? azLimits.reduce((acc, v) => acc + v!, 0) : null);
+      const tracked = projectLimit !== null || azLimits.some(v => v !== null);
+      return { resource, limit, azLimits, tracked };
     });
     if (limits.every(l => !l.tracked)) {
-      return { project: {} as Record<QuotaResourceEnum, QuotaFill>, azs: [], unlimited: true };
+      return { project: {} as Record<QuotaResourceEnum, QuotaFill>, azs: [], unlimited: true, complete };
     }
 
-    const project = Object.fromEntries(
-      limits.map(({ resource, limit, tracked }) => [
-        resource,
-        quotaFill(resource, quotaValue(usage.used, resource) ?? (tracked ? 0 : undefined), limit),
-      ])
+    const projectFills = Object.fromEntries(
+      limits.map(({ resource, limit, tracked }) => {
+        let sum = 0;
+        let hasUsage = false;
+        for (const az of azs) {
+          if (az.available) {
+            const val = quotaValue(az.used, resource);
+            if (val !== null) {
+              sum += val;
+              hasUsage = true;
+            }
+          }
+        }
+        const totalUsed = hasUsage || tracked ? sum : undefined;
+        return [resource, quotaFill(resource, totalUsed, limit)];
+      })
     ) as Record<QuotaResourceEnum, QuotaFill>;
 
     const rows = azs
@@ -285,7 +288,7 @@ export class DashboardComponent {
         const cells = Object.fromEntries(
           limits.map(({ resource, azLimits }) => [
             resource,
-            quotaFill(resource, this.azUsedValue(az.usage, usage.complete, resource, azLimits[i]), azLimits[i]),
+            quotaFill(resource, this.azUsedValue(az, resource, azLimits[i]), azLimits[i]),
           ])
         ) as Record<QuotaResourceEnum, QuotaFill>;
         return { code: az.code, name: az.name, cells };
@@ -293,7 +296,7 @@ export class DashboardComponent {
       // Nothing allocated nor used in the AZ: nothing to tell about it
       .filter(row => Object.values(row.cells).some(cell => cell.percent !== null || cell.unavailable));
 
-    return { project, azs: rows, unlimited: false };
+    return { project: projectFills, azs: rows, unlimited: false, complete };
   });
 
   /** Last created resources, with their label, their AZ logo and the page to open. */
@@ -332,15 +335,14 @@ export class DashboardComponent {
    * complete usage holds nothing.
    */
   private azUsedValue(
-    usage: QuotaAZUsage | undefined,
-    complete: boolean,
+    az: { available: boolean; used: QuotaResources },
     resource: QuotaResourceEnum,
     azLimit: number | null
   ): number | null | undefined {
-    if (usage ? !usage.available : !complete) {
+    if (!az.available) {
       return null;
     }
-    return (usage && quotaValue(usage.used, resource)) ?? (azLimit !== null ? 0 : undefined);
+    return quotaValue(az.used, resource) ?? (azLimit !== null ? 0 : undefined);
   }
 
   /** Deep link to a recent resource: its details page, or the product list when it has none. */

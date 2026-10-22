@@ -18,26 +18,37 @@ export const QUOTA_RESOURCES: QuotaResourceEnum[] = [
 
 export type QuotaResources = Partial<Record<QuotaResourceEnum, string>>;
 
-/** Stored project quota, as returned by the API (the Go model has no JSON tags). */
+/** Stored project quota, as returned by the API. */
 export interface ProjectQuota {
-  ProjectId: string;
-  OrganizationId: string;
-  Resources: QuotaResources;
+  projectId: string;
+  organizationId: string;
+  limit: QuotaResources;
 }
 
-/** Stored quota of a project in one AZ, as returned by the API (the Go model has no JSON tags). */
+/** Stored quota of a project in one AZ, as returned by the API. */
 export interface ProjectAZQuota {
-  ID: string;
-  ProjectId: string;
-  CodeAZ: string;
-  Resources: QuotaResources;
+  projectId: string;
+  codeAZ: string;
+  limit: QuotaResources;
+}
+
+/**
+ * Quota of a project in one AZ and what the project currently uses there.
+ * Kubernetes only tracks the limited resources: a resource without limit in the AZ is absent from `used`.
+ */
+export interface AZQuotaOverview {
+  codeAZ: string;
+  limit?: QuotaResources;
+  /** false when the AZ could not be reached, `used` is then empty */
+  available: boolean;
+  used: QuotaResources;
 }
 
 /** The quota of an organization and its distribution to projects. */
 export interface OrganizationQuotaOverview {
   organizationId: string;
   unlimited: boolean;
-  resources?: QuotaResources;
+  limit?: QuotaResources;
   allocated: QuotaResources;
   remaining?: QuotaResources;
   projectQuotas: ProjectQuota[] | null;
@@ -47,36 +58,9 @@ export interface OrganizationQuotaOverview {
 export interface ProjectQuotaOverview {
   projectId: string;
   organizationId: string;
-  resources?: QuotaResources;
-  azQuotas: ProjectAZQuota[] | null;
-}
-
-/**
- * What a project currently uses in one AZ. Kubernetes only tracks the limited resources: a resource
- * the project has no limit for in this AZ is absent from `used`.
- */
-export interface QuotaAZUsage {
-  codeAZ: string;
-  /** false when the AZ could not be reached, `used` is then empty */
-  available: boolean;
-  used: QuotaResources;
-  kubernetesUsed?: Record<string, string>;
-}
-
-/** What a project currently uses, per AZ and summed over its AZs. */
-export interface QuotaProjectUsage {
-  projectId: string;
-  /** false when the usage of at least one AZ is unavailable (`used` then misses it) */
-  complete: boolean;
-  used: QuotaResources;
-  azs: QuotaAZUsage[] | null;
-}
-
-/** What an organization currently uses, per project and summed over its projects. */
-export interface QuotaOrganizationUsage {
-  organizationId: string;
-  /** false when the usage of at least one project is incomplete */
-  complete: boolean;
-  used: QuotaResources;
-  projects: QuotaProjectUsage[] | null;
+  unlimited: boolean;
+  limit?: QuotaResources;
+  allocated: QuotaResources;
+  remaining?: QuotaResources;
+  azQuotas: AZQuotaOverview[] | null;
 }
