@@ -1,0 +1,203 @@
+<div class="dbaas-overview">
+  <div class="dbaas-overview__main">
+    <section class="info-card" aria-labelledby="dbaas-endpoints-title">
+      <div class="info-card__title">
+        <h2 class="dbaas-overview__card-title" id="dbaas-endpoints-title">Endpoints</h2>
+        @if (endpoints().length) {
+          <mat-button-toggle-group
+            class="dbaas-network"
+            [value]="shownNetwork()"
+            (change)="network.set($event.value)"
+            aria-label="Network"
+            hideSingleSelectionIndicator>
+            <mat-button-toggle value="private">
+              <mat-icon aria-hidden="true">lan</mat-icon>
+              Private network
+            </mat-button-toggle>
+            <mat-button-toggle
+              value="public"
+              [disabled]="!isPublic()"
+              disabledInteractive
+              [matTooltip]="isPublic() ? '' : publicOffHint()"
+              matTooltipPosition="above">
+              <mat-icon aria-hidden="true">public</mat-icon>
+              Public network
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        }
+      </div>
+
+      <div class="info-card__content info-card__content--multi-block">
+        @if (!endpoints().length) {
+          <p class="dbaas-overview__empty">
+            Endpoints appear once the database is provisioned. The page refreshes on its own until then.
+          </p>
+        } @else if (shownNetwork() === 'private') {
+          <p class="dbaas-overview__lede">
+            Reachable from instances on the database subnet. Every endpoint shares one virtual IP and differs only
+            by port.
+          </p>
+
+          <ng-container *ngTemplateOutlet="endpointRows; context: { $implicit: endpoints() }" />
+        } @else {
+          <p class="dbaas-overview__lede">
+            Reachable from the internet through an Elastic IP, on the same ports as the private network. Use it for
+            clients outside the subnet.
+          </p>
+
+          @if (publicEndpoints().length) {
+            <ng-container *ngTemplateOutlet="endpointRows; context: { $implicit: publicEndpoints() }" />
+          } @else if (publicLoading()) {
+            <p class="dbaas-overview__empty">Loading the address…</p>
+          }
+        }
+
+        @if (endpoints().length) {
+          <div class="dbaas-overview__actions">
+            @if (shownNetwork() === 'public' && db().externalAccess?.eipEId; as eipEId) {
+              <a matButton="outlined" [routerLink]="['/products', 'network', 'eip', 'details', db().codeAZ, eipEId]">
+                <mat-icon>public</mat-icon>
+                View Elastic IP
+              </a>
+            }
+
+            @if (shownNetwork() === 'private' || publicEndpoints().length) {
+              <button matButton="outlined" (click)="connect.emit(shownNetwork())">
+                <mat-icon>key</mat-icon>
+                Credentials and connection commands
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    @if (db().cluster; as cluster) {
+      <section class="info-card" aria-labelledby="dbaas-topology-title">
+        <h2 class="info-card__title" id="dbaas-topology-title">Topology</h2>
+        <div class="info-card__content">
+          <spx-dbaas-topology
+            [instances]="instances()"
+            [readyInstances]="cluster.status.readyInstances || 0"
+            [currentPrimary]="cluster.status.currentPrimary"
+            [endpoints]="endpoints()"
+            [host]="host()" />
+        </div>
+      </section>
+    }
+  </div>
+
+  <aside class="dbaas-overview__side">
+    @if (db().cluster; as cluster) {
+      <section class="info-card" aria-labelledby="dbaas-plan-title">
+        <h2 class="info-card__title" id="dbaas-plan-title">
+          Resources
+          @if (canEdit()) {
+            <a matButton class="dbaas-overview__title-action" [routerLink]="['/products/paas/dbaas', 'update', db().codeAZ, db().eid]">
+              Resize
+            </a>
+          }
+        </h2>
+
+        <div class="info-card__content info-card__content--multi-block">
+          <div class="dbaas-plan">
+            <span class="dbaas-plan__caption">Each instance</span>
+            <span class="dbaas-plan__spec">
+              <span>{{ cpuLabel() || '—' }}</span>
+              <span>{{ memoryLabel() || '—' }}</span>
+            </span>
+            <span class="dbaas-plan__times">
+              × {{ instances() }} {{ instances() === 1 ? 'instance' : 'instances' }}
+            </span>
+          </div>
+
+          @if (instances() > 1 && (totalCpu() || totalMemory())) {
+            <div class="dbaas-plan dbaas-plan--total">
+              <span class="dbaas-plan__caption">Whole cluster</span>
+              <span class="dbaas-plan__spec">
+                @if (totalCpu()) {
+                  <span>{{ totalCpu() }} vCPU</span>
+                }
+                @if (totalMemory()) {
+                  <span>{{ totalMemory() }} GiB</span>
+                }
+              </span>
+            </div>
+          }
+
+          <dl class="dbaas-facts">
+            <dt>Storage</dt>
+            <dd>
+              {{ storageLabel() || '—' }}
+              @if (instances() > 1 && totalStorage()) {
+                <span class="dbaas-facts__aside">per instance, {{ totalStorage() }} GiB in total</span>
+              }
+            </dd>
+
+            <dt>Storage class</dt>
+            <dd class="dbaas-facts__mono">{{ cluster.spec.storage?.storageClass || '—' }}</dd>
+
+            @if (cluster.spec.postgresql?.parameters?.['max_connections']; as maxConn) {
+              <dt>Max connections</dt>
+              <dd>{{ maxConn }}</dd>
+            }
+          </dl>
+        </div>
+      </section>
+    } @else {
+      <section class="info-card">
+        <h2 class="info-card__title">Resources</h2>
+        <div class="info-card__content">
+          <p class="dbaas-overview__empty">Resources and topology appear once the database is provisioned.</p>
+        </div>
+      </section>
+    }
+
+    <section class="info-card" aria-labelledby="dbaas-details-title">
+      <h2 class="info-card__title" id="dbaas-details-title">Details</h2>
+      <div class="info-card__content">
+        <dl class="dbaas-facts">
+          <dt>ID</dt>
+          <dd class="dbaas-facts__mono"><spx-span-copy [value]="db().eid" /></dd>
+
+          <dt>Local ID</dt>
+          <dd class="dbaas-facts__mono"><spx-span-copy [value]="db().id" /></dd>
+
+          <dt>Availability zone</dt>
+          <dd class="dbaas-facts__zone">
+            @if (zone()?.logoUrl) {
+              <img class="dbaas-facts__az-logo" [src]="zone()!.logoUrl" alt="" />
+            }
+            {{ zone()?.name || db().codeAZ?.toUpperCase() }}
+          </dd>
+
+          <dt>PostgreSQL</dt>
+          <dd>{{ version() || '—' }}</dd>
+
+          @if (db().cluster?.metadata?.creationTimestamp; as created) {
+            <dt>Created</dt>
+            <dd>{{ created | date: 'medium' }}</dd>
+          }
+
+          <dt>GitOps</dt>
+          <dd>{{ db().gitops === 'true' ? 'Managed by GitOps' : 'No' }}</dd>
+        </dl>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<!-- One row per endpoint: role | copyable host:port | what it is for. Shared by both networks. -->
+<ng-template #endpointRows let-list>
+  <dl class="dbaas-endpoints">
+    @for (endpoint of list; track endpoint.role) {
+      <div class="dbaas-endpoints__row" [class.dbaas-endpoints__row--primary]="endpoint.role === 'rw'">
+        <dt class="dbaas-endpoints__role">{{ endpointRoleLabel(endpoint.role) }}</dt>
+        <dd class="dbaas-endpoints__value">
+          <spx-code-block [code]="endpoint.host + ':' + endpoint.port" />
+        </dd>
+        <dd class="dbaas-endpoints__hint">{{ endpointRoleHint(endpoint.role) }}</dd>
+      </div>
+    }
+  </dl>
+</ng-template>

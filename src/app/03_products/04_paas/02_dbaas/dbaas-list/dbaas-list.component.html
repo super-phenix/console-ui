@@ -1,0 +1,134 @@
+<div class="product-list main-content">
+  <div class="product-list__header">
+    <spx-content-header titleOnly title="Databases"></spx-content-header>
+
+    @if (canProjectDBaaSWrite()) {
+      <div class="product-list__header-create-btn">
+        <a matButton="filled" ariaLabel="Button to create a database" [routerLink]="['create']">
+          <mat-icon>add</mat-icon>
+          Create a database
+        </a>
+      </div>
+    }
+  </div>
+
+  <spx-product-list-filter
+    [refreshInterval]="refreshInterval()"
+    (refreshIntervalChange)="lss.setValue(DBAAS_REFRESH_KEY, $event.toString())"
+    (needReload)="reloadData()"
+    (filter)="filterValue.set($event)"></spx-product-list-filter>
+
+  <div class="product-list__table">
+    @if (dbaasProduct.isLoading() || dbaasProduct.status() === 'error') {
+      <div class="product-list__table-loading-shade">
+        @if (dbaasProduct.isLoading()) {
+          <mat-spinner></mat-spinner>
+        }
+        @if (dbaasProduct.status() === 'error') {
+          <div class="product-list__table-error">Failed to retrieve products</div>
+        }
+      </div>
+    }
+
+    <spx-product-table-wrapper
+      [dataSource]="dataSource()"
+      [columns]="displayedColumns"
+      [sortDataFunc]="dbaasSortFunc"
+      [emptyMessage]="
+        dbaasProduct.isLoading()
+          ? ''
+          : 'No databases yet. Create a PostgreSQL database to get a managed primary, optional replicas and a stable endpoint.'
+      "
+      [emptyCreateLabel]="dbaasProduct.isLoading() ? '' : 'Create a database'"
+      [canCreate]="canProjectDBaaSWrite()">
+      <ng-container matColumnDef="version">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> PostgreSQL </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          {{ postgresVersionFromImage(el.data?.cluster?.spec?.imageName) || '—' }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="instances">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Instances </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.data?.cluster) {
+            {{ el.data.cluster.status?.readyInstances ?? 0 }} / {{ el.data.cluster.spec?.instances ?? 0 }} ready
+          } @else {
+            —
+          }
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="size">
+        <mat-header-cell *matHeaderCellDef> Size per instance </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @let res = el.data?.cluster?.spec?.resources?.limits;
+          @if (res) {
+            {{ res.cpu }} vCPU, {{ res.memory }}, {{ el.data.cluster.spec?.storage?.size }}
+          } @else {
+            —
+          }
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="phase">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          <mat-chip-set aria-label="database status">
+            @let chip = dbaasPhaseChip(el.data?.cluster);
+            <mat-chip [class]="chip.cls" [matTooltip]="chip.title" disabled="true">{{ chip.label }}</mat-chip>
+          </mat-chip-set>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions" stickyEnd>
+        <mat-header-cell *matHeaderCellDef class="mat-column-actions--double-btn"></mat-header-cell>
+        <mat-cell *matCellDef="let el" class="mat-column-actions--double-btn">
+          <a matIconButton [routerLink]="['details', el.data.codeAZ, el.data.eid]" aria-label="Open Details button">
+            <mat-icon class="icon-accent">visibility</mat-icon>
+          </a>
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Action menu">
+            <mat-icon>more_horiz</mat-icon>
+          </button>
+
+          <mat-menu #menu="matMenu">
+            @if (el.data.gitops !== 'true' && canProjectDBaaSWrite()) {
+              <button
+                mat-menu-item
+                aria-label="Edit database button"
+                [routerLink]="['update', el.data.codeAZ, el.data.eid]">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+
+            @if (canProjectDBaaSWrite() && el.data.cluster) {
+              <button mat-menu-item aria-label="Restart database button" (click)="restartDBaaS(el.data)">
+                <mat-icon>restart_alt</mat-icon>
+                Restart
+              </button>
+            }
+
+            @if (canProjectArgoCdRead()) {
+              <button mat-menu-item aria-label="See in ArgoCD" (click)="openArgoCD(el.data)">
+                <mat-icon>open_in_new</mat-icon>
+                See in ArgoCD
+              </button>
+            }
+
+            @if (el.data.gitops !== 'true' && canProjectDBaaSWrite()) {
+              <mat-divider></mat-divider>
+              <button mat-menu-item aria-label="Delete database button" (click)="deleteDBaaS(el.data)">
+                <mat-icon>delete</mat-icon>
+                Delete
+              </button>
+            }
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </spx-product-table-wrapper>
+  </div>
+</div>

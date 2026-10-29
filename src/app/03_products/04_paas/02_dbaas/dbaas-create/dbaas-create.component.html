@@ -1,0 +1,266 @@
+<div class="product-create main-content">
+  <spx-content-header navBack titleOnly title="Create a database"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>
+      <!-- STEP 1 - GENERAL INFORMATION -->
+      <mat-step [stepControl]="generalFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="generalFormGroup">
+          <ng-template matStepLabel>General Information</ng-template>
+          <ng-template matStepContent>
+            <spx-step-general [formGroup]="generalFormGroup" (azChange)="selectedAz.set($event)"></spx-step-general>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>database</mat-icon>
+                  </div>
+                  PostgreSQL
+                </div>
+              </div>
+
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span>
+                    <i>You can move to a newer minor version later. The major version is fixed at creation.</i>
+                  </span>
+                </div>
+                <div class="info-card__block">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Version</mat-label>
+                    <mat-select spxAutoSelect formControlName="version">
+                      @let versionList = versions.hasValue() ? versions.value() : [];
+                      @for (version of versionList; track version) {
+                        <mat-option [value]="version">{{ version }}</mat-option>
+                      }
+                    </mat-select>
+                    @if (generalFormGroup.controls.version.hasError('required')) {
+                      <mat-error>This field is required.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 2 - SIZING -->
+      <mat-step [stepControl]="sizingFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="sizingFormGroup">
+          <ng-template matStepLabel>Sizing</ng-template>
+          <ng-template matStepContent>
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>hub</mat-icon>
+                  </div>
+                  Instances
+                </div>
+              </div>
+
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span>
+                    <i
+                      >One instance is the primary. Each extra instance is a standby replica that takes over if the
+                      primary fails.</i
+                    >
+                  </span>
+                </div>
+                <div class="info-card__block">
+                  <mat-button-toggle-group
+                    formControlName="instances"
+                    aria-label="Number of instances"
+                    hideSingleSelectionIndicator>
+                    @for (count of INSTANCE_LIST; track count) {
+                      <mat-button-toggle [value]="count">{{ count }}</mat-button-toggle>
+                    }
+                  </mat-button-toggle-group>
+                </div>
+                <div class="info-card__block flex-column">
+                  <spx-dbaas-topology [instances]="instances()" />
+                </div>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>memory</mat-icon>
+                  </div>
+                  Resources per instance
+                </div>
+              </div>
+
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>vCPU</mat-label>
+                    <mat-select formControlName="cpu">
+                      @for (cpu of CPU_LIST; track cpu) {
+                        <mat-option [value]="cpu">{{ cpu }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Memory</mat-label>
+                    <mat-select formControlName="memory">
+                      @for (memory of MEMORY_LIST; track memory) {
+                        <mat-option [value]="memory">{{ memory }} GiB</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                <div class="info-card__block">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Storage</mat-label>
+                    <input type="number" matInput min="1" formControlName="storage" />
+                    <span matTextSuffix>GiB</span>
+                    <mat-hint>Storage can grow later, never shrink.</mat-hint>
+                    @if (sizingFormGroup.controls.storage.hasError('min')) {
+                      <mat-error>The minimum value is 1 GiB.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Storage class</mat-label>
+                    <mat-select formControlName="storageClass">
+                      @for (storageClass of storageClassList.value(); track storageClass) {
+                        <mat-option [value]="storageClass">{{ storageClass }}</mat-option>
+                      }
+                    </mat-select>
+                    <mat-hint>Fixed at creation.</mat-hint>
+                    @if (sizingFormGroup.controls.storageClass.hasError('required')) {
+                      <mat-error>This field is required.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons">
+              <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+              <button matButton="filled" matStepperNext>
+                Next <mat-icon iconPositionEnd>arrow_forward_ios</mat-icon>
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+
+      <!-- STEP 3 - NETWORK -->
+      <mat-step [stepControl]="networkFormGroup" errorMessage="Form invalid.">
+        <form [formGroup]="networkFormGroup">
+          <ng-template matStepLabel>Network</ng-template>
+          <ng-template matStepContent>
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>network_manage</mat-icon>
+                  </div>
+                  Private access
+                </div>
+              </div>
+
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block">
+                  <span>
+                    <i
+                      >Instances on this subnet reach the database through a virtual IP. Neither can change after
+                      creation.</i
+                    >
+                  </span>
+                </div>
+                <div class="info-card__block">
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Subnet</mat-label>
+                    <mat-select formControlName="subnetEId">
+                      @for (subnet of subnetsProduct.value(); track subnet.eid) {
+                        <mat-option [value]="subnet.eid">
+                          {{ subnet.productName || subnet.eid }} ({{ subnet.subnet?.spec?.cidrBlock }})
+                        </mat-option>
+                      } @empty {
+                        <mat-option disabled>No subnet in this AZ. Create one first.</mat-option>
+                      }
+                    </mat-select>
+                    @if (networkFormGroup.controls.subnetEId.hasError('required')) {
+                      <mat-error>This field is required.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field class="info-card__item">
+                    <mat-label>Virtual IP</mat-label>
+                    <input matInput formControlName="vip" placeholder="198.18.0.0" />
+                    <button
+                      type="button"
+                      matIconButton
+                      matSuffix
+                      aria-label="Pick another virtual IP"
+                      matTooltip="Pick another random IP"
+                      (click)="regenerateVip()">
+                      <mat-icon>casino</mat-icon>
+                    </button>
+                    <mat-hint>In {{ VIRTUAL_IP_RANGE }}, unique among your load balancers.</mat-hint>
+                    @if (networkFormGroup.controls.vip.hasError('ip')) {
+                      <mat-error>Invalid IPv4 address.</mat-error>
+                    } @else if (networkFormGroup.controls.vip.hasError('ipRange')) {
+                      <mat-error>The IP must be in {{ VIRTUAL_IP_RANGE }}.</mat-error>
+                    } @else if (networkFormGroup.controls.vip.hasError('required')) {
+                      <mat-error>This field is required.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card__title">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="mat-icon--with-bg">
+                    <mat-icon>public</mat-icon>
+                  </div>
+                  Public access
+                </div>
+              </div>
+
+              <div class="info-card__content info-card__content--multi-block">
+                <div class="info-card__block flex-column">
+                  <mat-slide-toggle formControlName="externalAccess"
+                    >Reach the database from the internet</mat-slide-toggle
+                  >
+                  <span>
+                    <i
+                      >Assigns an Elastic IP that exposes the same ports as the private network: 5432 read-write, 5433
+                      read-only with replicas, 5434 any instance. The subnet needs a NAT gateway. You can turn this off
+                      later.</i
+                    >
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-create__step-buttons">
+              <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
+              <button matButton="filled" [disabled]="networkFormGroup.invalid || creating()" (click)="create()">
+                Create database
+              </button>
+            </div>
+          </ng-template>
+        </form>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

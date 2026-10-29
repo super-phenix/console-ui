@@ -1,0 +1,145 @@
+<div class="dbaas-connect">
+  @if (!endpoints().length) {
+    <section class="info-card">
+      <h2 class="info-card__title">Connect to the database</h2>
+      <div class="info-card__content">
+        <p class="dbaas-connect__muted m-0">
+          Connection details appear here once the database is provisioned. The page refreshes on its own until then.
+        </p>
+      </div>
+    </section>
+  } @else {
+    <ol class="dbaas-connect__steps">
+      <li class="dbaas-step">
+        <span class="dbaas-step__marker" aria-hidden="true">1</span>
+        <div class="dbaas-step__body">
+          <h2 class="dbaas-step__title">Get the credentials</h2>
+
+          @if (!canProjectDBaaSWrite()) {
+            <p class="dbaas-connect__muted m-0">
+              Credentials include the password, so they need write access to databases in this project. Ask a
+              project administrator.
+            </p>
+          } @else if (!credentials()) {
+            <p class="dbaas-connect__muted m-0">The owner account has full access to the application database.</p>
+            <span
+              class="align-self-start"
+              [matTooltip]="!isReady() ? 'Credentials are available once the database is Ready.' : ''"
+              matTooltipPosition="above">
+              <button
+                matButton="filled"
+                [disabled]="credentialsLoading() || !isReady()"
+                (click)="revealCredentials()">
+                @if (credentialsLoading()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  <mat-icon>key</mat-icon>
+                }
+                Reveal credentials
+              </button>
+            </span>
+          } @else {
+            @let creds = credentials()!;
+            <dl class="dbaas-creds">
+              <dt>Database</dt>
+              <dd><spx-span-copy [value]="creds.dbname" /></dd>
+
+              <dt>User</dt>
+              <dd><spx-span-copy [value]="creds.username" /></dd>
+
+              <dt>Password</dt>
+              <dd class="dbaas-creds__secret">
+                <span class="text-break-all">{{ secretVisible() ? creds.password : '••••••••••••••••' }}</span>
+                <button
+                  matIconButton
+                  class="icon-btn--with-bg icon-btn--small"
+                  [attr.aria-label]="secretVisible() ? 'Hide password' : 'Show password'"
+                  (click)="secretVisible.set(!secretVisible())">
+                  <mat-icon>{{ secretVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <button
+                  matIconButton
+                  class="icon-btn--with-bg icon-btn--small"
+                  aria-label="Copy password"
+                  (click)="copy(creds.password)">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </dd>
+            </dl>
+
+            <button matButton class="align-self-start" (click)="hideCredentials()">
+              <mat-icon>lock</mat-icon>
+              Hide credentials
+            </button>
+          }
+        </div>
+      </li>
+
+      <li class="dbaas-step">
+        <span class="dbaas-step__marker" aria-hidden="true">2</span>
+        <div class="dbaas-step__body">
+          <h2 class="dbaas-step__title">{{ publicEndpoints().length ? 'Choose a network and endpoint' : 'Choose an endpoint' }}</h2>
+
+          @if (publicEndpoints().length) {
+            <mat-button-toggle-group
+              class="align-self-start"
+              [value]="activeNetwork()"
+              (change)="network.set($event.value)"
+              aria-label="Network"
+              hideSingleSelectionIndicator>
+              <mat-button-toggle value="private">Private network</mat-button-toggle>
+              <mat-button-toggle value="public">Public network</mat-button-toggle>
+            </mat-button-toggle-group>
+          }
+
+          <mat-button-toggle-group
+            class="align-self-start"
+            [value]="role()"
+            (change)="role.set($event.value)"
+            aria-label="Endpoint"
+            hideSingleSelectionIndicator>
+            @for (endpoint of activeEndpoints(); track endpoint.role) {
+              <mat-button-toggle [value]="endpoint.role">{{ endpointRoleLabel(endpoint.role) }}</mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+          <p class="dbaas-connect__muted m-0">
+            {{ endpointRoleHint(role()) }}
+            @if (activeNetwork() === 'public') {
+              From the internet, through the Elastic IP.
+            }
+          </p>
+        </div>
+      </li>
+
+      <li class="dbaas-step">
+        <span class="dbaas-step__marker" aria-hidden="true">3</span>
+        <div class="dbaas-step__body">
+          <h2 class="dbaas-step__title">Connect</h2>
+          <mat-button-toggle-group
+            class="align-self-start"
+            [value]="client()"
+            (change)="client.set($event.value)"
+            aria-label="Client"
+            hideSingleSelectionIndicator>
+            <mat-button-toggle value="psql">psql</mat-button-toggle>
+            <mat-button-toggle value="uri">Connection URI</mat-button-toggle>
+          </mat-button-toggle-group>
+
+          <spx-code-block [code]="snippet()" />
+
+          <p class="dbaas-connect__muted m-0">
+            @if (client() === 'psql') {
+              @if (activeNetwork() === 'public') {
+                Run from any machine with internet access. psql asks for the password.
+              } @else {
+                Run from an instance on the database subnet. psql asks for the password.
+              }
+            } @else {
+              Replace &lt;password&gt; with the password from step 1.
+            }
+          </p>
+        </div>
+      </li>
+    </ol>
+  }
+</div>

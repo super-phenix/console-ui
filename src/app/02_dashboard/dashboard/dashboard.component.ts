@@ -78,7 +78,7 @@ const CATEGORY_CARDS: CategoryCard[] = [
     icon: ProductPaas.icon,
     link: ['/products', ProductPaas.baseLink, ProductPaas.items[0].link],
     createLink: ['/products', ProductPaas.baseLink, 'kaas', 'create'],
-    productTypes: ['kaas'],
+    productTypes: ['kaas', 'dbaas'],
   },
 ];
 
