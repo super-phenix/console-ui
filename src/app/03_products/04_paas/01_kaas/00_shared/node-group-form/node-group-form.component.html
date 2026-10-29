@@ -17,10 +17,7 @@
         >
         <mat-hint align="end">{{ group().get('nodeRole')?.value?.length ?? 0 }} / {{ nodeRoleMaxLength }}</mat-hint>
         @if (group().get('nodeRole')?.hasError('nodeRolePattern')) {
-          <mat-error>Lowercase, digits and '-' only.</mat-error>
-        }
-        @if (group().get('nodeRole')?.hasError('nodeRoleReserved')) {
-          <mat-error>Reserved for the control plane.</mat-error>
+          <mat-error>Letters, digits, '-', '_' or '.', starting and ending with a letter or digit.</mat-error>
         }
       </mat-form-field>
       <mat-form-field>
