@@ -20,6 +20,9 @@ export interface MachineDeployment {
     clusterName: string;
     replicas: number;
     template: {
+      metadata?: {
+        labels?: Record<string, string>;
+      };
       spec: {
         infrastructureRef: {
           name: string;

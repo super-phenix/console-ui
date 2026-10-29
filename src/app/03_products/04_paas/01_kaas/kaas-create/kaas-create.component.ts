@@ -38,6 +38,7 @@ import { InstanceService } from '@products/00_shared/services/instance.service';
 import { KaasService } from '@products/00_shared/services/kaas.service';
 import { SubnetService } from '@products/00_shared/services/subnet.service';
 import { generateShortId, isVersionAtLeast } from '@products/00_shared/utils/cluster-utils';
+import { NODE_ROLE_MAX_LENGTH, nodeRoleValidator } from '../00_shared/node-group-form/node-role.validator';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { StateService } from '@shared/services/state.service';
 import { catchError, firstValueFrom, of } from 'rxjs';
@@ -115,7 +116,9 @@ export class KaasCreateComponent {
   drSupported = computed(() => isVersionAtLeast(this.kubeVersionValue(), 1, 35));
 
   secondFormGroup = this.fb.group({
-    groups: this.fb.array([this.newNodeGroup(generateShortId(), 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, '', 10)]),
+    groups: this.fb.array([
+      this.newNodeGroup(generateShortId(), '', 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, '', 10),
+    ]),
   });
 
   postInstallChartActive = signal(false);
@@ -230,7 +233,7 @@ export class KaasCreateComponent {
       const storageClassDefaultValue = this.storageClassList.value().length ? this.storageClassList.value()[0] : '';
       const name = this.getId();
       this.groups.push(
-        this.newNodeGroup(name, 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, storageClassDefaultValue, 10)
+        this.newNodeGroup(name, '', 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, storageClassDefaultValue, 10)
       );
     }
   }
@@ -278,6 +281,7 @@ export class KaasCreateComponent {
 
   private newNodeGroup(
     name: string,
+    nodeRole: string,
     replicas: number,
     cpu: CpuValue,
     memory: MemoryValue,
@@ -286,6 +290,7 @@ export class KaasCreateComponent {
   ) {
     return this.fb.group({
       name: this.fb.nonNullable.control(name, Validators.required),
+      nodeRole: this.fb.nonNullable.control(nodeRole, [Validators.maxLength(NODE_ROLE_MAX_LENGTH), nodeRoleValidator]),
       replicas: this.fb.nonNullable.control(replicas, REPLICAS_VALIDATORS),
       cpu: this.fb.nonNullable.control<CpuValue>(cpu, CPU_VALIDATORS),
       memory: this.fb.nonNullable.control<MemoryValue>(memory, MEMORY_VALIDATORS),
@@ -307,6 +312,7 @@ export class KaasCreateComponent {
       const groups = this.secondFormGroup.value.groups.map<CreateKaasNodes>((v, i) => {
         return {
           name: v.name!,
+          nodeRole: v.nodeRole || undefined,
           replicas: v.replicas!,
           cpu: v.cpu!,
           memory: v.memory!,

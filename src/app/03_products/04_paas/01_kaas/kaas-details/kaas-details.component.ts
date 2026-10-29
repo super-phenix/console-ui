@@ -16,6 +16,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TabsBase } from '@products/00_shared/components/tabs-base/tab-base.component';
+import { MachineDeployment } from '@products/00_shared/models/paas/kaas/cluster.model';
 import { KaasService } from '@products/00_shared/services/kaas.service';
 import { getProductLabelInfo } from '@products/00_shared/utils/product-label-utils';
 import { BannerComponent } from '@shared/components/banner/banner.component';
@@ -31,6 +32,7 @@ import { of } from 'rxjs';
 import { KaasDetailsInstancesComponent } from '../kaas-details-instances/kaas-details-instances.component';
 import { KaasDetailsNetpolsComponent } from '../kaas-details-netpols/kaas-details-netpols.component';
 import { KaasActions } from '../kaas-actions.utils';
+import { NODE_ROLE_LABEL_PREFIX } from '../00_shared/node-group-form/node-role.validator';
 import { environment } from '@env/environment';
 
 @Component({
@@ -128,6 +130,12 @@ export class KaasDetailsComponent extends TabsBase {
     }
     return [];
   });
+
+  nodeRole(machineDeployment: MachineDeployment): string | undefined {
+    const labels = machineDeployment.spec.template.metadata?.labels ?? {};
+    const key = Object.keys(labels).find(k => k.startsWith(NODE_ROLE_LABEL_PREFIX));
+    return key?.slice(NODE_ROLE_LABEL_PREFIX.length);
+  }
 
   constructor() {
     super();

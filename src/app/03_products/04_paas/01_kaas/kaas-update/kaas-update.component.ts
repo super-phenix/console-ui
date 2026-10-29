@@ -42,6 +42,7 @@ import { InstanceService } from '@products/00_shared/services/instance.service';
 import { KaasService } from '@products/00_shared/services/kaas.service';
 import { SubnetService } from '@products/00_shared/services/subnet.service';
 import { generateShortId, isVersionAtLeast } from '@products/00_shared/utils/cluster-utils';
+import { NODE_ROLE_MAX_LENGTH, nodeRoleValidator } from '../00_shared/node-group-form/node-role.validator';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { StateService } from '@shared/services/state.service';
@@ -141,7 +142,9 @@ export class KaasUpdateComponent {
   });
 
   secondFormGroup = this.fb.group({
-    groups: this.fb.array([this.newNodeGroup(generateShortId(), 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, '', 10)]),
+    groups: this.fb.array([
+      this.newNodeGroup(generateShortId(), '', 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, '', 10),
+    ]),
   });
 
   postInstallChartActive = signal(false);
@@ -295,7 +298,9 @@ export class KaasUpdateComponent {
     this.groups.controls = [];
     const groups = kaas.spec?.groups.sort((a, b) => a.name.localeCompare(b.name)) || [];
     groups.forEach((el, i) => {
-      this.groups.push(this.newNodeGroup(el.name, el.replicas, el.cpu, el.memory, el.storageClass, el.bootDiskSize));
+      this.groups.push(
+        this.newNodeGroup(el.name, el.nodeRole ?? '', el.replicas, el.cpu, el.memory, el.storageClass, el.bootDiskSize)
+      );
       this.initNetworkList[i] = el.subnets.map(s => s.id);
     });
   }
@@ -305,7 +310,7 @@ export class KaasUpdateComponent {
       const storageClassDefaultValue = this.storageClassList().length ? this.storageClassList()[0] : '';
       const name = this.getId();
       this.groups.push(
-        this.newNodeGroup(name, 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, storageClassDefaultValue, 10)
+        this.newNodeGroup(name, '', 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, storageClassDefaultValue, 10)
       );
     }
   }
@@ -343,6 +348,7 @@ export class KaasUpdateComponent {
 
   private newNodeGroup(
     name: string,
+    nodeRole: string,
     replicas: number,
     cpu: CpuValue,
     memory: MemoryValue,
@@ -351,6 +357,7 @@ export class KaasUpdateComponent {
   ) {
     return this.fb.group({
       name: this.fb.nonNullable.control(name, Validators.required),
+      nodeRole: this.fb.nonNullable.control(nodeRole, [Validators.maxLength(NODE_ROLE_MAX_LENGTH), nodeRoleValidator]),
       replicas: this.fb.nonNullable.control(replicas, REPLICAS_VALIDATORS),
       cpu: this.fb.nonNullable.control<CpuValue>(cpu, CPU_VALIDATORS),
       memory: this.fb.nonNullable.control<MemoryValue>(memory, MEMORY_VALIDATORS),
@@ -383,6 +390,7 @@ export class KaasUpdateComponent {
         const groups = this.secondFormGroup.value.groups!.map<CreateKaasNodes>((v, i) => {
           return {
             name: v.name!,
+            nodeRole: v.nodeRole || undefined,
             replicas: v.replicas!,
             cpu: v.cpu!,
             memory: v.memory!,
