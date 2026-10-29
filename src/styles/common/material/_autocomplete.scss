@@ -1,0 +1,23 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.autocomplete-overrides(
+    (
+      background-color: var(--block),
+    )
+  );
+}
+
+// mat-select makes the selected option active when it opens, so it shows the focus color.
+// mat-autocomplete never does, so give its selected options that color to look the same.
+.mat-mdc-autocomplete-panel {
+  @include mat.option-overrides(
+    (
+      selected-state-layer-color:
+        var(
+          --mat-option-focus-state-layer-color,
+          color-mix(in srgb, var(--mat-sys-on-surface) calc(var(--mat-sys-focus-state-layer-opacity) * 100%), transparent)
+        ),
+    )
+  );
+}
