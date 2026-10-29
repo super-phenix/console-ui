@@ -1,4 +1,4 @@
-import { BinaryUnit, parseQuantityToBytes, splitQuantity } from './quantity';
+import { BinaryUnit, guestMemory, parseQuantityToBytes, splitQuantity } from './quantity';
 
 describe('parseQuantityToBytes', () => {
   const cases: { name: string; value: string; expected: number | null }[] = [
@@ -21,6 +21,22 @@ describe('parseQuantityToBytes', () => {
   it('should compare quantities across units', () => {
     expect(parseQuantityToBytes('10Gi')!).toBeLessThan(parseQuantityToBytes('1Ti')!);
     expect(parseQuantityToBytes('1025Mi')!).toBeGreaterThan(parseQuantityToBytes('1Gi')!);
+  });
+});
+
+describe('guestMemory', () => {
+  const cases: { name: string; value: string | undefined; expected: string | null }[] = [
+    { name: 'Gi', value: '4Gi', expected: '4Gi' },
+    { name: 'whole GiB in Mi', value: '4096Mi', expected: '4096Mi' },
+    { name: 'fractional GiB', value: '1536Mi', expected: '1536Mi' },
+    { name: 'decimal suffix', value: '8G', expected: null },
+    { name: 'absent', value: undefined, expected: null },
+  ];
+
+  cases.forEach(({ name, value, expected }) => {
+    it(`should return ${expected} for ${name}`, () => {
+      expect(guestMemory(value)).toEqual(expected);
+    });
   });
 });
 

@@ -4,25 +4,19 @@
     <div class="d-flex gap-2 align-items-center flex-wrap" [formGroup]="formGroup()">
       <mat-form-field>
         <mat-label>Number of Replicas</mat-label>
-        <input matInput formControlName="replicas" type="number" pattern="[0-9]+" min="1" [max]="MaxReplicas" />
+        <input matInput formControlName="replicas" type="number" />
+        @if (replicasControl().hasError('required')) {
+          <mat-error>This field is required</mat-error>
+        } @else if (
+          replicasControl().hasError('min') ||
+          replicasControl().hasError('max') ||
+          replicasControl().hasError('pattern')
+        ) {
+          <mat-error>Enter a whole number between 1 and 999999</mat-error>
+        }
       </mat-form-field>
-      <mat-form-field>
-        <mat-label>Cores</mat-label>
-        <mat-select formControlName="cpu">
-          @for (unit of CpuValueList; track unit) {
-            <mat-option [value]="unit">{{ unit }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>RAM</mat-label>
-        <mat-select formControlName="memory">
-          @for (unit of MemoryValueList; track unit) {
-            <mat-option [value]="unit">{{ unit }}</mat-option>
-          }
-        </mat-select>
-        <span matTextSuffix class="ml-2">GB</span>
-      </mat-form-field>
+      <spx-compute-size-field label="Cores" [control]="cpuControl()" [size]="CpuSize" />
+      <spx-memory-size-field [control]="memoryControl()" />
 
       <mat-form-field>
         <mat-label>Storage Class</mat-label>

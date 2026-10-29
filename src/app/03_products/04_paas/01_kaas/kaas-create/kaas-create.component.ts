@@ -13,8 +13,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { StepGeneralComponent } from '@products/00_shared/components/forms-step/step-general/step-general.component';
 import {
   CPU_DEFAULT_VALUE,
+  CPU_VALIDATORS,
   CpuValue,
   MEMORY_DEFAULT_VALUE,
+  MEMORY_VALIDATORS,
   MemoryValue,
 } from '@products/00_shared/models/compute/instance/instance';
 import {
@@ -24,7 +26,9 @@ import {
   CreateKaasControlPlane,
   CreateKaasNetwork,
   CreateKaasNodes,
+  DATASTORE_STORAGE_MAX,
   KaasPostInstallChart,
+  REPLICAS_VALIDATORS,
   WorkersNetworkPolicies,
   workersNetworkPolicies,
 } from '@products/00_shared/models/paas/kaas/kaas';
@@ -103,7 +107,11 @@ export class KaasCreateComponent {
   disasterRecovery = signal(false);
   dataStoreFormGroup = this.fb.nonNullable.group({
     storageClassName: this.fb.nonNullable.control(''),
-    storage: this.fb.nonNullable.control(8, [Validators.required, Validators.min(1)]),
+    storage: this.fb.nonNullable.control(8, [
+      Validators.required,
+      Validators.min(1),
+      Validators.max(DATASTORE_STORAGE_MAX),
+    ]),
   });
 
   // Disaster Recovery needs Kubernetes >= 1.35.
@@ -282,9 +290,9 @@ export class KaasCreateComponent {
   ) {
     return this.fb.group({
       name: this.fb.nonNullable.control(name, Validators.required),
-      replicas: this.fb.nonNullable.control(replicas, Validators.required),
-      cpu: this.fb.nonNullable.control<CpuValue>(cpu, Validators.required),
-      memory: this.fb.nonNullable.control<MemoryValue>(memory, Validators.required),
+      replicas: this.fb.nonNullable.control(replicas, REPLICAS_VALIDATORS),
+      cpu: this.fb.nonNullable.control<CpuValue>(cpu, CPU_VALIDATORS),
+      memory: this.fb.nonNullable.control<MemoryValue>(memory, MEMORY_VALIDATORS),
       storageClass: this.fb.nonNullable.control(storageClass, Validators.required),
       bootDiskSize: this.fb.nonNullable.control(bootDiskSize, Validators.required),
     });

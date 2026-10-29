@@ -1,4 +1,4 @@
-// Kubernetes binary quantities ("100Gi", "1Ti"...) as used by the S3 bucket size caps.
+// Kubernetes binary quantities ("100Gi", "1Ti"...) as used by the S3 bucket size caps and VM memory.
 
 export const BINARY_UNITS = ['Ki', 'Mi', 'Gi', 'Ti'] as const;
 export type BinaryUnit = (typeof BINARY_UNITS)[number];
@@ -14,6 +14,9 @@ const MULTIPLIERS: Record<string, number> = {
   Ei: 2 ** 60,
 };
 
+export const BYTES_PER_MIB = MULTIPLIERS['Mi'];
+export const BYTES_PER_GIB = MULTIPLIERS['Gi'];
+
 // Parses "500", "1.5Gi" or "1Ti" into bytes; null when unparseable.
 export function parseQuantityToBytes(quantity: string): number | null {
   const match = QUANTITY_REGEX.exec(quantity);
@@ -23,6 +26,11 @@ export function parseQuantityToBytes(quantity: string): number | null {
   const value = parseFloat(match[1]);
   const multiplier = match[2] ? MULTIPLIERS[match[2]] : 1;
   return value * multiplier;
+}
+
+// Returns a VM guest memory quantity ("4Gi", "1536Mi") as-is; null when absent or unparseable.
+export function guestMemory(quantity: string | undefined): string | null {
+  return quantity && parseQuantityToBytes(quantity) !== null ? quantity : null;
 }
 
 // Formats raw bytes as a human readable binary quantity, e.g. 1572864 -> "1.5 MiB".

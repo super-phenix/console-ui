@@ -1,5 +1,17 @@
+import { Validators } from '@angular/forms';
 import { CpuValue, MemoryValue } from '../../compute/instance/instance';
 import { Product } from '../../product.model';
+
+export const REPLICAS_MIN = 1;
+export const REPLICAS_MAX = 999999;
+export const REPLICAS_VALIDATORS = [
+  Validators.required,
+  Validators.pattern(/^\d+$/),
+  Validators.min(REPLICAS_MIN),
+  Validators.max(REPLICAS_MAX),
+];
+
+export const DATASTORE_STORAGE_MAX = 999999;
 
 export const controlPlaneNetworkPolicies = ['default', 'none'] as const;
 export type ControlPlaneNetworkPolicies = (typeof controlPlaneNetworkPolicies)[number];

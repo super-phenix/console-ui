@@ -9,7 +9,6 @@ import { ProductInstance } from '@products/00_shared/models/product.model';
 import {
   CreateInstanceNetwork,
   CPU_DEFAULT_VALUE,
-  MEMORY_DEFAULT_VALUE,
   VM_TYPE_DEFAULT,
 } from '@products/00_shared/models/compute/instance/instance';
 import { RunStrategy } from '@products/00_shared/models/compute/instance/enums/run-strategy.enum';
@@ -289,6 +288,16 @@ describe('InstanceActions Utilities', () => {
       { order: 1, subnetEId: 'sub-2', model: 'virtio', enabled: false },
     ];
 
+    // Minimal instance whose VM only sets the guest memory.
+    const withMemory = (guest?: string): ProductInstance =>
+      ({
+        id: 'inst-minimal',
+        eid: 'eid-minimal',
+        productName: 'minimal',
+        gitops: '',
+        vm: { spec: { template: { spec: { domain: { memory: { guest } } } } } },
+      }) as unknown as ProductInstance;
+
     it('should build complete UpdateInstance preserving existing configuration', () => {
       const instance = {
         id: 'inst-1',
@@ -332,7 +341,7 @@ describe('InstanceActions Utilities', () => {
                 domain: {
                   resources: {},
                   cpu: { cores: 4, sockets: 1, threads: 1 },
-                  memory: { guest: '16', guestCurrent: '16' },
+                  memory: { guest: '16Gi', guestCurrent: '16Gi' },
                   devices: {
                     interfaces: [],
                     disks: [
@@ -354,7 +363,7 @@ describe('InstanceActions Utilities', () => {
         },
       } as unknown as ProductInstance;
 
-      const payload = buildUpdatePayloadFromInstance(instance, updatedNetworks);
+      const payload = buildUpdatePayloadFromInstance(instance, updatedNetworks)!;
 
       expect(payload.general.productName).toBe('My Server');
       expect(payload.general.runStrategy).toBe(RunStrategy.RerunOnFailure);
@@ -362,7 +371,7 @@ describe('InstanceActions Utilities', () => {
       expect(payload.general.labels).toEqual(['user.superphenix.net/env:production']);
 
       expect(payload.compute.cpu).toBe(4);
-      expect(payload.compute.memory).toBe(16);
+      expect(payload.compute.memory).toBe('16Gi');
 
       expect(payload.network).toEqual(updatedNetworks);
 
@@ -387,20 +396,13 @@ describe('InstanceActions Utilities', () => {
     });
 
     it('should handle default and missing values gracefully', () => {
-      const instance: ProductInstance = {
-        id: 'inst-minimal',
-        eid: 'eid-minimal',
-        productName: 'minimal',
-        gitops: '',
-      };
-
-      const payload = buildUpdatePayloadFromInstance(instance, []);
+      const payload = buildUpdatePayloadFromInstance(withMemory('2Gi'), [])!;
 
       expect(payload.general.productName).toBe('minimal');
       expect(payload.general.runStrategy).toBe(RunStrategy.Manual);
       expect(payload.general.vmType).toBe(VM_TYPE_DEFAULT);
       expect(payload.compute.cpu).toBe(CPU_DEFAULT_VALUE);
-      expect(payload.compute.memory).toBe(MEMORY_DEFAULT_VALUE);
+      expect(payload.compute.memory).toBe('2Gi');
       expect(payload.network).toEqual([]);
       expect(payload.disks).toBeUndefined();
       expect(payload.cloudInit).toBeUndefined();
@@ -408,13 +410,23 @@ describe('InstanceActions Utilities', () => {
       expect(payload.containerDisks).toBeUndefined();
     });
 
+    it('should resend a guest memory that is not whole GiB as-is', () => {
+      expect(buildUpdatePayloadFromInstance(withMemory('1536Mi'), updatedNetworks)!.compute.memory).toBe('1536Mi');
+    });
+
+    const unreadableMemoryCases: { name: string; guest?: string }[] = [
+      { name: 'missing', guest: undefined },
+      { name: 'decimal suffix', guest: '8G' },
+    ];
+
+    unreadableMemoryCases.forEach(({ name, guest }) => {
+      it(`should return null when guest memory is ${name}`, () => {
+        expect(buildUpdatePayloadFromInstance(withMemory(guest), updatedNetworks)).toBeNull();
+      });
+    });
+
     it('should preserve advanced options when provided', () => {
-      const instance: ProductInstance = {
-        id: 'inst-adv',
-        eid: 'eid-adv',
-        productName: 'adv-vm',
-        gitops: '',
-      };
+      const instance = withMemory('4Gi');
 
       const advanced: AdvancedOptionsInput = {
         firmware: {
@@ -424,7 +436,7 @@ describe('InstanceActions Utilities', () => {
         },
       };
 
-      const payload = buildUpdatePayloadFromInstance(instance, updatedNetworks, advanced);
+      const payload = buildUpdatePayloadFromInstance(instance, updatedNetworks, advanced)!;
       expect(payload.advanced).toEqual(advanced);
     });
   });

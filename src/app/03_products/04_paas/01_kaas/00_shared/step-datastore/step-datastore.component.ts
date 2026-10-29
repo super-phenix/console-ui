@@ -4,6 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { DATASTORE_STORAGE_MAX } from '@products/00_shared/models/paas/kaas/kaas';
 import { AutoSelectDirective } from '@shared/directives/auto-select.directive';
 
 @Component({
@@ -17,4 +18,5 @@ export class StepDataStoreComponent {
   formGroup = input.required<FormGroup>();
   storageClassList = input<string[]>([]);
   min = input<number>(1);
+  max = DATASTORE_STORAGE_MAX;
 }

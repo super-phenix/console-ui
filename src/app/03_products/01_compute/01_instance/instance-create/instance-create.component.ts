@@ -15,9 +15,12 @@ import { StepGeneralComponent } from '@products/00_shared/components/forms-step/
 import { StepLabelComponent } from '@products/00_shared/components/forms-step/step-label/step-label.component';
 import { AdvancedOptionsInput } from '@products/00_shared/models/compute/instance/advanced-options.model';
 import { RunStrategy } from '@products/00_shared/models/compute/instance/enums/run-strategy.enum';
+import { ComputeSizeFieldComponent } from '@products/00_shared/components/compute-size-field/compute-size-field.component';
+import { MemorySizeFieldComponent } from '@products/00_shared/components/memory-size-field/memory-size-field.component';
 import {
   CPU_DEFAULT_VALUE,
-  CPU_VALUE_LIST,
+  CPU_SIZE,
+  CPU_VALIDATORS,
   CpuValue,
   CreateInstance,
   CreateInstanceCloudInit,
@@ -25,7 +28,7 @@ import {
   CreateInstanceNetwork,
   CreateInstanceSsh,
   MEMORY_DEFAULT_VALUE,
-  MEMORY_VALUE_LIST,
+  MEMORY_VALIDATORS,
   MemoryValue,
   VM_TYPE_DEFAULT,
 } from '@products/00_shared/models/compute/instance/instance';
@@ -44,6 +47,8 @@ import { InstanceStorageCreateComponent } from './instance-storage-create/instan
 @Component({
   selector: 'spx-instance-create',
   imports: [
+    ComputeSizeFieldComponent,
+    MemorySizeFieldComponent,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatButtonModule,
@@ -73,8 +78,7 @@ export class InstanceCreateComponent {
 
   private readonly dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
-  CpuValueList = CPU_VALUE_LIST;
-  MemoryValueList = MEMORY_VALUE_LIST;
+  CpuSize = CPU_SIZE;
   RunStrategy = Object.keys(RunStrategy) as RunStrategy[];
   CUSTOM_USER_LABEL_PREFIX = CUSTOM_USER_LABEL_PREFIX;
   CUSTOM_USER_LABEL_NUMBER = CUSTOM_USER_LABEL_NUMBER;
@@ -89,8 +93,8 @@ export class InstanceCreateComponent {
   secondFormGroup = this.fb.nonNullable.group({
     runStrategy: this.fb.nonNullable.control(RunStrategy.Manual, Validators.required),
     vmType: this.fb.nonNullable.control(VM_TYPE_DEFAULT, Validators.required),
-    cpu: this.fb.nonNullable.control<CpuValue>(CPU_DEFAULT_VALUE, Validators.required),
-    memory: this.fb.nonNullable.control<MemoryValue>(MEMORY_DEFAULT_VALUE, Validators.required),
+    cpu: this.fb.nonNullable.control<CpuValue>(CPU_DEFAULT_VALUE, CPU_VALIDATORS),
+    memory: this.fb.nonNullable.control<MemoryValue>(MEMORY_DEFAULT_VALUE, MEMORY_VALIDATORS),
   });
 
   // Mirror vmType as a signal so the storage step's Driver Disks card reacts

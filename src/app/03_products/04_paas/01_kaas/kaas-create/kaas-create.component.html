@@ -247,7 +247,9 @@
 
           <div class="product-create__step-buttons">
             <button matButton="outlined" matStepperPrevious>Back <mat-icon>arrow_back_ios</mat-icon></button>
-            <button matButton="filled" [disabled]="!isNetworkValid()" (click)="create()">Create</button>
+            <button matButton="filled" [disabled]="!isNetworkValid() || secondFormGroup.invalid" (click)="create()">
+              Create
+            </button>
           </div>
         </ng-template>
       </mat-step>
