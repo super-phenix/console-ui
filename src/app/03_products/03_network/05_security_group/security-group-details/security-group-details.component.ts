@@ -13,7 +13,7 @@ import { ProtocolEnum } from '@products/00_shared/models/network/subnet/protocol
 import { SecurityGroupService } from '@products/00_shared/services/security-group.service';
 import { SubnetService } from '@products/00_shared/services/subnet.service';
 import { ProductSecurityGroup, ProductSubnet } from '@products/00_shared/models/product.model';
-import { isClusterResource } from '@products/00_shared/utils/cluster-utils';
+import { isClusterResource, isGeneratedResource } from '@products/00_shared/utils/cluster-utils';
 import { getProductLabelInfo } from '@products/00_shared/utils/product-label-utils';
 import { BannerComponent } from '@shared/components/banner/banner.component';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
@@ -90,6 +90,9 @@ export class SecurityGroupDetailsComponent {
   });
 
   isClusterSecurityGroup = computed(() => isClusterResource(this.sgProduct.value()?.securityGroup?.metadata.labels));
+  isGeneratedSecurityGroup = computed(() =>
+    isGeneratedResource(this.sgProduct.value()?.securityGroup?.metadata.labels)
+  );
 
   productLabelInfo = computed(() => {
     if (this.sgProduct.hasValue()) {
