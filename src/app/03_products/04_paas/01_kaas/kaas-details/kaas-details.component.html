@@ -159,7 +159,11 @@
                   @let mt = item.machineTemplate.machineTemplate;
                   <div class="product-details__card sg-r1 sg-c1 gap-1">
                     <h3 class="mt-0 mb-1">
-                      Group {{ $index + 1 }} - {{ item.machineDeployment.spec.replicas }} replicas
+                      Group {{ $index + 1 }}
+                      @if (nodeRole(item.machineDeployment); as role) {
+                        ({{ role }})
+                      }
+                      - {{ item.machineDeployment.spec.replicas }} replicas
                     </h3>
 
                     <h4 class="label">Kube Version</h4>

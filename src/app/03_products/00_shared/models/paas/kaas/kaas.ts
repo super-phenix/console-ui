@@ -85,6 +85,7 @@ export interface CreateKaasDataStore {
 
 export interface CreateKaasNodes {
   name: string;
+  nodeRole?: string;
   replicas: number;
   cpu: CpuValue;
   memory: MemoryValue;

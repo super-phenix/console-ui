@@ -6,9 +6,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AutoSelectDirective } from '@shared/directives/auto-select.directive';
 import { CPU_VALUE_LIST, MEMORY_VALUE_LIST } from '@products/00_shared/models/compute/instance/instance';
 import { MAX_NAME_LENGTH } from '@shared/models/consts';
+import { NODE_ROLE_MAX_LENGTH } from './node-role.validator';
 
 @Component({
   selector: 'spx-node-group-form',
@@ -19,6 +21,7 @@ import { MAX_NAME_LENGTH } from '@shared/models/consts';
     MatInputModule,
     MatIconModule,
     MatSelectModule,
+    MatTooltipModule,
     AutoSelectDirective,
     MatButtonModule,
     TitleCasePipe,
@@ -32,6 +35,7 @@ export class NodeGroupFormComponent {
   readonly CpuValueList = CPU_VALUE_LIST;
   readonly MemoryValueList = MEMORY_VALUE_LIST;
   readonly maxLength = MAX_NAME_LENGTH;
+  readonly nodeRoleMaxLength = NODE_ROLE_MAX_LENGTH;
 
   index = input.required<number>();
   group = input.required<AbstractControl>();
