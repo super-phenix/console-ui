@@ -1,4 +1,4 @@
-import { BinaryUnit, guestMemory, parseQuantityToBytes, splitQuantity } from './quantity';
+import { BinaryUnit, bytesPerUnit, guestMemory, parseQuantityToBytes, splitQuantity } from './quantity';
 
 describe('parseQuantityToBytes', () => {
   const cases: { name: string; value: string; expected: number | null }[] = [
@@ -53,6 +53,21 @@ describe('splitQuantity', () => {
   cases.forEach(({ name, value, expected }) => {
     it(`should return ${JSON.stringify(expected)} for ${name}`, () => {
       expect(splitQuantity(value)).toEqual(expected);
+    });
+  });
+});
+
+describe('bytesPerUnit', () => {
+  const cases: { unit: BinaryUnit; expected: number }[] = [
+    { unit: 'Ki', expected: 2 ** 10 },
+    { unit: 'Mi', expected: 2 ** 20 },
+    { unit: 'Gi', expected: 2 ** 30 },
+    { unit: 'Ti', expected: 2 ** 40 },
+  ];
+
+  cases.forEach(({ unit, expected }) => {
+    it(`should return ${expected} for ${unit}`, () => {
+      expect(bytesPerUnit(unit)).toEqual(expected);
     });
   });
 });

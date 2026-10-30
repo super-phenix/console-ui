@@ -17,6 +17,10 @@ const MULTIPLIERS: Record<string, number> = {
 export const BYTES_PER_MIB = MULTIPLIERS['Mi'];
 export const BYTES_PER_GIB = MULTIPLIERS['Gi'];
 
+export function bytesPerUnit(unit: BinaryUnit): number {
+  return MULTIPLIERS[unit];
+}
+
 // Parses "500", "1.5Gi" or "1Ti" into bytes; null when unparseable.
 export function parseQuantityToBytes(quantity: string): number | null {
   const match = QUANTITY_REGEX.exec(quantity);

@@ -13,8 +13,14 @@ import {
   MEMORY_UNITS,
   MemoryValue,
 } from '@products/00_shared/models/compute/instance/instance';
-import { BinaryUnit, BYTES_PER_MIB, parseQuantityToBytes, splitQuantity } from '@products/00_shared/utils/quantity';
-import { merge, startWith, switchMap } from 'rxjs';
+import {
+  BinaryUnit,
+  BYTES_PER_MIB,
+  bytesPerUnit,
+  parseQuantityToBytes,
+  splitQuantity,
+} from '@products/00_shared/utils/quantity';
+import { startWith, switchMap } from 'rxjs';
 
 // Amount and unit inputs editing one memory quantity control ("4Gi", "1536Mi").
 @Component({
@@ -60,24 +66,35 @@ export class MemorySizeFieldComponent {
       )
       .subscribe(value => this.showQuantity(value));
 
-    merge(this.amount.valueChanges, this.unit.valueChanges)
-      .pipe(takeUntilDestroyed(destroyRef))
-      .subscribe(() => {
-        const amount = this.amount.value;
-        const quantity = amount === null || amount === undefined ? null : `${amount}${this.unit.value}`;
-        if (quantity !== this.control().value) {
-          this.control().setValue(quantity, { emitEvent: false });
-          this.control().markAsDirty();
-        }
-      });
+    this.amount.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe(() => this.syncControl());
+
+    // Converts the amount to the new unit, the control still holding the previous quantity.
+    this.unit.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe(unit => {
+      const bytes = parseQuantityToBytes(this.control().value ?? '');
+      if (bytes !== null) {
+        this.amount.setValue(bytes / bytesPerUnit(unit), { emitEvent: false });
+      }
+      this.syncControl();
+    });
   }
 
+  // Presets are in GiB, so the amount is kept as is.
   selectPreset(): void {
-    this.unit.setValue('Gi');
+    this.unit.setValue('Gi', { emitEvent: false });
+    this.syncControl();
   }
 
   markTouched(): void {
     this.control().markAsTouched();
+  }
+
+  private syncControl(): void {
+    const amount = this.amount.value;
+    const quantity = amount === null || amount === undefined ? null : `${amount}${this.unit.value}`;
+    if (quantity !== this.control().value) {
+      this.control().setValue(quantity, { emitEvent: false });
+      this.control().markAsDirty();
+    }
   }
 
   // Splits the quantity into the amount and unit inputs without echoing back into the control.
