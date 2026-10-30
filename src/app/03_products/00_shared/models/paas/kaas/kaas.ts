@@ -12,6 +12,12 @@ export const REPLICAS_VALIDATORS = [
 ];
 
 export const DATASTORE_STORAGE_MAX = 999999;
+export const datastoreStorageValidators = (min: number) => [
+  Validators.required,
+  Validators.pattern(/^\d+$/),
+  Validators.min(min),
+  Validators.max(DATASTORE_STORAGE_MAX),
+];
 
 export const controlPlaneNetworkPolicies = ['default', 'none'] as const;
 export type ControlPlaneNetworkPolicies = (typeof controlPlaneNetworkPolicies)[number];

@@ -26,7 +26,7 @@ import {
   CreateKaasControlPlane,
   CreateKaasNetwork,
   CreateKaasNodes,
-  DATASTORE_STORAGE_MAX,
+  datastoreStorageValidators,
   KaasPostInstallChart,
   REPLICAS_VALIDATORS,
   WorkersNetworkPolicies,
@@ -107,11 +107,7 @@ export class KaasCreateComponent {
   disasterRecovery = signal(false);
   dataStoreFormGroup = this.fb.nonNullable.group({
     storageClassName: this.fb.nonNullable.control(''),
-    storage: this.fb.nonNullable.control(8, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(DATASTORE_STORAGE_MAX),
-    ]),
+    storage: this.fb.nonNullable.control(8, datastoreStorageValidators(1)),
   });
 
   // Disaster Recovery needs Kubernetes >= 1.35.

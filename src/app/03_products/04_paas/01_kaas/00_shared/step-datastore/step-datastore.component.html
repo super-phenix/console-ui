@@ -30,10 +30,16 @@
         <mat-label>Storage size</mat-label>
         <input matInput type="number" [min]="min()" [max]="max" formControlName="storage" />
         <span matSuffix>Gi</span>
-        @if (formGroup().get('storage')?.hasError('max')) {
+        @if (formGroup().get('storage')?.hasError('required')) {
+          <mat-error>This field is required</mat-error>
+        } @else if (formGroup().get('storage')?.hasError('pattern')) {
+          <mat-error>Enter a whole number of Gi.</mat-error>
+        } @else if (formGroup().get('storage')?.hasError('max')) {
           <mat-error>The maximum value is {{ max }} Gi.</mat-error>
-        } @else {
+        } @else if (currentStorage()) {
           <mat-error>Storage cannot be reduced below the current value ({{ min() }} Gi).</mat-error>
+        } @else {
+          <mat-error>The minimum value is {{ min() }} Gi.</mat-error>
         }
       </mat-form-field>
     </div>

@@ -28,7 +28,7 @@ import {
   CreateKaasControlPlane,
   CreateKaasNetwork,
   CreateKaasNodes,
-  DATASTORE_STORAGE_MAX,
+  datastoreStorageValidators,
   KaasPostInstallChart,
   REPLICAS_VALIDATORS,
   UpdateKaaS,
@@ -115,16 +115,12 @@ export class KaasUpdateComponent {
   disasterRecovery = signal(false);
   // Original values used to detect changes that Kamaji cannot handle simultaneously.
   private originalKubeVersion = signal('');
-  private originalDisasterRecovery = signal(false);
+  readonly originalDisasterRecovery = signal(false);
   // Current DR storage size when editing; the input cannot be reduced below it.
   originalStorage = signal(1);
   dataStoreFormGroup = this.fb.nonNullable.group({
     storageClassName: this.fb.nonNullable.control(''),
-    storage: this.fb.nonNullable.control(8, [
-      Validators.required,
-      Validators.min(1),
-      Validators.max(DATASTORE_STORAGE_MAX),
-    ]),
+    storage: this.fb.nonNullable.control(8, datastoreStorageValidators(1)),
   });
 
   // Disaster Recovery needs Kubernetes >= 1.35.
@@ -279,11 +275,7 @@ export class KaasUpdateComponent {
         storage: current,
       });
       // PVC-backed storage cannot be shrunk: forbid going below the current size.
-      this.dataStoreFormGroup.controls.storage.setValidators([
-        Validators.required,
-        Validators.min(current),
-        Validators.max(DATASTORE_STORAGE_MAX),
-      ]);
+      this.dataStoreFormGroup.controls.storage.setValidators(datastoreStorageValidators(current));
       this.dataStoreFormGroup.controls.storage.updateValueAndValidity();
     }
     this.disasterRecovery.set(!!dataStore?.dedicated);

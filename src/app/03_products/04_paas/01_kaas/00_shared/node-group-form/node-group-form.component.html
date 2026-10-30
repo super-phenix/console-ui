@@ -39,6 +39,9 @@
         @if (group().get('bootDiskSize')?.hasError('required')) {
           <mat-error>This field is required</mat-error>
         }
+        @if (group().get('bootDiskSize')?.hasError('pattern')) {
+          <mat-error>Enter a whole number of Gi.</mat-error>
+        }
         @if (group().get('bootDiskSize')?.hasError('min')) {
           <mat-error>
             <span>The minimum value is {{ group().get('bootDiskSize')?.getError('min').min }}.</span>

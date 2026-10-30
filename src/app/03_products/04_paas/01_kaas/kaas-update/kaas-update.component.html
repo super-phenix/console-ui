@@ -152,7 +152,7 @@
               @if (disasterRecovery()) {
                 <spx-step-datastore
                   [formGroup]="dataStoreFormGroup"
-                  [min]="originalStorage()"
+                  [currentStorage]="originalDisasterRecovery() ? originalStorage() : null"
                   [storageClassList]="storageClassList()"></spx-step-datastore>
               }
 
