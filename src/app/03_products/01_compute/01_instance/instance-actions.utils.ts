@@ -14,12 +14,9 @@ import {
 import {
   BUS_AUTO,
   CPU_DEFAULT_VALUE,
-  CpuValue,
   CreateInstanceDisk,
   CreateInstanceNetwork,
   DEFAULT_CLOUD_INIT,
-  MEMORY_DEFAULT_VALUE,
-  MemoryValue,
   NETWORK_MODEL_AUTO,
   UpdateInstance,
   VM_TYPE_DEFAULT,
@@ -30,6 +27,7 @@ import { AdvancedOptionsInput } from '@products/00_shared/models/compute/instanc
 import { CUSTOM_USER_LABEL_PREFIX, RESOURCE_LOCAL_ID_LABEL_KEY } from '@shared/models/consts';
 import { Router } from '@angular/router';
 import { getProductLabelInfo } from '@products/00_shared/utils/product-label-utils';
+import { guestMemory } from '@products/00_shared/utils/quantity';
 import { v5 as uuidv5 } from 'uuid';
 
 export function parseIp(ip: string): { v4?: string; v6?: string } {
@@ -124,11 +122,17 @@ export function extractNetworksFromInstance(instance: ProductInstance, projectId
   return networkList;
 }
 
+// Null when the guest memory is missing or unreadable, as sending a guess would resize the VM.
 export function buildUpdatePayloadFromInstance(
   instance: ProductInstance,
   updatedNetworks: CreateInstanceNetwork[],
   advanced?: AdvancedOptionsInput
-): UpdateInstance {
+): UpdateInstance | null {
+  const memory = guestMemory(instance.vm?.spec?.template?.spec?.domain?.memory?.guest);
+  if (memory === null) {
+    return null;
+  }
+
   const volumes = instance.vm?.spec?.template?.spec?.volumes;
   const diskList = instance.vm?.spec?.template?.spec?.domain?.devices?.disks;
 
@@ -182,7 +186,6 @@ export function buildUpdatePayloadFromInstance(
   }
 
   const rawCpu = instance.vm?.spec?.template?.spec?.domain?.cpu?.cores;
-  const rawMemory = instance.vm?.spec?.template?.spec?.domain?.memory?.guest;
 
   const payload: UpdateInstance = {
     general: {
@@ -191,8 +194,8 @@ export function buildUpdatePayloadFromInstance(
       vmType: instance.vm?.spec?.preference?.name || VM_TYPE_DEFAULT,
     },
     compute: {
-      cpu: rawCpu ? (rawCpu as CpuValue) : CPU_DEFAULT_VALUE,
-      memory: rawMemory ? (parseInt(rawMemory, 10) as MemoryValue) : MEMORY_DEFAULT_VALUE,
+      cpu: rawCpu || CPU_DEFAULT_VALUE,
+      memory,
     },
     network: updatedNetworks,
   };

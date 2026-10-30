@@ -1,0 +1,14 @@
+.memory-size-field {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+
+  &__amount {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__unit {
+    width: 96px;
+  }
+}

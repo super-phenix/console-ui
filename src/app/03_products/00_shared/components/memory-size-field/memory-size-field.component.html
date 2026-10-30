@@ -1,0 +1,30 @@
+<div class="memory-size-field">
+  <mat-form-field class="memory-size-field__amount">
+    <mat-label>{{ label() }}</mat-label>
+    <input
+      matInput
+      type="number"
+      [formControl]="amount"
+      [matAutocomplete]="auto"
+      [errorStateMatcher]="errorMatcher"
+      (blur)="markTouched()" />
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectPreset()">
+      @for (preset of filteredPresets(); track preset) {
+        <mat-option [value]="preset">{{ preset }} GiB</mat-option>
+      }
+    </mat-autocomplete>
+    @if (control().hasError('required')) {
+      <mat-error>This field is required</mat-error>
+    } @else if (control().hasError('memoryQuantity')) {
+      <mat-error>Enter a whole number of MiB between {{ min }} and {{ max }}</mat-error>
+    }
+  </mat-form-field>
+  <mat-form-field class="memory-size-field__unit">
+    <mat-label>Unit</mat-label>
+    <mat-select [formControl]="unit" (closed)="markTouched()">
+      @for (u of units; track u) {
+        <mat-option [value]="u">{{ u }}B</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>

@@ -1,4 +1,4 @@
-import { BinaryUnit, parseQuantityToBytes, splitQuantity } from './quantity';
+import { BinaryUnit, bytesPerUnit, guestMemory, parseQuantityToBytes, splitQuantity } from './quantity';
 
 describe('parseQuantityToBytes', () => {
   const cases: { name: string; value: string; expected: number | null }[] = [
@@ -24,6 +24,22 @@ describe('parseQuantityToBytes', () => {
   });
 });
 
+describe('guestMemory', () => {
+  const cases: { name: string; value: string | undefined; expected: string | null }[] = [
+    { name: 'Gi', value: '4Gi', expected: '4Gi' },
+    { name: 'whole GiB in Mi', value: '4096Mi', expected: '4096Mi' },
+    { name: 'fractional GiB', value: '1536Mi', expected: '1536Mi' },
+    { name: 'decimal suffix', value: '8G', expected: null },
+    { name: 'absent', value: undefined, expected: null },
+  ];
+
+  cases.forEach(({ name, value, expected }) => {
+    it(`should return ${expected} for ${name}`, () => {
+      expect(guestMemory(value)).toEqual(expected);
+    });
+  });
+});
+
 describe('splitQuantity', () => {
   const cases: { name: string; value: string; expected: { value: number; unit: BinaryUnit } | null }[] = [
     { name: '100Gi', value: '100Gi', expected: { value: 100, unit: 'Gi' } },
@@ -37,6 +53,21 @@ describe('splitQuantity', () => {
   cases.forEach(({ name, value, expected }) => {
     it(`should return ${JSON.stringify(expected)} for ${name}`, () => {
       expect(splitQuantity(value)).toEqual(expected);
+    });
+  });
+});
+
+describe('bytesPerUnit', () => {
+  const cases: { unit: BinaryUnit; expected: number }[] = [
+    { unit: 'Ki', expected: 2 ** 10 },
+    { unit: 'Mi', expected: 2 ** 20 },
+    { unit: 'Gi', expected: 2 ** 30 },
+    { unit: 'Ti', expected: 2 ** 40 },
+  ];
+
+  cases.forEach(({ unit, expected }) => {
+    it(`should return ${expected} for ${unit}`, () => {
+      expect(bytesPerUnit(unit)).toEqual(expected);
     });
   });
 });

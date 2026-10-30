@@ -1,13 +1,51 @@
+import { AbstractControl, ValidatorFn, Validators } from '@angular/forms';
+import { BinaryUnit, BYTES_PER_MIB, parseQuantityToBytes } from '@products/00_shared/utils/quantity';
 import { CreateDisk } from '../../storage/disk/create-disk.model';
 import { AdvancedOptionsInput } from './advanced-options.model';
 import { RunStrategy } from './enums/run-strategy.enum';
 
-export type CpuValue = 1 | 2 | 4 | 8 | 16 | 32;
-export const CPU_VALUE_LIST: CpuValue[] = [1, 2, 4, 8, 16, 32];
+export type CpuValue = number;
+export const CPU_MIN = 1;
+export const CPU_MAX = 999999;
+export const CPU_PRESET_LIST: CpuValue[] = [1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64];
 export const CPU_DEFAULT_VALUE = 1;
-export type MemoryValue = 1 | 2 | 4 | 8 | 16 | 32 | 64;
-export const MEMORY_VALUE_LIST: MemoryValue[] = [1, 2, 4, 8, 16, 32, 64];
-export const MEMORY_DEFAULT_VALUE = 4;
+export const CPU_VALIDATORS = [
+  Validators.required,
+  Validators.pattern(/^\d+$/),
+  Validators.min(CPU_MIN),
+  Validators.max(CPU_MAX),
+];
+// Memory is a Kubernetes binary quantity ("4Gi", "1536Mi").
+export type MemoryValue = string;
+export const MEMORY_MIN = '128Mi';
+export const MEMORY_MAX = '999999Gi';
+// Presets in GiB.
+export const MEMORY_PRESET_LIST: number[] = [1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256];
+export const MEMORY_DEFAULT_VALUE: MemoryValue = '4Gi';
+export const MEMORY_UNITS: BinaryUnit[] = ['Mi', 'Gi', 'Ti'];
+
+// Accepts a whole number of MiB between MEMORY_MIN and MEMORY_MAX; empty values are left to required.
+export const memoryQuantityValidator: ValidatorFn = (control: AbstractControl<MemoryValue | null>) => {
+  if (!control.value) {
+    return null;
+  }
+  const bytes = parseQuantityToBytes(control.value);
+  const valid =
+    bytes !== null &&
+    Number.isInteger(bytes / BYTES_PER_MIB) &&
+    bytes >= parseQuantityToBytes(MEMORY_MIN)! &&
+    bytes <= parseQuantityToBytes(MEMORY_MAX)!;
+  return valid ? null : { memoryQuantity: true };
+};
+export const MEMORY_VALIDATORS = [Validators.required, memoryQuantityValidator];
+
+// Presets and bounds for a compute size field; bounds are enforced by the matching validators.
+export interface ComputeSize {
+  presets: number[];
+  min: number;
+  max: number;
+}
+export const CPU_SIZE: ComputeSize = { presets: CPU_PRESET_LIST, min: CPU_MIN, max: CPU_MAX };
 
 export const VM_TYPE_DEFAULT = 'linux';
 

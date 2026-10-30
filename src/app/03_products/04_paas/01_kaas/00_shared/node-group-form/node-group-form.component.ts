@@ -1,13 +1,15 @@
 import { TitleCasePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
-import { AbstractControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { AutoSelectDirective } from '@shared/directives/auto-select.directive';
-import { CPU_VALUE_LIST, MEMORY_VALUE_LIST } from '@products/00_shared/models/compute/instance/instance';
+import { ComputeSizeFieldComponent } from '@products/00_shared/components/compute-size-field/compute-size-field.component';
+import { MemorySizeFieldComponent } from '@products/00_shared/components/memory-size-field/memory-size-field.component';
+import { CPU_SIZE, MemoryValue } from '@products/00_shared/models/compute/instance/instance';
 import { MAX_NAME_LENGTH } from '@shared/models/consts';
 
 @Component({
@@ -22,15 +24,15 @@ import { MAX_NAME_LENGTH } from '@shared/models/consts';
     AutoSelectDirective,
     MatButtonModule,
     TitleCasePipe,
+    ComputeSizeFieldComponent,
+    MemorySizeFieldComponent,
   ],
   templateUrl: './node-group-form.component.html',
   styleUrl: './node-group-form.component.scss',
 })
 export class NodeGroupFormComponent {
-  readonly MaxReplicas = 10;
   readonly MaxNodeGroups = 5;
-  readonly CpuValueList = CPU_VALUE_LIST;
-  readonly MemoryValueList = MEMORY_VALUE_LIST;
+  readonly CpuSize = CPU_SIZE;
   readonly maxLength = MAX_NAME_LENGTH;
 
   index = input.required<number>();
@@ -40,6 +42,10 @@ export class NodeGroupFormComponent {
   formGroup = computed(() => {
     return this.group() as FormGroup;
   });
+
+  replicasControl = computed(() => this.formGroup().get('replicas') as FormControl<number>);
+  cpuControl = computed(() => this.formGroup().get('cpu') as FormControl<number>);
+  memoryControl = computed(() => this.formGroup().get('memory') as FormControl<MemoryValue>);
 
   removeGroup = output<number>();
 }

@@ -87,23 +87,12 @@
                 </div>
               </div>
               <div class="info-card__content info-card__content--space-evenly">
-                <mat-form-field class="info-card__item">
-                  <mat-label>Cores</mat-label>
-                  <mat-select formControlName="cpu">
-                    @for (unit of CpuValueList; track unit) {
-                      <mat-option [value]="unit">{{ unit }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field class="info-card__item">
-                  <mat-label>RAM</mat-label>
-                  <mat-select formControlName="memory">
-                    @for (unit of MemoryValueList; track unit) {
-                      <mat-option [value]="unit">{{ unit }}</mat-option>
-                    }
-                  </mat-select>
-                  <span matTextSuffix class="ml-2">GB</span>
-                </mat-form-field>
+                <spx-compute-size-field
+                  class="info-card__item"
+                  label="Cores"
+                  [control]="secondFormGroup.controls.cpu"
+                  [size]="CpuSize" />
+                <spx-memory-size-field class="info-card__item" [control]="secondFormGroup.controls.memory" />
               </div>
             </div>
 

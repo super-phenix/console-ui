@@ -228,6 +228,14 @@ export class InstanceDetailsNetworkComponent implements OnDestroy {
     });
 
     const updatePayload = buildUpdatePayloadFromInstance(instance, updatedNetworks);
+    if (!updatePayload) {
+      this.stopPolling(interfaceName);
+      this.snackbar.open('Memory size could not be read; set it from the update page first', undefined, {
+        duration: 5000,
+        horizontalPosition: 'end',
+      });
+      return;
+    }
 
     this.instanceSvc.update(orgId, projectId, az, effectiveId, updatePayload).subscribe({
       next: () => {
