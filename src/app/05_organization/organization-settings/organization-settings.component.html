@@ -37,7 +37,7 @@
       </div>
 
       <div class="info-card__item info-card__item--fixed">
-        <div class="info-card__item-label">Id</div>
+        <div class="info-card__item-label">ID</div>
         <div class="info-card__item-text">
           <spx-span-copy [value]="stateSvc.organization()?.id"> </spx-span-copy>
         </div>
@@ -65,7 +65,7 @@
     mat-stretch-tabs="false"
     mat-align-tabs="start"
     (selectedIndexChange)="updateFragment($event)"
-    [selectedIndex]="initialIndex()">
+    [selectedIndex]="selectedIndex()">
     <mat-tab label="General">
       <ng-template matTabContent> <spx-organization-details></spx-organization-details></ng-template>
     </mat-tab>
@@ -82,6 +82,11 @@
     @if (canOrganizationIAMRead()) {
       <mat-tab label="Groups">
         <ng-template matTabContent> <spx-organization-iam></spx-organization-iam></ng-template>
+      </mat-tab>
+    }
+    @if (canQuotaRead()) {
+      <mat-tab label="Quotas">
+        <ng-template matTabContent> <spx-organization-quotas></spx-organization-quotas></ng-template>
       </mat-tab>
     }
   </mat-tab-group>

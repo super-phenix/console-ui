@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DefaultModel } from '@shared/models/snackbar';
@@ -9,6 +9,9 @@ interface ConsoleError {
   context: object;
 }
 
+export const SKIP_ERROR_SNACKBAR = new HttpContextToken<boolean>(() => false);
+export const IGNORE_ERROR_STATUSES = new HttpContextToken<number[]>(() => []);
+
 export const errorsInterceptor: HttpInterceptorFn = (req, next) => {
   const snackbar = inject(MatSnackBar);
 
@@ -16,7 +19,11 @@ export const errorsInterceptor: HttpInterceptorFn = (req, next) => {
     catchError(async err => {
       if (err instanceof HttpErrorResponse) {
         // 401s are handled by authErrorInterceptor (renew/re-login); skip the toast.
-        if (err.status === 401) {
+        if (
+          err.status === 401 ||
+          req.context.get(SKIP_ERROR_SNACKBAR) ||
+          req.context.get(IGNORE_ERROR_STATUSES).includes(err.status)
+        ) {
           throw err;
         }
         let error = err.error;

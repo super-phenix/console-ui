@@ -3,7 +3,10 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { CONTROLLER_PATH, HTTP_PROTOCOL, environment } from '@env/environment';
+import { API_ENDPOINT, CONTROLLER_PATH, HTTP_PROTOCOL, environment } from '@env/environment';
+import { ProjectQuotaOverview } from '@shared/models/data/quota';
+import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
+import { PermissionService } from '@shared/services/permission.service';
 import { ScreenService } from '@shared/services/screen.service';
 import { StateService } from '@shared/services/state.service';
 
@@ -87,6 +90,7 @@ describe('DashboardComponent', () => {
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
+    TestBed.inject(PermissionService).permissions.set([]);
   });
 
   afterEach(() => {
@@ -204,6 +208,255 @@ describe('DashboardComponent', () => {
       await createComponent({ ...emptySummary(), quota: { used: 0, limit: 0 } });
 
       expect(fixture.nativeElement.querySelector('.dashboard__quota')).toBeNull();
+    });
+  });
+
+  describe('project quotas', () => {
+    const quotaBaseUrl = `${HTTP_PROTOCOL}${environment.apiUrl}${API_ENDPOINT}/organization/${orgId}`;
+
+    function projectOverview(): ProjectQuotaOverview {
+      return {
+        projectId,
+        organizationId: orgId,
+        unlimited: false,
+        limit: { cpu: '8', memory: '32Gi' },
+        allocated: { cpu: '8', memory: '16Gi' },
+        remaining: { cpu: '0', memory: '16Gi' },
+        azQuotas: [
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '6', memory: '16Gi' },
+            available: true,
+            used: { cpu: '3', memory: '4Gi' },
+          },
+          {
+            codeAZ: 'az2',
+            limit: { cpu: '2', memory: '0' },
+            available: true,
+            used: { cpu: '500m' },
+          },
+        ],
+      };
+    }
+
+    /** Build the component and answer the summary and the quota requests. */
+    async function createWithQuotas(projectQuota: ProjectQuotaOverview | 'error') {
+      fixture = TestBed.createComponent(DashboardComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      httpMock.expectOne(summaryUrl).flush(emptySummary());
+      const projectReq = httpMock.expectOne(`${quotaBaseUrl}/project/${projectId}/quota`);
+      if (projectQuota === 'error') {
+        projectReq.flush('boom', { status: 500, statusText: 'Server Error' });
+      } else {
+        projectReq.flush(projectQuota);
+      }
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    /** Text nodes of `el` (icons apart), separated by spaces */
+    function leavesText(el: Element): string {
+      const texts: string[] = [];
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) {
+        const text = walker.currentNode.textContent!.trim();
+        if (text && !walker.currentNode.parentElement?.closest('mat-icon')) {
+          texts.push(text);
+        }
+      }
+      return texts.join(' ');
+    }
+
+    function projectText(): string {
+      return leavesText(fixture.nativeElement.querySelector('.dashboard__quota-row--total'));
+    }
+
+    /** Text of each AZ row, by AZ name */
+    function azRows(): Record<string, string> {
+      const rows: Element[] = Array.from(
+        fixture.nativeElement.querySelectorAll(
+          '.dashboard__quota-azs .dashboard__quota-row:not(.dashboard__quota-row--header):not(.dashboard__quota-row--total)'
+        )
+      );
+      return Object.fromEntries(
+        rows.map(row => [rowText(row.querySelector('.dashboard__quota-name')!), leavesText(row)])
+      );
+    }
+
+    function quotasText(): string {
+      return rowText(fixture.nativeElement.querySelector('.dashboard__quotas'));
+    }
+
+    beforeEach(() => {
+      organization.set({ id: orgId });
+      project.set({ id: projectId });
+      azList.set([
+        { code: 'az1', name: 'Zone 1' },
+        { code: 'az2', name: 'Zone 2' },
+      ]);
+    });
+
+    it('should not show nor fetch the quotas without ProjectAZQuotaRead', async () => {
+      await createComponent(emptySummary());
+
+      httpMock.expectNone(`${quotaBaseUrl}/project/${projectId}/quota`);
+      expect(fixture.nativeElement.querySelector('.dashboard__quotas')).toBeNull();
+    });
+
+    it('should show how full the project and each of its AZs are', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+
+      await createWithQuotas(projectOverview());
+
+      expect(fixture.nativeElement.querySelector('.dashboard__quota-row--header')?.textContent).toContain(
+        'Availability Zones'
+      );
+
+      // The project, compared with its own quota
+      const projectRow = projectText();
+      expect(projectRow).toBe('Total of the project 3.5 vCPU / 8 vCPU 44% 4 GiB / 32 GiB 13% ∞');
+
+      // Each AZ, compared with its own quota, without its share of the project
+      const rows = azRows();
+      expect(Object.keys(rows)).toEqual(['Zone 1', 'Zone 2']);
+      expect(rows['Zone 1']).toBe('Zone 1 3 vCPU / 6 vCPU 50% 4 GiB / 16 GiB 25% ∞');
+      // The project limits the memory and az2 has no memory quota: nothing is allocated to it
+      expect(rows['Zone 2']).toBe('Zone 2 0.5 vCPU / 2 vCPU 25% Nothing allocated ∞');
+      expect(fixture.nativeElement.querySelector('.dashboard__fill--full')).toBeNull();
+      const nothingAllocated = fixture.nativeElement.querySelector('.dashboard__fill--nothing-allocated');
+      expect(nothingAllocated).toBeTruthy();
+      expect(nothingAllocated.querySelector('mat-icon')?.textContent).toBe('warning');
+      expect(fixture.nativeElement.querySelector('spx-quota-bar')).toBeNull();
+    });
+
+    it('should show in red the AZs and the project whose allocation is full', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+      const overview = projectOverview();
+      overview.azQuotas = [
+        { codeAZ: 'az1', limit: { cpu: '6', memory: '16Gi' }, available: true, used: { cpu: '7', memory: '4Gi' } },
+        { codeAZ: 'az2', limit: { cpu: '2' }, available: true, used: { cpu: '2' } },
+      ];
+
+      await createWithQuotas(overview);
+
+      expect(azRows()['Zone 1']).toContain('7 vCPU / 6 vCPU 117%');
+      const full: Element[] = Array.from(fixture.nativeElement.querySelectorAll('.dashboard__fill--full'));
+      // CPU of the project (9/8), of Zone 1 (7/6) and of Zone 2 (2/2)
+      expect(full.length).toBe(3);
+      full.forEach(fill => expect(leavesText(fill)).toMatch(/100%|117%|113%/));
+      const meter = full[0].querySelector('.dashboard__fill-meter-value') as HTMLElement;
+      expect(meter.style.width).toBe('100%');
+    });
+
+    it('should not list the AZs with nothing allocated nor used', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+      azList.set([...azList(), { code: 'az3', name: 'Zone 3' }]);
+
+      await createWithQuotas(projectOverview());
+
+      expect(Object.keys(azRows())).toEqual(['Zone 1', 'Zone 2']);
+    });
+
+    it('should show 0 allocation for a resource limited to 0 by the parent', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+
+      await createWithQuotas({
+        ...projectOverview(),
+        limit: { cpu: '8', memory: '32Gi', disk: '0' },
+        azQuotas: [
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '6', memory: '16Gi', disk: '0' },
+            available: true,
+            used: { cpu: '3', memory: '4Gi' },
+          },
+          {
+            codeAZ: 'az2',
+            limit: { cpu: '2', disk: '0' },
+            available: true,
+            used: { cpu: '500m' },
+          },
+        ],
+      });
+
+      // The organization limits the disk and the project quota does not: the project gets none (disk: '0')
+      expect(projectText()).toContain('Nothing allocated');
+      expect(azRows()['Zone 1']).toContain('Nothing allocated');
+    });
+
+    it('should compare the project with the sum of the AZ quotas when it has no quota', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+
+      await createWithQuotas({
+        ...projectOverview(),
+        unlimited: true,
+        limit: undefined,
+        allocated: { cpu: '8', memory: '16Gi' },
+        azQuotas: [
+          {
+            codeAZ: 'az1',
+            limit: { cpu: '6', memory: '16Gi' },
+            available: true,
+            used: { cpu: '3', memory: '4Gi' },
+          },
+          {
+            codeAZ: 'az2',
+            limit: { cpu: '2' },
+            available: true,
+            used: { cpu: '500m' },
+          },
+        ],
+      });
+
+      expect(projectText()).toContain('3.5 vCPU / 8 vCPU 44%');
+      // az2 has no memory quota: the project memory is not limited, and az2 memory is not tracked
+      expect(projectText()).toContain('4 GiB / ∞');
+      expect(azRows()['Zone 2']).toContain('25% ∞');
+    });
+
+    it('should link to the quota settings with ProjectAZQuotaRead', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+
+      await createWithQuotas(projectOverview());
+
+      const trigger = fixture.nativeElement.querySelector('.dashboard__quotas .info-card__title button');
+      expect(trigger).toBeTruthy();
+      trigger.click();
+      fixture.detectChanges();
+      const link = document.querySelector('.mat-mdc-menu-panel a[mat-menu-item]') as HTMLAnchorElement;
+      expect(link.getAttribute('href')).toBe('/organization/settings#quotas');
+    });
+
+    it('should tell when an AZ cannot be reached', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+      const overview = projectOverview();
+      overview.azQuotas![1] = { codeAZ: 'az2', limit: { cpu: '2' }, available: false, used: {} };
+
+      await createWithQuotas(overview);
+
+      expect(quotasText()).toContain('the usage may be underestimated');
+      expect(azRows()['Zone 2']).toBe('Zone 2 Usage unavailable Usage unavailable Usage unavailable');
+    });
+
+    it('should tell when no quota applies to the project', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+
+      await createWithQuotas({ projectId, organizationId: orgId, unlimited: true, allocated: {}, azQuotas: [] });
+
+      expect(fixture.nativeElement.querySelector('.dashboard__quota-azs')).toBeNull();
+      expect(quotasText()).toContain('No quota applies to this project.');
+    });
+
+    it('should tell when the quotas cannot be loaded', async () => {
+      TestBed.inject(PermissionService).permissions.set([PermissionsEnum.ProjectAZQuotaRead]);
+
+      await createWithQuotas('error');
+
+      expect(quotasText()).toContain('The quotas could not be loaded.');
     });
   });
 

@@ -47,6 +47,78 @@
         </div>
       </div>
 
+      <!-- What the project uses of each resource, split among its availability zones. -->
+      @if (canReadQuota()) {
+        <div class="info-card dashboard__quotas">
+          <div class="info-card__title">
+            <span>Quota usage</span>
+            @if (canOpenQuotaSettings()) {
+              <button mat-icon-button [matMenuTriggerFor]="quotaMenu" aria-label="Quota actions">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #quotaMenu="matMenu">
+                <a mat-menu-item [routerLink]="quotaSettingsLink" [fragment]="quotaSettingsFragment">
+                  <mat-icon>tune</mat-icon>
+                  <span>Configure the quotas</span>
+                </a>
+              </mat-menu>
+            }
+          </div>
+          <div class="info-card__content dashboard__quotas-content">
+            @let quotaData = quotas.value();
+            @if (quotas.isLoading() && !quotaData) {
+              <span class="dashboard__row-empty">Loading quotas…</span>
+            } @else if (!quotaData) {
+              <span class="dashboard__row-empty">The quotas could not be loaded.</span>
+            } @else if (quotaFills()?.unlimited) {
+              <span class="dashboard__row-empty">No quota applies to this project.</span>
+            } @else if (quotaFills(); as fills) {
+              @if (!fills.complete) {
+                <span class="dashboard__row-empty dashboard__quotas-warning">
+                  <mat-icon>warning_amber</mat-icon> Some availability zones could not be reached: the usage may be
+                  underestimated.
+                </span>
+              }
+
+              @if (fills.azs.length > 0) {
+                <div class="dashboard__quota-azs" role="table" aria-label="Quota usage per availability zone">
+                  <div class="dashboard__quota-row dashboard__quota-row--header" role="row">
+                    <span role="columnheader">Availability Zones</span>
+                    @for (resource of quotaResources; track resource) {
+                      <span role="columnheader">{{ quotaLabels[resource] }}</span>
+                    }
+                  </div>
+                  @for (row of fills.azs; track row.code) {
+                    <div class="dashboard__quota-row" role="row">
+                      <span role="rowheader" class="dashboard__quota-name">{{ row.name }}</span>
+                      @for (resource of quotaResources; track resource) {
+                        <span role="cell" class="dashboard__quota-cell">
+                          <ng-container
+                            *ngTemplateOutlet="fill; context: { $implicit: row.cells[resource] }"></ng-container>
+                        </span>
+                      }
+                    </div>
+                  }
+                  <div class="dashboard__quota-row dashboard__quota-row--total" role="row">
+                    <span role="rowheader" class="dashboard__quota-name">Total of the project</span>
+                    @for (resource of quotaResources; track resource) {
+                      <span role="cell" class="dashboard__quota-cell">
+                        <ng-container
+                          *ngTemplateOutlet="fill; context: { $implicit: fills.project[resource] }"></ng-container>
+                      </span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <span class="dashboard__row-empty"
+                  >Nothing is allocated to this project in its availability zones.</span
+                >
+              }
+            }
+          </div>
+        </div>
+      }
+
       <div class="dashboard__panels">
         <div class="info-card dashboard__panels-recent">
           <div class="info-card__title"><span>Recently created</span></div>
@@ -118,3 +190,34 @@
     }
   </div>
 </div>
+
+<!-- How full a quota is: what is used of what is allocated, red once everything is used -->
+<ng-template #fill let-fill>
+  <span
+    class="dashboard__fill"
+    [class.dashboard__fill--full]="fill.full"
+    [class.dashboard__fill--nothing-allocated]="fill.nothingAllocated">
+    <span class="dashboard__fill-text">
+      <span class="dashboard__fill-label">
+        @if (fill.text === '∞') {
+          <span class="dashboard__infinity">∞</span>
+        } @else if (fill.text.endsWith(' / ∞')) {
+          <span>{{ fill.text.slice(0, -4) }} / </span><span class="dashboard__infinity">∞</span>
+        } @else {
+          <span>{{ fill.text }}</span>
+        }
+        @if (fill.nothingAllocated) {
+          <mat-icon class="dashboard__fill-warning">warning</mat-icon>
+        }
+      </span>
+      @if (fill.percent !== null) {
+        <span class="dashboard__fill-percent">{{ fill.percent | number: '1.0-0' }}%</span>
+      }
+    </span>
+    @if (fill.percent !== null) {
+      <span class="dashboard__fill-meter" aria-hidden="true">
+        <span class="dashboard__fill-meter-value" [style.width.%]="fill.meter"></span>
+      </span>
+    }
+  </span>
+</ng-template>
