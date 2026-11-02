@@ -11,6 +11,7 @@
     <mat-sidenav
       class="sidenav"
       #sidenav
+      autoFocus="dialog"
       [disableClose]="screenSvc.isWeb()"
       [opened]="screenSvc.isWeb()"
       [mode]="screenSvc.isWeb() ? 'side' : 'over'"
