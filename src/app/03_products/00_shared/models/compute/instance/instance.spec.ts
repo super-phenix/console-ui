@@ -1,3 +1,4 @@
+import { FormControl } from '@angular/forms';
 import {
   BUS_AUTO,
   BUS_LIST,
@@ -5,6 +6,7 @@ import {
   BUS_VIRTIO,
   CreateInstanceNetwork,
   getBusName,
+  memoryQuantityValidator,
 } from './instance';
 import { InterfaceElement, VirtualMachineInstanceNetworkInterface } from './vmi.model';
 
@@ -153,6 +155,28 @@ describe('Instance BUS constants and helpers', () => {
 
       expect(vmiIfaceUp.linkState).toBe('up');
       expect(vmiIfaceDown.linkState).toBe('down');
+    });
+  });
+});
+
+describe('memoryQuantityValidator', () => {
+  const cases: { name: string; value: string | null; valid: boolean }[] = [
+    { name: 'empty, left to required', value: null, valid: true },
+    { name: 'minimum', value: '128Mi', valid: true },
+    { name: 'whole GiB', value: '4Gi', valid: true },
+    { name: 'fractional GiB', value: '1.5Gi', valid: true },
+    { name: 'MiB not whole GiB', value: '2500Mi', valid: true },
+    { name: 'maximum', value: '999999Gi', valid: true },
+    { name: 'below minimum', value: '127Mi', valid: false },
+    { name: 'above maximum', value: '1000000Gi', valid: false },
+    { name: 'not whole MiB', value: '1.2Gi', valid: false },
+    { name: 'decimal unit', value: '2G', valid: false },
+    { name: 'unparseable', value: 'abc', valid: false },
+  ];
+
+  cases.forEach(({ name, value, valid }) => {
+    it(`should ${valid ? 'accept' : 'reject'} ${name}`, () => {
+      expect(memoryQuantityValidator(new FormControl(value)) === null).toBe(valid);
     });
   });
 });

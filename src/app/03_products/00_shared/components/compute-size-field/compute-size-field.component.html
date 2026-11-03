@@ -1,0 +1,17 @@
+<mat-form-field class="compute-size-field">
+  <mat-label>{{ label() }}</mat-label>
+  <input matInput type="number" [formControl]="control()" [matAutocomplete]="auto" />
+  @if (suffix()) {
+    <span matTextSuffix class="ml-2">{{ suffix() }}</span>
+  }
+  <mat-autocomplete #auto="matAutocomplete">
+    @for (preset of filteredPresets(); track preset) {
+      <mat-option [value]="preset">{{ preset }}</mat-option>
+    }
+  </mat-autocomplete>
+  @if (control().hasError('required')) {
+    <mat-error>This field is required</mat-error>
+  } @else if (control().hasError('min') || control().hasError('max') || control().hasError('pattern')) {
+    <mat-error>Enter a whole number between {{ size().min }} and {{ size().max }}</mat-error>
+  }
+</mat-form-field>

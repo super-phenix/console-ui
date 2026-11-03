@@ -14,10 +14,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { StepGeneralComponent } from '@products/00_shared/components/forms-step/step-general/step-general.component';
 import { StepLabelComponent } from '@products/00_shared/components/forms-step/step-label/step-label.component';
 import { RunStrategy } from '@products/00_shared/models/compute/instance/enums/run-strategy.enum';
+import { ComputeSizeFieldComponent } from '@products/00_shared/components/compute-size-field/compute-size-field.component';
+import { MemorySizeFieldComponent } from '@products/00_shared/components/memory-size-field/memory-size-field.component';
 import {
   BUS_AUTO,
   CPU_DEFAULT_VALUE,
-  CPU_VALUE_LIST,
+  CPU_SIZE,
+  CPU_VALIDATORS,
   CpuValue,
   CreateInstanceCloudInit,
   CreateInstanceDisk,
@@ -25,13 +28,14 @@ import {
   CreateInstanceSsh,
   DEFAULT_CLOUD_INIT,
   MEMORY_DEFAULT_VALUE,
-  MEMORY_VALUE_LIST,
+  MEMORY_VALIDATORS,
   MemoryValue,
   GpuClass,
   UpdateInstance,
   VM_TYPE_DEFAULT,
 } from '@products/00_shared/models/compute/instance/instance';
 import { extractVolumeEID } from '@products/00_shared/models/compute/instance/utils';
+import { guestMemory } from '@products/00_shared/utils/quantity';
 import { extractNetworksFromInstance } from '../instance-actions.utils';
 import {
   AdvancedOptions,
@@ -57,6 +61,8 @@ import { InstanceStorageCreateComponent } from '../instance-create/instance-stor
 @Component({
   selector: 'spx-instance-update',
   imports: [
+    ComputeSizeFieldComponent,
+    MemorySizeFieldComponent,
     InstanceStorageCreateComponent,
     InstanceSshCreateComponent,
     InstanceNetworkCreateComponent,
@@ -86,8 +92,7 @@ export class InstanceUpdateComponent {
 
   private readonly dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
-  CpuValueList = CPU_VALUE_LIST;
-  MemoryValueList = MEMORY_VALUE_LIST;
+  CpuSize = CPU_SIZE;
   maxLength = MAX_NAME_LENGTH;
   RunStrategy = Object.keys(RunStrategy) as RunStrategy[];
   CUSTOM_USER_LABEL_PREFIX = CUSTOM_USER_LABEL_PREFIX;
@@ -108,8 +113,9 @@ export class InstanceUpdateComponent {
   secondFormGroup = this.fb.nonNullable.group({
     runStrategy: this.fb.nonNullable.control(RunStrategy.Manual, Validators.required),
     vmType: this.fb.nonNullable.control(VM_TYPE_DEFAULT, Validators.required),
-    cpu: this.fb.nonNullable.control<CpuValue>(CPU_DEFAULT_VALUE, Validators.required),
-    memory: this.fb.nonNullable.control<MemoryValue>(MEMORY_DEFAULT_VALUE, Validators.required),
+    cpu: this.fb.nonNullable.control<CpuValue>(CPU_DEFAULT_VALUE, CPU_VALIDATORS),
+    // Nullable so an unreadable guest memory prefills empty instead of a default size.
+    memory: this.fb.control<MemoryValue | null>(MEMORY_DEFAULT_VALUE, MEMORY_VALIDATORS),
   });
 
   // Mirror vmType as a signal so the storage step's Driver Disks filter reacts
@@ -202,7 +208,7 @@ export class InstanceUpdateComponent {
         if (res.vm) {
           const runStrategy = res.vm.spec.runStrategy || RunStrategy.Manual;
           const cpu = res.vm.spec.template?.spec.domain.cpu?.cores || 1;
-          const memory = parseInt(res.vm.spec.template?.spec.domain.memory?.guest || '1');
+          const memory = guestMemory(res.vm.spec.template?.spec.domain.memory?.guest);
 
           this.firstFormGroup.reset({
             productName: res.productName,
@@ -211,9 +217,10 @@ export class InstanceUpdateComponent {
           this.secondFormGroup.reset({
             runStrategy: runStrategy as RunStrategy,
             vmType: res.vm.spec.preference?.name || VM_TYPE_DEFAULT,
-            cpu: cpu as CpuValue,
-            memory: memory as MemoryValue,
+            cpu,
+            memory,
           });
+          this.secondFormGroup.markAllAsTouched();
 
           if (res.vm.metadata.labels) {
             const customLabels: string[] = [];
@@ -327,7 +334,7 @@ export class InstanceUpdateComponent {
           },
           compute: {
             cpu: secondValues.cpu,
-            memory: secondValues.memory,
+            memory: secondValues.memory!,
           },
           network: this.networks,
           disks: this.disks,
