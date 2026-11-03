@@ -8,6 +8,8 @@ export enum PermissionsEnum {
   OrganizationProjectManagement = 'OrganizationProjectManagement',
   OrganizationAuditLogRead = 'OrganizationAuditLogRead',
   OrganizationAuditLogWrite = 'OrganizationAuditLogWrite',
+  OrganizationProjectQuotaRead = 'OrganizationProjectQuotaRead',
+  OrganizationProjectQuotaWrite = 'OrganizationProjectQuotaWrite',
 
   ProjectInstanceRead = 'ProjectInstanceRead',
   ProjectInstanceTerminal = 'ProjectInstanceTerminal',
@@ -48,6 +50,9 @@ export enum PermissionsEnum {
 
   ProjectSSHRead = 'ProjectSSHRead',
   ProjectSSHWrite = 'ProjectSSHWrite',
+
+  ProjectAZQuotaRead = 'ProjectAZQuotaRead',
+  ProjectAZQuotaWrite = 'ProjectAZQuotaWrite',
 
   ProjectArgoCdRead = 'ProjectArgoCdRead',
 }

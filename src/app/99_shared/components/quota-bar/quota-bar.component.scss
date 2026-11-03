@@ -1,0 +1,142 @@
+@use 'quota-palette';
+
+.quota-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: var(--mat-sys-title-small);
+  }
+
+  &__icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &__summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    font: var(--mat-sys-body-medium);
+    color: var(--text-label);
+  }
+
+  &__allocated,
+  &__limit {
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+
+  &__limit--infinity {
+    font-size: 2em;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  &__warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--text-error);
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__track {
+    display: flex;
+    gap: 2px;
+    height: 14px;
+    overflow: hidden;
+    border-radius: var(--br-small);
+    background-color: var(--mat-sys-surface-container-highest);
+  }
+
+  &__segment {
+    flex-grow: 0;
+    flex-shrink: 1;
+    min-width: 3px;
+    height: 100%;
+
+    &--free {
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--mat-sys-surface-container-highest),
+        var(--mat-sys-surface-container-highest) 4px,
+        var(--mat-sys-outline-variant) 4px,
+        var(--mat-sys-outline-variant) 6px
+      );
+    }
+  }
+
+  &--overcommitted &__track {
+    outline: 2px solid var(--text-error);
+    outline-offset: 1px;
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: var(--mat-sys-body-small);
+  }
+
+  &__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: var(--br-small);
+    border: 1px solid var(--stroke-default);
+  }
+
+  &__legend-value {
+    color: var(--text-label);
+  }
+
+  &__legend-share {
+    opacity: 0.8;
+  }
+
+  &__dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+
+    &--free {
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--mat-sys-surface-container-highest),
+        var(--mat-sys-surface-container-highest) 2px,
+        var(--mat-sys-outline-variant) 2px,
+        var(--mat-sys-outline-variant) 4px
+      );
+      border: 1px solid var(--mat-sys-outline-variant);
+      box-sizing: border-box;
+    }
+  }
+}
+
+@include quota-palette.quota-colors('.quota-bar__color');

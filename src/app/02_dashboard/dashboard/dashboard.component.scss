@@ -166,6 +166,141 @@
     }
   }
 
+  &__quotas {
+    .info-card__title {
+      align-items: center;
+    }
+  }
+
+  // Quotas of the project split by AZ, with the project total at the bottom.
+  &__quotas-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    overflow-x: auto;
+  }
+
+  &__quota-azs {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__quota-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 1.2fr) repeat(3, minmax(140px, 1fr));
+    align-items: center;
+    gap: 16px;
+    min-height: 44px;
+    font: var(--mat-sys-body-medium);
+
+    &--header {
+      min-height: 32px;
+      font: var(--mat-sys-label-medium);
+      color: var(--text-label);
+    }
+
+    &--total {
+      font-weight: 600;
+    }
+
+    & + & {
+      border-top: 1px solid var(--stroke-default);
+    }
+  }
+
+  &__quota-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-block: 6px;
+  }
+
+  &__quota-resource {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font: var(--mat-sys-label-medium);
+    color: var(--text-label);
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // Used / allocated, with the share used: red once the allocation is full, with an outline when overcommitted.
+  &__fill {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &-text {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    &-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    &-warning {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    & &__infinity {
+      font-size: 2em;
+      line-height: 1;
+      display: inline-block;
+    }
+
+    &-percent {
+      font-weight: 600;
+    }
+
+    &-meter {
+      display: block;
+      height: 6px;
+      overflow: hidden;
+      border-radius: var(--br-full);
+      background-color: var(--mat-sys-surface-container-highest);
+    }
+
+    &-meter-value {
+      display: block;
+      height: 100%;
+      background-color: var(--mat-sys-primary);
+    }
+
+    &--full,
+    &--nothing-allocated {
+      color: var(--text-error);
+    }
+
+    &--full &-meter-value {
+      background-color: var(--text-error);
+    }
+  }
+
+  &__quotas-warning {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
   // The two lists: 2:1 widths, and the busier one fills the column so the page has no
   // dead space under it. The auto-fill grid cannot express either, so this is a plain row.
   &__panels {
