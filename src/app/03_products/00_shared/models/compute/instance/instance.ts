@@ -73,27 +73,6 @@ export const NETWORK_MODEL_E1000 = 'e1000';
 export const NETWORK_MODEL_VIRTIO = 'virtio';
 export const NETWORK_MODEL_LIST = [NETWORK_MODEL_AUTO, NETWORK_MODEL_E1000, NETWORK_MODEL_VIRTIO];
 
-export const DEFAULT_CLOUD_INIT = `#cloud-config
-ssh_pwauth: true
-users:
-  - name: spx
-    groups: sudo
-    sudo: ['ALL=(ALL) NOPASSWD:ALL']
-    shell: /bin/bash
-chpasswd:
-  expire: true
-  users:
-    - {name: spx, password: "<generated_password>", type: text}
-write_files:
-  - path: /etc/systemd/resolved.conf.d/dns_servers.conf
-    content: |
-      [Resolve]
-      DNS=1.1.1.1 1.0.0.1
-    permissions: '0644'
-runcmd:
-  - systemctl restart systemd-resolved
-`;
-
 /**
  * GpuClass is a passthrough GPU type, as declared in the AZ controller's deviceMapping.
  * Returned by GET …/gpu-class and in ProductInstance.gpus. The KubeVirt device name stays server-side.
