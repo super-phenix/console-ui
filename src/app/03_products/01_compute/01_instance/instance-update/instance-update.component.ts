@@ -26,7 +26,6 @@ import {
   CreateInstanceDisk,
   CreateInstanceNetwork,
   CreateInstanceSsh,
-  DEFAULT_CLOUD_INIT,
   MEMORY_DEFAULT_VALUE,
   MEMORY_VALIDATORS,
   MemoryValue,
@@ -271,7 +270,7 @@ export class InstanceUpdateComponent {
           this.initCloudInit = {
             config: cloudInit,
             bus: cloudInitBus,
-            custom: cloudInit !== DEFAULT_CLOUD_INIT,
+            custom: !!cloudInit,
           };
 
           const networkList = extractNetworksFromInstance(res, this.stateSvc.project()?.id ?? '');
