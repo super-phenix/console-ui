@@ -17,7 +17,7 @@ import { startWith, switchMap } from 'rxjs';
 export class ComputeSizeFieldComponent {
   control = input.required<FormControl<number | null>>();
   label = input.required<string>();
-  // Presets to suggest; min and max only feed the error text.
+  // Presets to suggest; min and max bound the input and feed the error text.
   size = input.required<ComputeSize>();
   suffix = input<string>('');
 
