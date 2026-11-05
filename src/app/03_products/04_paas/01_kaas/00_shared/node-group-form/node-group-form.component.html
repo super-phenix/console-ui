@@ -1,76 +1,137 @@
 <div class="d-flex flex-column gap-2">
   <span>Group of Nodes n°{{ index() + 1 }}</span>
   <div class="d-flex justify-content-between align-items-center">
-    <div class="d-flex gap-2 align-items-center flex-wrap" [formGroup]="formGroup()">
-      <mat-form-field>
-        <mat-label>Node role</mat-label>
-        <input
-          matInput
-          formControlName="nodeRole"
-          [maxlength]="nodeRoleMaxLength"
-          [placeholder]="group().get('name')?.value" />
-        <mat-icon
-          matSuffix
-          matTooltip="Applied as node-role.kubernetes.io/<role> on the nodes. Defaults to the group ID when empty."
-          matTooltipPosition="above"
-          >help</mat-icon
-        >
-        <mat-hint align="end">{{ group().get('nodeRole')?.value?.length ?? 0 }} / {{ nodeRoleMaxLength }}</mat-hint>
-        @if (group().get('nodeRole')?.hasError('nodeRolePattern')) {
-          <mat-error>Letters, digits, '-', '_' or '.', starting and ending with a letter or digit.</mat-error>
-        }
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label>Number of Replicas</mat-label>
-        <input matInput formControlName="replicas" type="number" />
-        @if (replicasControl().hasError('required')) {
-          <mat-error>This field is required</mat-error>
-        } @else if (
-          replicasControl().hasError('min') ||
-          replicasControl().hasError('max') ||
-          replicasControl().hasError('pattern')
-        ) {
-          <mat-error>Enter a whole number between 1 and 999999</mat-error>
-        }
-      </mat-form-field>
-      <spx-compute-size-field label="Cores" [control]="cpuControl()" [size]="CpuSize" />
-      <spx-memory-size-field [control]="memoryControl()" />
-
-      <mat-form-field>
-        <mat-label>Storage Class</mat-label>
-        <mat-select spxAutoSelect formControlName="storageClass">
-          @for (storageClass of storageClassList(); track $index) {
-            <mat-option [value]="storageClass">
-              <span> {{ storageClass | titlecase }} </span>
-            </mat-option>
+    <div class="d-flex flex-column" [formGroup]="formGroup()">
+      <div class="d-flex gap-2 align-items-start flex-wrap">
+        <mat-form-field class="node-group-form__identity" subscriptSizing="dynamic">
+          <mat-label>Name</mat-label>
+          <input
+            matInput
+            formControlName="name"
+            [maxlength]="nameMaxLength"
+            [placeholder]="defaultName()"
+            (blur)="restoreDefaultName()" />
+          @if (nameControl().disabled) {
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              matTooltip="Cannot be changed once the group is provisioned."
+              matTooltipPosition="above"
+              aria-label="Name locked">
+              <mat-icon>lock</mat-icon>
+            </button>
+          } @else {
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              matTooltip="Pool name of the group, set on its virtual machines."
+              matTooltipPosition="above"
+              aria-label="Name help">
+              <mat-icon>help</mat-icon>
+            </button>
           }
-        </mat-select>
-        @if (group().get('storageClass')?.hasError('required')) {
-          <mat-error>This field is required</mat-error>
+          <mat-hint align="end">{{ nameControl().value.length }} / {{ nameMaxLength }}</mat-hint>
+          @if (nameControl().hasError('required')) {
+            <mat-error>This field is required</mat-error>
+          } @else if (nameControl().hasError('unique')) {
+            <mat-error>Another group already uses this name.</mat-error>
+          } @else if (nameControl().hasError('pattern') || nameControl().hasError('maxlength')) {
+            <mat-error>Letters, digits or '-', starting and ending with a letter or digit.</mat-error>
+          }
+        </mat-form-field>
+        @if (customRole()) {
+          <mat-form-field class="node-group-form__identity" subscriptSizing="dynamic">
+            <mat-label>Node role</mat-label>
+            <input
+              matInput
+              formControlName="nodeRole"
+              [maxlength]="nodeRoleMaxLength"
+              [placeholder]="nameControl().value" />
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              matTooltip="Role of the nodes within the Kubernetes cluster."
+              matTooltipPosition="above"
+              aria-label="Node role help">
+              <mat-icon>help</mat-icon>
+            </button>
+            <mat-hint align="end">{{ nodeRoleControl().value.length }} / {{ nodeRoleMaxLength }}</mat-hint>
+            @if (nodeRoleControl().hasError('nodeRolePattern')) {
+              <mat-error>Letters, digits, '-', '_' or '.', starting and ending with a letter or digit.</mat-error>
+            }
+          </mat-form-field>
         }
-      </mat-form-field>
+      </div>
+      <div class="d-flex align-items-center mb-2">
+        <mat-checkbox [checked]="customRole()" (change)="toggleCustomRole($event.checked)">
+          Use a different node role
+        </mat-checkbox>
+        <button
+          type="button"
+          mat-icon-button
+          class="icon-btn--small"
+          matTooltip="By default, the node role is the node group name."
+          matTooltipPosition="right"
+          aria-label="Default node role help">
+          <mat-icon>help</mat-icon>
+        </button>
+      </div>
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <mat-form-field>
+          <mat-label>Number of Replicas</mat-label>
+          <input matInput formControlName="replicas" type="number" step="1" [min]="replicasMin" [max]="replicasMax" />
+          @if (replicasControl().hasError('required')) {
+            <mat-error>This field is required</mat-error>
+          } @else if (
+            replicasControl().hasError('min') ||
+            replicasControl().hasError('max') ||
+            replicasControl().hasError('pattern')
+          ) {
+            <mat-error>Enter a whole number between {{ replicasMin }} and {{ replicasMax }}</mat-error>
+          }
+        </mat-form-field>
+        <spx-compute-size-field label="Cores" [control]="cpuControl()" [size]="CpuSize" />
+        <spx-memory-size-field [control]="memoryControl()" />
 
-      <mat-form-field>
-        <mat-label>Boot disk size</mat-label>
-        <input type="number" matInput pattern="[0-9]+" min="1" max="5000" formControlName="bootDiskSize" />
-        <span matSuffix class="pr-2">Gi</span>
-        @if (group().get('bootDiskSize')?.hasError('required')) {
-          <mat-error>This field is required</mat-error>
-        }
-        @if (group().get('bootDiskSize')?.hasError('pattern')) {
-          <mat-error>Enter a whole number of Gi.</mat-error>
-        }
-        @if (group().get('bootDiskSize')?.hasError('min')) {
-          <mat-error>
-            <span>The minimum value is {{ group().get('bootDiskSize')?.getError('min').min }}.</span>
-          </mat-error>
-        }
-        @if (group().get('bootDiskSize')?.hasError('max')) {
-          <mat-error>
-            <span>The maximum value is {{ group().get('bootDiskSize')?.getError('max').max }}.</span>
-          </mat-error>
-        }
-      </mat-form-field>
+        <mat-form-field>
+          <mat-label>Storage Class</mat-label>
+          <mat-select spxAutoSelect formControlName="storageClass">
+            @for (storageClass of storageClassList(); track $index) {
+              <mat-option [value]="storageClass">
+                <span> {{ storageClass | titlecase }} </span>
+              </mat-option>
+            }
+          </mat-select>
+          @if (group().get('storageClass')?.hasError('required')) {
+            <mat-error>This field is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Boot disk size</mat-label>
+          <input type="number" matInput pattern="[0-9]+" min="1" max="5000" formControlName="bootDiskSize" />
+          <span matSuffix class="pr-2">Gi</span>
+          @if (group().get('bootDiskSize')?.hasError('required')) {
+            <mat-error>This field is required</mat-error>
+          }
+          @if (group().get('bootDiskSize')?.hasError('pattern')) {
+            <mat-error>Enter a whole number of Gi.</mat-error>
+          }
+          @if (group().get('bootDiskSize')?.hasError('min')) {
+            <mat-error>
+              <span>The minimum value is {{ group().get('bootDiskSize')?.getError('min').min }}.</span>
+            </mat-error>
+          }
+          @if (group().get('bootDiskSize')?.hasError('max')) {
+            <mat-error>
+              <span>The maximum value is {{ group().get('bootDiskSize')?.getError('max').max }}.</span>
+            </mat-error>
+          }
+        </mat-form-field>
+      </div>
     </div>
     <button mat-icon-button (click)="removeGroup.emit(index())"><mat-icon>delete</mat-icon></button>
   </div>

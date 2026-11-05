@@ -131,16 +131,22 @@ export class KaasDetailsComponent extends TabsBase {
     return [];
   });
 
-  /** Returns the group's node role, undefined when it is the default (the group ID). */
+  /** Returns the group name, the resourceName of the machine deployment without its "<cluster local ID>-" prefix. */
+  groupName(machineDeployment: MachineDeployment): string | undefined {
+    const resourceName = machineDeployment.metadata.labels?.['superphenix.net/resourceName'];
+    const kaas = this.kaasProduct.hasValue() ? this.kaasProduct.value() : undefined;
+    const clusterLocalId = kaas?.cluster?.cluster.metadata.labels?.['superphenix.net/resourceLocalID'];
+    if (!resourceName || !clusterLocalId || !resourceName.startsWith(`${clusterLocalId}-`)) {
+      return undefined;
+    }
+    return resourceName.slice(clusterLocalId.length + 1);
+  }
+
+  /** Returns the node role set on the group's nodes, undefined when the label is missing. */
   nodeRole(machineDeployment: MachineDeployment): string | undefined {
     const labels = machineDeployment.spec.template.metadata?.labels ?? {};
     const key = Object.keys(labels).find(k => k.startsWith(NODE_ROLE_LABEL_PREFIX));
-    const role = key?.slice(NODE_ROLE_LABEL_PREFIX.length);
-    const resourceName = machineDeployment.metadata.labels?.['superphenix.net/resourceName'];
-    if (!role || resourceName?.endsWith(`-${role}`)) {
-      return undefined;
-    }
-    return role;
+    return key?.slice(NODE_ROLE_LABEL_PREFIX.length) || undefined;
   }
 
   constructor() {

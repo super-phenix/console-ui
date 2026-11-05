@@ -159,9 +159,12 @@
                   @let mt = item.machineTemplate.machineTemplate;
                   <div class="product-details__card sg-r1 sg-c1 gap-1">
                     <h3 class="mt-0 mb-1">
-                      Group {{ $index + 1 }}
+                      @let name = groupName(item.machineDeployment);
+                      {{ name ?? 'Group ' + ($index + 1) }}
                       @if (nodeRole(item.machineDeployment); as role) {
-                        ({{ role }})
+                        @if (role !== name) {
+                          ({{ role }})
+                        }
                       }
                       - {{ item.machineDeployment.spec.replicas }} replicas
                     </h3>

@@ -39,6 +39,10 @@ import { KaasService } from '@products/00_shared/services/kaas.service';
 import { SubnetService } from '@products/00_shared/services/subnet.service';
 import { generateShortId, isVersionAtLeast } from '@products/00_shared/utils/cluster-utils';
 import { nodeRoleValidator } from '../00_shared/node-group-form/node-role.validator';
+import {
+  NODE_GROUP_NAME_VALIDATORS,
+  uniqueNodeGroupNamesValidator,
+} from '../00_shared/node-group-form/node-group-name.validator';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { StateService } from '@shared/services/state.service';
 import { catchError, firstValueFrom, of } from 'rxjs';
@@ -116,9 +120,10 @@ export class KaasCreateComponent {
   drSupported = computed(() => isVersionAtLeast(this.kubeVersionValue(), 1, 35));
 
   secondFormGroup = this.fb.group({
-    groups: this.fb.array([
-      this.newNodeGroup(generateShortId(), '', 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, '', 10),
-    ]),
+    groups: this.fb.array(
+      [this.newNodeGroup(generateShortId(), '', 3, CPU_DEFAULT_VALUE, MEMORY_DEFAULT_VALUE, '', 10)],
+      uniqueNodeGroupNamesValidator
+    ),
   });
 
   postInstallChartActive = signal(false);
@@ -289,7 +294,7 @@ export class KaasCreateComponent {
     bootDiskSize: number
   ) {
     return this.fb.group({
-      name: this.fb.nonNullable.control(name, Validators.required),
+      name: this.fb.nonNullable.control(name, NODE_GROUP_NAME_VALIDATORS),
       nodeRole: this.fb.nonNullable.control(nodeRole, nodeRoleValidator),
       replicas: this.fb.nonNullable.control(replicas, REPLICAS_VALIDATORS),
       cpu: this.fb.nonNullable.control<CpuValue>(cpu, CPU_VALIDATORS),
