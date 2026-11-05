@@ -237,7 +237,9 @@
               </div>
               <div class="info-card__block flex-column">
                 @for (group of groups.controls; track group) {
-                  <h3 class="mb-0">Group of Nodes n°{{ $index + 1 }}</h3>
+                  <h3 class="mb-0">
+                    Group of Nodes n°{{ $index + 1 }} ({{ group.get('nodeRole')?.value || group.get('name')?.value }})
+                  </h3>
                   <spx-network-select
                     [az]="selectedAz()"
                     [initList]="initNetworkList[$index]"
