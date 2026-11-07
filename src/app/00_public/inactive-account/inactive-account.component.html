@@ -1,28 +1,23 @@
-<div class="inactive-account">
-  <div class="inactive-account__section">
-    <div class="inactive-account__content">
-      <div class="inactive-account__content-text">
-        <div class="inactive-account__logo" role="img" aria-label="Superphenix Logo"></div>
+<div class="flow">
+  <div class="flow__app-logo" role="img" aria-label="Superphenix Logo"></div>
 
-        <h1>Inactive Account</h1>
-        <p>
-          Your account is inactive and does not allow you to access the Console UI.<br />
-          If you believe this is an error, please contact a platform administrator.
-        </p>
+  <h1 class="flow__title">Inactive account</h1>
 
-        <p>
-          You can send an email to <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
-        </p>
+  <p class="flow__error-message">
+    Your account is inactive and does not allow you to access the Console UI. If you believe this is an error, please
+    contact a platform administrator.
+  </p>
 
-        <button matButton="filled" (click)="logout()">Sign in with another account</button>
+  <p class="flow__error-message">
+    You can send an email to <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+  </p>
 
-        <button mat-button routerLink="/dashboard">Back to home</button>
-      </div>
+  <div class="flow__links">
+    <div class="flow__link">
+      <button matButton="filled" (click)="logout()">Sign in with another account</button>
     </div>
-
-    <div class="inactive-account__footer">
-      <div class="footer__logo" role="img" aria-label="SPX logo"></div>
-      <span class="footer__copyright"> 142 857 ! © 2024 </span>
+    <div class="flow__link">
+      <a matButton="text" routerLink="/dashboard">Back to home</a>
     </div>
   </div>
 </div>

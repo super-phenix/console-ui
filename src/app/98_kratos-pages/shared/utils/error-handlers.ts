@@ -27,10 +27,18 @@ export const redirect = {
  *
  * @exports
  */
-export function LoginRegisterFlowErrorHandler(flow$: Observable<LoginFlow | RegistrationFlow>) {
+export function LoginRegisterFlowErrorHandler(
+  flow$: Observable<LoginFlow | RegistrationFlow>
+): Observable<LoginFlow | RegistrationFlow | null> {
   return flow$.pipe(
     catchError((err: HttpErrorResponse) => {
-      const genError = err.error.error as GenericError;
+      const genError = err.error?.error as GenericError | undefined;
+
+      if (!genError) {
+        // Bad response (unparsable body) or no response at all (network error, server down, ...).
+        console.log('Unhandled flow error, no error body', err);
+        return of(null);
+      }
 
       console.log(genError, genError.code, genError.id);
 
@@ -70,7 +78,7 @@ export function LoginRegisterFlowErrorHandler(flow$: Observable<LoginFlow | Regi
           break;
       }
 
-      return EMPTY;
+      return of(null);
     })
   );
 }
@@ -118,10 +126,16 @@ export function SettingsFlowErrorHandler(flow$: Observable<SettingsFlow>) {
  *
  * @exports
  */
-export function RecoveryFlowErrorHandler(flow$: Observable<RecoveryFlow>) {
+export function RecoveryFlowErrorHandler(flow$: Observable<RecoveryFlow>): Observable<RecoveryFlow | null> {
   return flow$.pipe(
     catchError((err: HttpErrorResponse) => {
-      const genError = err.error.error as GenericError;
+      const genError = err.error?.error as GenericError | undefined;
+
+      if (!genError) {
+        // Bad response (unparsable body) or no response at all (network error, server down, ...).
+        console.log('Unhandled flow error, no error body', err);
+        return of(null);
+      }
 
       console.log(genError, genError.code, genError.id);
 
@@ -156,7 +170,7 @@ export function RecoveryFlowErrorHandler(flow$: Observable<RecoveryFlow>) {
           break;
       }
 
-      return EMPTY;
+      return of(null);
     })
   );
 }

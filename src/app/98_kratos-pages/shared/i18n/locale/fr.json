@@ -47,6 +47,9 @@
     "forgot_password": "Mot de passe oublié",
     "back_to_site": "Retour au site",
     "logging_out": "Déconnexion en cours",
-    "invalid_email": "\"{{value}}\" n'est pas un email valide"
+    "invalid_email": "\"{{value}}\" n'est pas un email valide",
+    "flow_error_title": "Une erreur est survenue",
+    "flow_error_message": "Impossible de contacter le serveur d'authentification. Merci de réessayer dans un instant.",
+    "retry": "Réessayer"
   }
 }

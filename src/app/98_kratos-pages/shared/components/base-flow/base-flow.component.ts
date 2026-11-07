@@ -45,6 +45,10 @@ export abstract class BaseFlowComponent<T> implements OnInit {
   protected returnTo: string | null;
 
   flow: WritableSignal<T | undefined> = signal(undefined);
+  /**
+   * Set when the flow could not be loaded (bad response, or no response at all from Kratos).
+   */
+  error: WritableSignal<boolean> = signal(false);
   form?: FormGroup = new FormGroup({});
 
   protected route = inject(ActivatedRoute);
@@ -95,6 +99,14 @@ export abstract class BaseFlowComponent<T> implements OnInit {
 
   updateFlow(flow: T) {
     this.flow.update(() => flow);
+  }
+
+  setError() {
+    this.error.set(true);
+  }
+
+  retry() {
+    window.location.reload();
   }
 
   /**

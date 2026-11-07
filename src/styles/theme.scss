@@ -158,15 +158,13 @@ html {
   --primary-100: #621e00;
 
   // Background and logo
-  --background-image: url('/assets/images/background.svg');
-  --logo-image: url('/assets/images/logo.svg');
-  --footer-image: url('/assets/favicon/favicon.svg');
-  --logo-width: 40px;
+  --auth-visual-image: url('/assets/images/auth-visual.svg');
+  --auth-visual-background: #1a1617;
+  --logo-image: url('/assets/images/logo-full.svg');
+  --logo-width: 208px;
   --logo-height: 32px;
-  --logo-auth-width: 181px;
-  --logo-auth-height: 56px;
-  --footer-logo-width: 16px;
-  --footer-logo-height: 16px;
+  --logo-auth-width: 270px;
+  --logo-auth-height: 42px;
 
   @include theme.state-color();
   @include theme.custom-color();

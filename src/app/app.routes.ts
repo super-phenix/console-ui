@@ -17,7 +17,15 @@ export const routes: Routes = [
   {
     path: 'inactive-account',
     loadComponent: () =>
-      import('./00_public/inactive-account/inactive-account.component').then(m => m.InactiveAccountComponent),
+      import('./98_kratos-pages/components/layout/layout.component').then(m => m.LayoutComponent),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./00_public/inactive-account/inactive-account.component').then(m => m.InactiveAccountComponent),
+        title: 'Inactive account',
+      },
+    ],
   },
   {
     path: 'terminal/:orgId/:projectId/:az/:productId',

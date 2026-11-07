@@ -47,6 +47,9 @@
     "forgot_password": "Forgot password",
     "back_to_site": "Back to site",
     "logging_out": "Logging out",
-    "invalid_email": "\"{{value}}\" is not a valid email"
+    "invalid_email": "\"{{value}}\" is not a valid email",
+    "flow_error_title": "Something went wrong",
+    "flow_error_message": "We couldn't reach the authentication server. Please try again in a moment.",
+    "retry": "Retry"
   }
 }

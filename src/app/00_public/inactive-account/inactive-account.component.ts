@@ -8,7 +8,10 @@ import { AuthService } from '@shared/services/auth.service';
   selector: 'spx-inactive-account',
   imports: [MatButtonModule, RouterLink],
   templateUrl: './inactive-account.component.html',
-  styleUrl: './inactive-account.component.scss',
+  styleUrls: [
+    '../../98_kratos-pages/shared/components/base-flow/base-flow.component.scss',
+    './inactive-account.component.scss',
+  ],
 })
 export class InactiveAccountComponent {
   protected auth = inject(AuthService);
