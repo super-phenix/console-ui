@@ -67,7 +67,7 @@ export class VpcListComponent {
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
   canProjectSubnetWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectSubnetWrite));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'actions'];
 
   vpcProduct;
 

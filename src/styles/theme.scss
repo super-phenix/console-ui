@@ -165,6 +165,9 @@ html {
   --logo-height: 32px;
   --logo-auth-width: 270px;
   --logo-auth-height: 42px;
+  // GitOps mark drawn next to a resource name. Override the image or the box size.
+  --gitops-icon-image: url('/assets/images/git.svg');
+  --gitops-icon-size: 16px;
 
   @include theme.state-color();
   @include theme.custom-color();

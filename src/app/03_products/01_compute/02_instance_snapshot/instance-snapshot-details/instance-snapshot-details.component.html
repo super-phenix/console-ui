@@ -1,6 +1,11 @@
 <div class="product-details main-content">
   <div class="d-flex justify-content-between">
-    <spx-content-header navBack title="Instance snapshot details"></spx-content-header>
+    <spx-content-header
+      navBack
+      title="Instance snapshot details"
+      [resourceName]="instanceSnapshotProduct.value()?.productName"
+      [resourceId]="instanceSnapshotProduct.value()?.eid">
+    </spx-content-header>
 
     @if (instanceSnapshotProduct.hasValue()) {
       <div class="d-flex align-items-center gap-3">
@@ -201,7 +206,9 @@
         <mat-table [dataSource]="diskSnapshotProduct.value()!">
           <ng-container matColumnDef="id">
             <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
-            <mat-cell *matCellDef="let el"> {{ el.eid }} </mat-cell>
+            <mat-cell *matCellDef="let el">
+              <spx-span-copy boxed copyOnHover [value]="el.eid" />
+            </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="actions" stickyEnd>

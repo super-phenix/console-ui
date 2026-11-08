@@ -18,12 +18,21 @@
     <mat-table [dataSource]="dataSource()">
       <ng-container matColumnDef="id">
         <mat-header-cell *matHeaderCellDef>ID</mat-header-cell>
-        <mat-cell *matCellDef="let el"> {{ el.data.eid }} </mat-cell>
+        <mat-cell *matCellDef="let el">
+          <spx-span-copy boxed copyOnHover [value]="el.data.eid" />
+        </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="name">
         <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-        <mat-cell *matCellDef="let el"> {{ el.data.productName }} </mat-cell>
+        <mat-cell *matCellDef="let el">
+          <span class="product-name">
+            @if (el.data.gitops === 'true') {
+              <spx-gitops-mark />
+            }
+            <span class="text-truncate">{{ el.data.productName }}</span>
+          </span>
+        </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="ip">
@@ -43,15 +52,6 @@
                 }
               }
             </div>
-          }
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="gitops">
-        <mat-header-cell *matHeaderCellDef>GitOps</mat-header-cell>
-        <mat-cell *matCellDef="let el">
-          @if (el.data.gitops === 'true') {
-            <mat-icon>check</mat-icon>
           }
         </mat-cell>
       </ng-container>

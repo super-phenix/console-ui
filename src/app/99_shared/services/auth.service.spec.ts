@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { environment } from '@env/environment';
-import { AuthService, SESSION_TOKEN_URL } from './auth.service';
+import { AuthService, SESSION_TOKEN_URL, SESSION_WHOAMI_URL } from './auth.service';
 import { StateService } from './state.service';
 
 // Build a decodable JWT whose payload carries the given expiry (epoch seconds).
@@ -32,7 +32,10 @@ describe('AuthService', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    sessionStorage.removeItem('spx.accessToken');
+    httpMock.verify();
+  });
 
   it('dedupes concurrent renewals into a single request', async () => {
     const p1 = service.renewAccessToken();
@@ -77,6 +80,17 @@ describe('AuthService', () => {
     await service.ensureValidToken();
     httpMock.expectNone(tokenUrl);
     expect(service.accessToken()).toBe(token);
+  });
+
+  it('restores a stored access token without the refresh cookie', async () => {
+    sessionStorage.setItem('spx.accessToken', makeToken(nowSec() + 3600));
+
+    const pending = service.getAccessToken();
+    httpMock.expectOne(SESSION_WHOAMI_URL).flush({ id: 'u1' });
+
+    await pending;
+    expect(service.user()?.id).toBe('u1');
+    httpMock.expectNone(tokenUrl);
   });
 
   it('openLoginPopup targets the internal login route with a return path', () => {

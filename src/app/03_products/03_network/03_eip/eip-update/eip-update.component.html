@@ -1,5 +1,11 @@
 <div class="product-create main-content">
-  <spx-content-header navBack titleOnly title="Update Elastic IP"></spx-content-header>
+  <spx-content-header
+    navBack
+    titleOnly
+    title="Update Elastic IP"
+    [resourceName]="eip()?.productName"
+    [resourceId]="eip()?.eid">
+  </spx-content-header>
 
   <div class="product-create__scrollable">
     <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>

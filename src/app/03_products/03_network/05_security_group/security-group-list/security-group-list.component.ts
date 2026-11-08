@@ -68,7 +68,7 @@ export class SecurityGroupListComponent {
   );
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'description', 'policyType', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'description', 'policyType', 'actions'];
 
   securityGroupProduct;
 

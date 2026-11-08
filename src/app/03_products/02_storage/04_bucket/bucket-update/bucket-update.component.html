@@ -1,5 +1,10 @@
 <div class="product-create main-content">
-  <spx-content-header navBack title="Edit Bucket"></spx-content-header>
+  <spx-content-header
+    navBack
+    title="Edit Bucket"
+    [resourceName]="bucket()?.productName"
+    [resourceId]="bucket()?.eid">
+  </spx-content-header>
 
   <div class="product-create__scrollable">
     <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>

@@ -1,6 +1,11 @@
 <div class="product-details main-content">
   <div class="d-flex justify-content-between">
-    <spx-content-header navBack title="VPC Details"></spx-content-header>
+    <spx-content-header
+      navBack
+      title="VPC Details"
+      [resourceName]="vpcProduct.value()?.productName"
+      [resourceId]="vpcProduct.value()?.eid">
+    </spx-content-header>
 
     @if (vpcProduct.hasValue()) {
       <div class="d-flex align-items-center gap-3">
@@ -223,12 +228,21 @@
                 <mat-table [dataSource]="subnets">
                   <ng-container matColumnDef="id">
                     <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
-                    <mat-cell *matCellDef="let el"> {{ el.eid }} </mat-cell>
+                    <mat-cell *matCellDef="let el">
+                      <spx-span-copy boxed copyOnHover [value]="el.eid" />
+                    </mat-cell>
                   </ng-container>
 
                   <ng-container matColumnDef="name">
                     <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
-                    <mat-cell *matCellDef="let el"> {{ el.productName }} </mat-cell>
+                    <mat-cell *matCellDef="let el">
+                      <span class="product-name">
+                        @if (el.gitops === 'true') {
+                          <spx-gitops-mark />
+                        }
+                        <span class="text-truncate">{{ el.productName }}</span>
+                      </span>
+                    </mat-cell>
                   </ng-container>
 
                   <ng-container matColumnDef="cidr">

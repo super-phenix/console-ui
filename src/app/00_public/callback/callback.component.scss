@@ -1,6 +1,13 @@
 .callback {
+  display: grid;
+  place-items: center;
   min-width: 100vw;
   min-height: 100vh;
   overflow: hidden;
   background-color: var(--mat-sys-background);
+}
+
+.callback__stopped {
+  margin: 0;
+  color: var(--mat-sys-on-background);
 }

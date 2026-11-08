@@ -1,7 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { API_LOGOUT_URL } from '@env/environment';
 import { BrowserQueryParam } from '@kratos-pages/shared/models/browser';
-import { ErrorCustom, ErrorEnum, ErrorStatusEnum } from '@kratos-pages/shared/models/error';
-import { API_TOKEN_URL } from '@env/environment';
+import {
+  ErrorCustom,
+  ErrorEnum,
+  ErrorStatusEnum,
+  isRecoveryBlockedBySession,
+} from '@kratos-pages/shared/models/error';
+import { writeStoredAccessToken } from '@shared/services/access-token-storage';
+import { redirectLimit } from '@shared/utils/redirect-limit';
 import {
   GenericError,
   LoginFlow,
@@ -11,12 +18,36 @@ import {
   SettingsFlow,
   VerificationFlow,
 } from '@ory/client';
-import { EMPTY, Observable, catchError, of } from 'rxjs';
+import { EMPTY, Observable, catchError, from, of, switchMap } from 'rxjs';
+import { kratosApiAuth } from '@kratos-pages/shared/utils/kratos-api-auth';
 export const redirect = {
   to: (url: string): void => {
-    window.location.href = url;
+    redirectLimit.to(url);
   },
 };
+
+/**
+ * Address that restarts recovery with `refresh=true`.
+ * Returns null when this page is already that request, so a second failure is not a loop.
+ */
+export function urlWithRecoveryRefresh(currentHref: string): string | null {
+  const here = new URL(currentHref);
+  const onRecovery = here.pathname.endsWith('/recovery');
+  if (onRecovery && here.searchParams.get(BrowserQueryParam.Refresh) === 'true') {
+    return null;
+  }
+
+  const next = onRecovery ? here : new URL('/auth/recovery', here.origin);
+  if (!onRecovery) {
+    const returnTo = here.searchParams.get(BrowserQueryParam.ReturnTo);
+    if (returnTo) {
+      next.searchParams.set(BrowserQueryParam.ReturnTo, returnTo);
+    }
+  }
+  next.searchParams.set(BrowserQueryParam.Refresh, 'true');
+  next.searchParams.delete('flow');
+  return next.toString();
+}
 
 /**
  * Handle error on Login and Registration flow
@@ -45,13 +76,15 @@ export function LoginRegisterFlowErrorHandler(
       switch (genError.code) {
         case 400:
           if (genError.id === ErrorEnum.SessionAlreadyAvailable) {
-            // Kratos still has a session: mint fresh tokens, but return to the
-            // caller's return_to (e.g. the re-login worker page) instead of the
-            // default, so a session-recovery popup can signal the tab that opened it.
+            // Kratos already has a session. Sign in to the API with that cookie
+            // and enter the app. Emitting nothing keeps the login error UI hidden.
             const returnTo =
               new URLSearchParams(window.location.search).get(BrowserQueryParam.ReturnTo) ||
               window.location.origin;
-            redirect.to(`${API_TOKEN_URL}?return_to=${returnTo}`);
+            return from(kratosApiAuth.exchange(returnTo)).pipe(
+              switchMap(() => EMPTY),
+              catchError(() => of(null))
+            );
           }
           if (genError.id === ErrorEnum.ReturnToForbidden) {
             redirect.to(`${window.location.origin}/auth/login`);
@@ -139,6 +172,14 @@ export function RecoveryFlowErrorHandler(flow$: Observable<RecoveryFlow>): Obser
 
       console.log(genError, genError.code, genError.id);
 
+      if (isRecoveryBlockedBySession(genError)) {
+        const next = urlWithRecoveryRefresh(window.location.href);
+        if (next) {
+          redirect.to(next);
+          return EMPTY;
+        }
+      }
+
       switch (genError.code) {
         case 400:
           if (genError.status === ErrorStatusEnum.BadRequest && genError.reason) {
@@ -220,22 +261,22 @@ export function VerificationFlowErrorHandler(flow$: Observable<VerificationFlow>
 export function LogoutFlowErrorHandler(flow$: Observable<LogoutFlow>) {
   return flow$.pipe(
     catchError((err: HttpErrorResponse) => {
-      const genError = err.error.error as GenericError;
+      const genError = err.error?.error as GenericError | undefined;
 
-      console.log(genError, genError.code, genError.id);
+      console.log(genError, genError?.code, genError?.id);
 
-      switch (genError.code) {
-        case 401:
-          if (genError.id === ErrorEnum.SessionInactive) {
-            redirect.to(window.location.origin);
-          }
-          break;
-        default:
-          console.log('Handle error !');
-
-          break;
+      if (genError?.code === 401 && genError.id === ErrorEnum.SessionInactive) {
+        // No Kratos logout URL is issued for an inactive session, so the
+        // browser must open the API logout itself. That response expires the
+        // refresh cookie and redirects home. Drop any access token a 401
+        // handler may have written back before this runs.
+        writeStoredAccessToken(undefined);
+        redirectLimit.reset();
+        redirect.to(API_LOGOUT_URL);
+        return EMPTY;
       }
 
+      console.log('Handle error !');
       return EMPTY;
     })
   );

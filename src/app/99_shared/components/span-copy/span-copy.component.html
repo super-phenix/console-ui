@@ -2,10 +2,20 @@
   @if (key()) {
     <strong>{{ key() }}:</strong>
   }
-  <span>{{ value() }}</span>
-  @if (value()) {
-    <button matIconButton class="icon-btn--with-bg icon-btn--small" (click)="copy()">
-      <mat-icon class="">content_copy</mat-icon>
-    </button>
-  }
+  <span class="span-copy__value" [class.span-copy__value--box]="showBox()">
+    <span #text class="span-copy__text" [class.span-copy__text--fade]="faded()">{{ value() }}</span>
+    @if (value()) {
+      <button
+        matIconButton
+        type="button"
+        class="span-copy__button"
+        [class.span-copy__button--hover]="copyOnHover()"
+        [class.icon-btn--with-bg]="!showBox()"
+        [class.icon-btn--small]="!showBox()"
+        (click)="copy()"
+        aria-label="Copy">
+        <mat-icon>content_copy</mat-icon>
+      </button>
+    }
+  </span>
 </div>

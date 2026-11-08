@@ -23,7 +23,9 @@ export class FlowService {
   }
 
   initFlow<T>(flow: FlowTypeEnum, query?: URLSearchParams) {
-    return this.http.get<T>(this.getUrlForFlow(flow, 'browser', query)).pipe(take(1));
+    return this.http
+      .get<T>(this.getUrlForFlow(flow, 'browser', query), { headers: { Accept: 'application/json' } })
+      .pipe(take(1));
   }
 
   getFlow<T>(flow: FlowTypeEnum, flowId: string) {
@@ -35,7 +37,8 @@ export class FlowService {
           new URLSearchParams({
             id: flowId,
           })
-        )
+        ),
+        { headers: { Accept: 'application/json' } }
       )
       .pipe(take(1));
   }

@@ -10,7 +10,6 @@ import { BannerComponent } from '@shared/components/banner/banner.component';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { ScreenService } from '@shared/services/screen.service';
 import { StateService } from '@shared/services/state.service';
-import { ChangelogComponent } from '../changelog/changelog.component';
 import { Announcement, environment } from '@env/environment';
 import { BannerLevelEnum } from '@shared/models/enums';
 import { AZService } from '@products/00_shared/services/az.service';
@@ -115,7 +114,6 @@ interface QuotaFills {
     RouterLink,
     BannerComponent,
     ContentHeaderComponent,
-    ChangelogComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',

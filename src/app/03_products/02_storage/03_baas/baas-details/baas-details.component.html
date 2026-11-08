@@ -1,6 +1,11 @@
 <div class="product-details main-content">
   <div class="d-flex justify-content-between">
-    <spx-content-header navBack title="BaaS Details"></spx-content-header>
+    <spx-content-header
+      navBack
+      title="BaaS Details"
+      [resourceName]="baasProduct.value()?.productName"
+      [resourceId]="baasProduct.value()?.eid">
+    </spx-content-header>
 
     @if (baasProduct.hasValue()) {
       <div class="d-flex align-items-center gap-3">

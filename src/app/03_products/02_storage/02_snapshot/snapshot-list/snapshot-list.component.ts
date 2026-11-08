@@ -72,7 +72,7 @@ export class SnapshotListComponent {
   );
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'date', 'status', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'date', 'status', 'actions'];
 
   snapshotProduct;
 

@@ -148,6 +148,15 @@
   /* --logo-auth-width: 270px; */
   /* --logo-auth-height: 42px; */
 
+  /* ── GitOps mark ──────────────────────────────────────────────────────
+   * Small logo drawn next to the name of a GitOps-managed resource.
+   *
+   * --gitops-icon-image : CSS url() of the logo. Defaults to the Git mark.
+   * --gitops-icon-size  : Width and height of that logo.
+   * ──────────────────────────────────────────────────────────────────── */
+  /* --gitops-icon-image: url('/assets/images/git.svg'); */
+  /* --gitops-icon-size: 16px; */
+
   /* ═══════════════════════════════════════════════════════════════════════
    * SEMANTIC TOKENS
    * Higher-level tokens that map primitives to UI purposes.

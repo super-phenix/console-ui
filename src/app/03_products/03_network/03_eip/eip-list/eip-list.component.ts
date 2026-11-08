@@ -65,7 +65,7 @@ export class EipListComponent {
   canProjectEipWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectEipWrite));
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'publicIp', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'publicIp', 'actions'];
 
   eipProduct;
 

@@ -3,12 +3,34 @@
     <h2 class="main-content__header-subtitle">{{ subtitle() }}</h2>
   }
 
-  <div class="d-flex align-items-center gap-2">
-    @if (navBack() !== undefined) {
-      <button class="main-content__header-navBack" matIconButton (click)="navigateBack()">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-    }
-    <h1 class="main-content__header-title">{{ title() ? title() : stateSvc.project()?.name }}</h1>
-  </div>
+  @if (crumbs().length) {
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      @if (crumbs()[0].icon) {
+        <mat-icon class="breadcrumb__icon" aria-hidden="true">{{ crumbs()[0].icon }}</mat-icon>
+      }
+      <ol class="breadcrumb__trail">
+        @for (crumb of crumbs(); track $index; let last = $last) {
+          <li class="breadcrumb__item" [class.breadcrumb__item--current]="last">
+            @if (!last && crumb.link) {
+              <a class="breadcrumb__link" [routerLink]="crumb.link">{{ crumb.label }}</a>
+            } @else {
+              <span class="breadcrumb__label" [attr.aria-current]="last ? 'page' : null">{{ crumb.label }}</span>
+            }
+            @if (!last) {
+              <mat-icon class="breadcrumb__separator" aria-hidden="true">chevron_right</mat-icon>
+            }
+          </li>
+        }
+      </ol>
+    </nav>
+  } @else {
+    <div class="d-flex align-items-center gap-2">
+      @if (navBack() !== undefined) {
+        <button class="main-content__header-navBack" matIconButton (click)="navigateBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      }
+      <h1 class="main-content__header-title">{{ title() ? title() : stateSvc.project()?.name }}</h1>
+    </div>
+  }
 </div>

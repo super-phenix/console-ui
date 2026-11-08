@@ -1,6 +1,11 @@
 <div class="product-details main-content">
   <div class="d-flex justify-content-between">
-    <spx-content-header navBack title="Cluster Details"></spx-content-header>
+    <spx-content-header
+      navBack
+      title="Cluster Details"
+      [resourceName]="kaasProduct.value()?.productName"
+      [resourceId]="kaasProduct.value()?.eid">
+    </spx-content-header>
 
     @if (kaasProduct.hasValue()) {
       <div class="d-flex align-items-center gap-3">
