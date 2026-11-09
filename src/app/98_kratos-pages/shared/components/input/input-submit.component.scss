@@ -1,8 +1,53 @@
 .input__field-submit {
   display: flex;
-  justify-content: center;
+  justify-content: var(--auth-submit-justify, center);
 
   button {
-    width: 100%;
+    width: var(--auth-submit-width, 100%);
+
+    &.input__danger {
+      color: var(--mat-sys-error);
+    }
+
+    &.input__back {
+      color: var(--text-title);
+    }
   }
+}
+
+.input__key {
+  align-items: center;
+  justify-content: start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--auth-code-border);
+  border-radius: var(--mat-sys-corner-small);
+  background-color: var(--auth-key-background);
+
+  mat-icon {
+    flex: none;
+    color: var(--text-content);
+  }
+
+  button {
+    flex: none;
+  }
+}
+
+.input__key-details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.input__key-name {
+  color: var(--auth-code-text);
+  font: var(--mat-sys-title-small);
+}
+
+.input__key-date {
+  color: var(--text-content);
+  font: var(--mat-sys-body-small);
 }

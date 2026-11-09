@@ -19,6 +19,20 @@ export const redirect = {
 };
 
 /**
+ * Follow a Kratos `redirect_browser_to`, which never carries the return_to of the current page
+ *
+ * @param url The redirect_browser_to value
+ * @param returnTo Where Kratos sends the user at the end of the flow
+ */
+export function redirectWithReturnTo(url: string, returnTo: string | null) {
+  const target = new URL(url);
+  if (returnTo) {
+    target.searchParams.set(BrowserQueryParam.ReturnTo, returnTo);
+  }
+  redirect.to(target.toString());
+}
+
+/**
  * Handle error on Login and Registration flow
  *
  *
@@ -97,6 +111,11 @@ export function SettingsFlowErrorHandler(flow$: Observable<SettingsFlow>) {
             redirect.to(
               `${window.location.origin}/auth/login?${BrowserQueryParam.ReturnTo}=${encodeURIComponent(location.href)}`
             );
+          }
+          break;
+        case 403:
+          if (genError.id === ErrorEnum.SessionAal2Required) {
+            redirectWithReturnTo(err.error.redirect_browser_to, location.href);
           }
           break;
         default:

@@ -1,11 +1,15 @@
-<div class="flow">
+<div class="flow flow--wide">
   @if (flow(); as flow) {
     <div class="flow__app-logo" role="img" aria-label="Superphenix Logo"></div>
 
     <h1 class="flow__title">{{ this.route.title | async }}</h1>
 
     @if (form) {
-      <spx-auth-dynamic-form [flow]="flow" [(form)]="form"></spx-auth-dynamic-form>
+      <spx-auth-dynamic-form
+        [flow]="flow"
+        [(form)]="form"
+        [sections]="true"
+        [confirmPassword]="true"></spx-auth-dynamic-form>
     }
   }
   <div class="flow__links">

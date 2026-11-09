@@ -13,6 +13,18 @@
 
   border-radius: 1rem;
 
+  // Light mode has white fields on a white card, and paler values than labels. Dark values are unchanged.
+  --auth-heading: light-dark(var(--neutral-100), var(--text-title));
+  --auth-divider: light-dark(var(--neutral-30), var(--stroke-default));
+  --auth-code-background: light-dark(var(--neutral-10), var(--mat-sys-surface-container));
+  --auth-code-border: light-dark(var(--neutral-20), transparent);
+  --auth-code-text: light-dark(var(--neutral-100), var(--text-content));
+  --auth-key-background: light-dark(var(--neutral-10), var(--component-light));
+  --mat-form-field-filled-container-color: light-dark(var(--neutral-10), var(--component-light));
+  --mat-form-field-filled-input-text-color: light-dark(var(--neutral-100), var(--mat-sys-on-surface));
+  --mat-form-field-filled-active-indicator-color: light-dark(var(--neutral-60), var(--stroke-default));
+  --mat-button-outlined-outline-color: light-dark(var(--neutral-50), var(--mat-sys-outline));
+
   &__app-logo {
     align-self: center;
     margin-bottom: 1.5rem;
@@ -27,8 +39,16 @@
   &__title {
     align-self: center;
     text-align: center;
+    color: var(--auth-heading);
     font: var(--mat-sys-headline-large);
     margin-block: 1.5rem;
+  }
+
+  &__notice {
+    margin: 0;
+    color: var(--text-content);
+    font: var(--mat-sys-body-medium);
+    text-align: center;
   }
 
   &__links {
@@ -57,9 +77,23 @@
   }
 }
 
+// Settings hold several sections, the 350px column only suits a single form.
+.flow--wide {
+  box-sizing: border-box;
+  margin-block: 1rem;
+  padding-block: 2.5rem;
+  padding-inline: 2.5rem;
+  width: min(640px, calc(100vw - 2rem));
+}
+
 @media (max-width: 435px) {
   .flow {
     width: calc(85vw - 80px);
     min-width: 200px;
+  }
+
+  .flow--wide {
+    padding-inline: 1.25rem;
+    width: calc(100vw - 2rem);
   }
 }

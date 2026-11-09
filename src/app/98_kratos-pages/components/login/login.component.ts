@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FlowTypeEnum } from '@kratos-pages/shared/models/common';
 import { I18nService } from '@kratos-pages/shared/i18n/i18n.service';
@@ -20,6 +20,11 @@ import { MatButtonModule } from '@angular/material/button';
 export class LoginComponent extends BaseFlowComponent<LoginFlow> {
   flowType: FlowTypeEnum = 'login';
   i18n = inject(I18nService);
+  protected secondFactor = computed(() => this.flow()?.requested_aal === 'aal2');
+  /** The identity only enrolled methods that were disabled since: Kratos then has nothing to offer. */
+  protected noSecondFactor = computed(
+    () => this.secondFactor() && !!this.flow()?.ui.nodes.every(node => node.group === 'default')
+  );
 
   override getFlow(flow$: Observable<LoginFlow>): void {
     LoginRegisterFlowErrorHandler(flow$).subscribe(res => this.updateFlow(res));

@@ -9,6 +9,10 @@
 
     min-height: 1lh;
 
+    &:has(span) {
+      margin-bottom: 1rem;
+    }
+
     span {
       font-style: italic;
 
@@ -27,5 +31,103 @@
     flex-direction: column;
 
     gap: 0.75rem;
+  }
+
+  &__group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  &__group-title {
+    margin: 0;
+    color: var(--auth-heading);
+    font: var(--mat-sys-title-medium);
+  }
+
+  &__status {
+    padding: 0.125rem 0.625rem;
+    border-radius: var(--mat-sys-corner-full);
+    background-color: var(--success);
+    color: #fff;
+    font: var(--mat-sys-label-small);
+  }
+
+  &__hint {
+    margin: -0.25rem 0 1rem;
+    color: var(--text-content);
+    font: var(--mat-sys-body-medium);
+  }
+
+  &__group--back {
+    margin-top: 0.75rem;
+  }
+
+  &__group:only-child > &__hint {
+    margin: 1rem 0 1.5rem;
+    text-align: center;
+  }
+
+  &__node--hidden {
+    display: none;
+  }
+
+  &__sections {
+    --auth-submit-justify: end;
+    --auth-submit-width: auto;
+
+    container-type: inline-size;
+
+    .dynamic-form__group {
+      padding-block: 1.5rem;
+      border-top: 1px solid var(--auth-divider);
+
+      &:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      &:last-child {
+        padding-bottom: 0;
+      }
+    }
+
+    .dynamic-form__group-header {
+      margin-top: 0;
+    }
+  }
+
+  &__form--actions {
+    flex-flow: row wrap;
+    justify-content: end;
+  }
+}
+
+@container (min-width: 480px) {
+  .dynamic-form__form:has(> .dynamic-form__node--image) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 1.5rem;
+    align-items: start;
+
+    .dynamic-form__node--image {
+      grid-row: span 3;
+    }
+  }
+
+  .dynamic-form__form--keys {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 0.75rem;
+
+    .dynamic-form__node--key {
+      grid-column: 1 / -1;
+    }
+
+    // Centers the 48px button on the 56px field, whose hint space sits below it.
+    spx-auth-input:last-child {
+      padding-top: 0.25rem;
+    }
   }
 }
