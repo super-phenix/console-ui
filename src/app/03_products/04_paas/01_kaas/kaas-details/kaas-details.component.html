@@ -3,8 +3,8 @@
     <spx-content-header
       navBack
       title="Cluster Details"
-      [resourceName]="kaasProduct.value()?.productName"
-      [resourceId]="kaasProduct.value()?.eid">
+      [resourceName]="kaasProduct.hasValue() ? kaasProduct.value()?.productName : undefined"
+      [resourceId]="kaasProduct.hasValue() ? kaasProduct.value()?.eid : undefined">
     </spx-content-header>
 
     @if (kaasProduct.hasValue()) {

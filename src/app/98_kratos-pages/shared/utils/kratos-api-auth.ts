@@ -3,11 +3,6 @@ import { redirectLimit } from '@shared/utils/redirect-limit';
 
 /**
  * Exchange the Kratos session cookie for an API access token.
- *
- * A document navigation sends the cookie and follows the API's redirect to
- * /callback?session=<jwt> as a page load. fetch() cannot: after the 302 back
- * to this origin the callback response has no Access-Control-Allow-Origin,
- * and the browser blocks it.
  */
 export const kratosApiAuth = {
   /**

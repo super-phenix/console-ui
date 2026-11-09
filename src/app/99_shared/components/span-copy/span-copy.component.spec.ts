@@ -22,6 +22,17 @@ describe('SpanCopyComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('names the copy button after the value it copies', () => {
+    const button = () => fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+
+    expect(button().getAttribute('aria-label')).toBe('Copy id-1');
+
+    fixture.componentRef.setInput('key', 'Volume');
+    fixture.detectChanges();
+
+    expect(button().getAttribute('aria-label')).toBe('Copy Volume');
+  });
+
   it('hides the copy button until hover when asked', () => {
     fixture.componentRef.setInput('boxed', true);
     fixture.componentRef.setInput('copyOnHover', true);

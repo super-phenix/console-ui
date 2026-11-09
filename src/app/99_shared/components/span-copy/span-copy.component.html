@@ -13,7 +13,7 @@
         [class.icon-btn--with-bg]="!showBox()"
         [class.icon-btn--small]="!showBox()"
         (click)="copy()"
-        aria-label="Copy">
+        [attr.aria-label]="'Copy ' + (key() || value())">
         <mat-icon>content_copy</mat-icon>
       </button>
     }
