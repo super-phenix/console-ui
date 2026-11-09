@@ -158,7 +158,7 @@ export class UserDetailsComponent extends TabsBase {
   copy(value: string) {
     if (this.user()) {
       this.clipboard.copy(value);
-      this.snackbar.open('Copied to clipboard!', 'Close', {
+      this.snackbar.open('Copied to clipboard!', undefined, {
         horizontalPosition: 'end',
         duration: 3000,
       });
@@ -211,7 +211,7 @@ export class UserDetailsComponent extends TabsBase {
     dialogRef.afterClosed().subscribe(confirm => {
       if (confirm) {
         this.apiTokenSvc.revoke(id).subscribe(() => {
-          this.snackbar.open('API Token deleted successfully!', 'Close', {
+          this.snackbar.open('API Token deleted successfully!', undefined, {
             duration: 3000,
           });
           this.loadTokens();
@@ -234,7 +234,7 @@ export class UserDetailsComponent extends TabsBase {
       if (confirm) {
         this.userSvc.resetInviteCode().subscribe(() => {
           this.auth.reloadUser();
-          this.snackbar.open('Invite code reset successfully!', 'Close', {
+          this.snackbar.open('Invite code reset successfully!', undefined, {
             horizontalPosition: 'end',
             duration: 3000,
           });

@@ -350,7 +350,7 @@ export class InstanceActions {
         firstValueFrom(
           instanceSnapshotSvc.create(stateSvc.organization()!.id, stateSvc.project()!.id, az, snapshot)
         ).then(() => {
-          snackbar.open('Snapshot created with success!', 'Close', {
+          snackbar.open('Snapshot created with success!', undefined, {
             horizontalPosition: 'end',
             duration: 3000,
           });

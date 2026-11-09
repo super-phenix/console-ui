@@ -79,7 +79,7 @@ export class SpanCopyComponent {
   copy() {
     if (this.value()) {
       this.clipboard.copy(this.value()!);
-      this.snackbar.open('Copy to clipboard!', 'Close', {
+      this.snackbar.open('Copy to clipboard!', undefined, {
         horizontalPosition: 'end',
         duration: 3000,
       });

@@ -246,7 +246,7 @@ export class OrganizationIamComponent {
       .duplicateGroup(this.stateSvc.organization()!.id, source.id, name)
       .pipe(
         catchError(err => {
-          this.snackbar.open(err.error, 'Close', { duration: 5000, horizontalPosition: 'end' });
+          this.snackbar.open(err.error, undefined, { duration: 5000, horizontalPosition: 'end' });
           throw err;
         })
       )
@@ -274,7 +274,7 @@ export class OrganizationIamComponent {
             .deleteGroup(this.stateSvc.organization()!.id, currentId)
             .pipe(
               catchError(err => {
-                this.snackbar.open(err.error, 'Close', { duration: 5000, horizontalPosition: 'end' });
+                this.snackbar.open(err.error, undefined, { duration: 5000, horizontalPosition: 'end' });
                 throw err;
               })
             )

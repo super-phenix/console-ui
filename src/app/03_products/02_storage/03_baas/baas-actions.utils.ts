@@ -40,7 +40,7 @@ export class BaasActions {
 
         await firstValueFrom(baasSvc.update(orgId, projId, baas.codeAZ, baas.eid, body));
 
-        snackbar.open('Schedule updated!\n Change should apply soon.\n Reloading data in 5 seconds.', 'Close', {
+        snackbar.open('Schedule updated!\n Change should apply soon.\n Reloading data in 5 seconds.', undefined, {
           horizontalPosition: 'end',
           duration: 5000,
           panelClass: ['snackbar', 'snackbar--multiline'],

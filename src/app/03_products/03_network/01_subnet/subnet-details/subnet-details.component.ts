@@ -153,7 +153,7 @@ export class SubnetDetailsComponent {
 
   copy(value: string) {
     this.clipboard.copy(value);
-    this.snackbar.open('Copy to clipboard!', 'Close', {
+    this.snackbar.open('Copy to clipboard!', undefined, {
       horizontalPosition: 'end',
       duration: 3000,
     });

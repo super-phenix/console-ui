@@ -8,7 +8,6 @@ export interface SnackbarModel {
 
 export const ForbiddenSnackbar: SnackbarModel = {
   message: "Access denied, you do not have the required permissions!",
-  action: 'Close',
   config: {
     horizontalPosition: 'end',
     duration: 3000,
@@ -18,7 +17,6 @@ export const ForbiddenSnackbar: SnackbarModel = {
 
 export const UnauthorizedSnackbar: SnackbarModel = {
   message: 'Your session has expired.',
-  action: 'Close',
   config: {
     horizontalPosition: 'end',
     duration: 3000,
@@ -28,7 +26,6 @@ export const UnauthorizedSnackbar: SnackbarModel = {
 
 export const BadRequestSnackbar: SnackbarModel = {
   message: 'The submitted form is invalid, please check your input.',
-  action: 'Close',
   config: {
     horizontalPosition: 'end',
     duration: 3000,
@@ -38,7 +35,6 @@ export const BadRequestSnackbar: SnackbarModel = {
 
 export const InternalServerErrorSnackbar: SnackbarModel = {
   message: 'Server error during the request.',
-  action: 'Close',
   config: {
     horizontalPosition: 'end',
     duration: 3000,
@@ -48,7 +44,6 @@ export const InternalServerErrorSnackbar: SnackbarModel = {
 
 export const DefaultModel: SnackbarModel = {
   message: 'Error',
-  action: 'Close',
   config: {
     horizontalPosition: 'right',
     verticalPosition: 'bottom',

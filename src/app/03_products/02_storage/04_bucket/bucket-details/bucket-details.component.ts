@@ -102,7 +102,7 @@ export class BucketDetailsComponent extends TabsBase {
   copyShareLink() {
     const url = `https://${window.location.host}/redirect/${this.stateSvc.organization()?.id}/${this.stateSvc.project()?.id}/${this.az()}/bucket/${this.routeParams()?.['id']}`;
     this.clipboard.copy(url);
-    this.snackbar.open('Copy to clipboard!', 'Close', {
+    this.snackbar.open('Copy to clipboard!', undefined, {
       horizontalPosition: 'end',
       duration: 3000,
     });
