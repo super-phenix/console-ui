@@ -4,12 +4,9 @@ import { FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BrowserQueryParam } from '@kratos-pages/shared/models/browser';
 import { FlowTypeEnum } from '@kratos-pages/shared/models/common';
-import { ErrorEnum } from '@kratos-pages/shared/models/error';
-import { kratosApiAuth } from '@kratos-pages/shared/utils/kratos-api-auth';
 import { Session } from '@ory/client';
 import { Observable, firstValueFrom } from 'rxjs';
 import { FlowService } from '@kratos-pages/shared/services/flow.service';
-import { redirectLimit } from '@shared/utils/redirect-limit';
 
 /**
  * This abstract component provides initialization for Kratos flow.
@@ -49,7 +46,7 @@ export abstract class BaseFlowComponent<T> implements OnInit {
 
   flow: WritableSignal<T | undefined> = signal(undefined);
   /**
-   * Set when the flow could not be loaded (bad response, or no response at all from Kratos).
+   * Set when Kratos could not be reached.
    */
   error: WritableSignal<boolean> = signal(false);
   form?: FormGroup = new FormGroup({});
@@ -67,14 +64,12 @@ export abstract class BaseFlowComponent<T> implements OnInit {
     if (this.flowId) {
       this.getFlow(this.flowService.getFlow<T>(this.flowType, this.flowId));
     } else {
-      const query = new URLSearchParams();
+      let query;
       if (this.returnTo && this.flowType !== 'settings') {
+        query = new URLSearchParams();
         query.set(BrowserQueryParam.ReturnTo, this.returnTo);
       }
-      if (this.route.snapshot.queryParamMap.get(BrowserQueryParam.Refresh) === 'true') {
-        query.set(BrowserQueryParam.Refresh, 'true');
-      }
-      this.initFlow(this.flowService.initFlow<T>(this.flowType, query.toString() ? query : undefined));
+      this.initFlow(this.flowService.initFlow<T>(this.flowType, query));
     }
   }
 
@@ -103,7 +98,6 @@ export abstract class BaseFlowComponent<T> implements OnInit {
   }
 
   updateFlow(flow: T) {
-    redirectLimit.reset();
     this.flow.update(() => flow);
   }
 
@@ -112,7 +106,6 @@ export abstract class BaseFlowComponent<T> implements OnInit {
   }
 
   retry() {
-    redirectLimit.reset();
     window.location.reload();
   }
 
@@ -132,12 +125,7 @@ export abstract class BaseFlowComponent<T> implements OnInit {
         this.successSubmit(res);
       })
       .catch((err: HttpErrorResponse) => {
-        const errorId = err.error?.error?.id ?? err.error?.id;
-        if (errorId === ErrorEnum.SessionAlreadyAvailable) {
-          void kratosApiAuth.exchange(this.returnTo).catch(() => this.setError());
-          return;
-        }
-        if (err.status === 400 && err.error?.ui?.messages) {
+        if (err.status === 400) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if (err.error.ui.messages.findIndex((v: any) => v.id === 4000010) !== -1) {
             this.router.navigate(['/ui', 'verification']);

@@ -5,7 +5,6 @@ import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { firstValueFrom } from 'rxjs';
 import { jwtDecode } from '@shared/http/jwtDecode';
 import { Session, User } from '../models/data/user';
-import { readStoredAccessToken, writeStoredAccessToken } from './access-token-storage';
 import { StateService } from './state.service';
 
 export const SESSION_TOKEN_URL = `${HTTP_PROTOCOL}${environment.apiUrl}${API_ENDPOINT}/session`;
@@ -47,36 +46,17 @@ export class AuthService {
    */
   async getAccessToken() {
     if (!this.userLoggedIn()) {
-      const stored = readStoredAccessToken();
-      if (stored) {
-        this._accessToken.set(stored);
+      try {
+        const res = await firstValueFrom(
+          this.http.get<Session>(SESSION_TOKEN_URL, { withCredentials: true })
+        );
+        this.user.set(res.user);
+        this.setAccessToken(res.session);
+        this.stateSvc.onLogin(res.user);
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
-    }
-
-    if (this.userLoggedIn()) {
-      if (!this.user()) {
-        try {
-          await this.reloadUser();
-        } catch (error) {
-          this.clearAccessToken();
-          console.error(error);
-        }
-      }
-      if (this.userLoggedIn()) {
-        return;
-      }
-    }
-
-    try {
-      const res = await firstValueFrom(
-        this.http.get<Session>(SESSION_TOKEN_URL, { withCredentials: true })
-      );
-      this.user.set(res.user);
-      this.setAccessToken(res.session);
-      this.stateSvc.onLogin(res.user);
-    } catch (error) {
-      console.error(error);
-      throw error;
     }
   }
 
@@ -129,13 +109,6 @@ export class AuthService {
    */
   setAccessToken(token: string) {
     this._accessToken.set(token);
-    writeStoredAccessToken(token);
-  }
-
-  clearAccessToken() {
-    this._accessToken.set(undefined);
-    this.user.set(undefined);
-    writeStoredAccessToken(undefined);
   }
 
   /**

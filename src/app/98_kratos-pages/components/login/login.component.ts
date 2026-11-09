@@ -3,7 +3,7 @@ import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FlowTypeEnum } from '@kratos-pages/shared/models/common';
 import { I18nService } from '@kratos-pages/shared/i18n/i18n.service';
-import { kratosApiAuth } from '@kratos-pages/shared/utils/kratos-api-auth';
+import { API_TOKEN_URL } from '@env/environment';
 import { LoginFlow, Session } from '@ory/client';
 import { Observable } from 'rxjs';
 import { BaseFlowComponent } from '@kratos-pages/shared/components/base-flow/base-flow.component';
@@ -30,6 +30,6 @@ export class LoginComponent extends BaseFlowComponent<LoginFlow> {
   }
 
   override successSubmit(_session: Session): void {
-    void kratosApiAuth.exchange(this.returnTo).catch(() => this.setError());
+    window.location.href = `${API_TOKEN_URL}?return_to=${this.returnTo}`;
   }
 }

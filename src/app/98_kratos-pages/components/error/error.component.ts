@@ -1,11 +1,8 @@
 import { JsonPipe } from '@angular/common';
 import { Component, OnInit, WritableSignal, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ErrorEnum, isRecoveryBlockedBySession } from '@kratos-pages/shared/models/error';
+import { FlowError } from '@ory/client';
 import { FlowService } from '@kratos-pages/shared/services/flow.service';
-import { kratosApiAuth } from '@kratos-pages/shared/utils/kratos-api-auth';
-import { redirect, urlWithRecoveryRefresh } from '@kratos-pages/shared/utils/error-handlers';
-import { FlowError, GenericError } from '@ory/client';
 
 @Component({
   selector: 'spx-auth-error',
@@ -23,22 +20,7 @@ export class ErrorComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.id) {
-      this.flowService.getFlowError(this.id).subscribe(res => {
-        const kratosError = res.error as GenericError | undefined;
-        if (isRecoveryBlockedBySession(kratosError)) {
-          const next = urlWithRecoveryRefresh(window.location.href);
-          if (next) {
-            redirect.to(next);
-            return;
-          }
-        }
-        if (kratosError?.id === ErrorEnum.SessionAlreadyAvailable) {
-          const returnTo = this.route.snapshot.queryParamMap.get('return_to');
-          void kratosApiAuth.exchange(returnTo).catch(() => this.error.set(res));
-          return;
-        }
-        this.error.set(res);
-      });
+      this.flowService.getFlowError(this.id).subscribe(res => this.error.set(res));
     }
   }
 }

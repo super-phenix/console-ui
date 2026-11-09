@@ -178,9 +178,9 @@ mat-table {
       .gitops-mark {
         display: inline-flex;
         flex: none;
-        width: 16px;
-        height: 16px;
-        background-image: url('/assets/images/git.svg');
+        width: var(--gitops-icon-size);
+        height: var(--gitops-icon-size);
+        background-image: var(--gitops-icon-image);
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;

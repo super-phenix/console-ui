@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { kratosApiAuth } from '@kratos-pages/shared/utils/kratos-api-auth';
 import { getProduct } from '@shared/models/data/product.enum';
 import { AuthService } from '@shared/services/auth.service';
 import { StateService } from '@shared/services/state.service';
@@ -35,20 +34,12 @@ export class RedirectComponent {
             this.loadProduct(orgaId, projectId, codeAz, productType, productId);
           }
         } else {
-          void this.loginOrExchange();
+          this.auth.redirectToFlow('login');
         }
       })
       .catch(() => {
-        void this.loginOrExchange();
+        this.auth.redirectToFlow('login');
       });
-  }
-
-  /** Use an existing Kratos session. Open the login screen only when there is none. */
-  private async loginOrExchange(): Promise<void> {
-    if (await kratosApiAuth.exchangeIfSession(window.location.href)) {
-      return;
-    }
-    this.auth.redirectToFlow('login');
   }
 
   async loadProduct(orgaId: string, projectId: string, codeAz: string, productType: string, productId: string) {

@@ -1,25 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { API_LOGOUT_URL } from '@env/environment';
-import { ErrorEnum, ErrorStatusEnum, RECOVERY_BLOCKED_BY_SESSION } from '@kratos-pages/shared/models/error';
+import { ErrorEnum, ErrorStatusEnum } from '@kratos-pages/shared/models/error';
+import { API_TOKEN_URL } from '@env/environment';
 import { LoginFlow, LogoutFlow, RecoveryFlow, SettingsFlow } from '@ory/client';
 import { Observable, throwError } from 'rxjs';
-import { kratosApiAuth } from './kratos-api-auth';
 import {
   LoginRegisterFlowErrorHandler,
   LogoutFlowErrorHandler,
   RecoveryFlowErrorHandler,
   SettingsFlowErrorHandler,
   redirect,
-  urlWithRecoveryRefresh,
 } from './error-handlers';
 
-function makeHttpError(
-  code: number,
-  id: string,
-  status?: string,
-  details?: Record<string, string>,
-  reason?: string
-): HttpErrorResponse {
+function makeHttpError(code: number, id: string, status?: string, details?: Record<string, string>): HttpErrorResponse {
   return new HttpErrorResponse({
     error: {
       error: {
@@ -27,7 +19,6 @@ function makeHttpError(
         id,
         status: status ?? '',
         details: details ?? {},
-        reason,
       },
     },
     status: code,
@@ -36,38 +27,34 @@ function makeHttpError(
 
 describe('error-handlers (URL constants)', () => {
   let redirectSpy: jasmine.Spy;
-  let exchangeSpy: jasmine.Spy;
 
   beforeEach(() => {
     redirectSpy = spyOn(redirect, 'to');
-    exchangeSpy = spyOn(kratosApiAuth, 'exchange').and.resolveTo();
   });
 
   describe('LoginRegisterFlowErrorHandler', () => {
-    it('authenticates to the API on SessionAlreadyAvailable', () => {
+    it('should redirect to API_TOKEN_URL on SessionAlreadyAvailable', () => {
       const error$ = throwError(() =>
         makeHttpError(400, ErrorEnum.SessionAlreadyAvailable)
       ) as Observable<LoginFlow>;
-      const next = jasmine.createSpy('next');
 
-      LoginRegisterFlowErrorHandler(error$).subscribe(next);
+      LoginRegisterFlowErrorHandler(error$).subscribe();
 
-      expect(exchangeSpy).toHaveBeenCalledWith(window.location.origin);
-      expect(redirectSpy).not.toHaveBeenCalled();
-      expect(next).not.toHaveBeenCalled();
+      expect(redirectSpy).toHaveBeenCalledWith(
+        jasmine.stringContaining(API_TOKEN_URL)
+      );
     });
 
-    it('shows the login error when the API exchange fails', async () => {
-      exchangeSpy.and.rejectWith(new Error('no session'));
+    it('should use window.location.origin as default return_to', () => {
       const error$ = throwError(() =>
         makeHttpError(400, ErrorEnum.SessionAlreadyAvailable)
       ) as Observable<LoginFlow>;
-      const next = jasmine.createSpy('next');
 
-      LoginRegisterFlowErrorHandler(error$).subscribe(next);
-      await Promise.resolve();
+      LoginRegisterFlowErrorHandler(error$).subscribe();
 
-      expect(next).toHaveBeenCalledWith(null);
+      expect(redirectSpy).toHaveBeenCalledWith(
+        `${API_TOKEN_URL}?return_to=${window.location.origin}`
+      );
     });
 
     it('should redirect to /auth/login on ReturnToForbidden', () => {
@@ -78,6 +65,18 @@ describe('error-handlers (URL constants)', () => {
       LoginRegisterFlowErrorHandler(error$).subscribe();
 
       expect(redirectSpy).toHaveBeenCalledWith(`${window.location.origin}/auth/login`);
+    });
+
+    it('emits null when the auth server cannot be reached', () => {
+      const error$ = throwError(
+        () => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', error: null })
+      ) as Observable<LoginFlow>;
+      const next = jasmine.createSpy('next');
+
+      LoginRegisterFlowErrorHandler(error$).subscribe(next);
+
+      expect(next).toHaveBeenCalledWith(null);
+      expect(redirectSpy).not.toHaveBeenCalled();
     });
 
     it('should redirect to window.location.origin on 404 NotFound', () => {
@@ -105,45 +104,29 @@ describe('error-handlers (URL constants)', () => {
     });
   });
 
-  describe('urlWithRecoveryRefresh', () => {
-    it('adds refresh=true on the recovery page', () => {
-      expect(urlWithRecoveryRefresh('https://console.example/auth/recovery?return_to=%2F')).toBe(
-        'https://console.example/auth/recovery?return_to=%2F&refresh=true'
-      );
-    });
-
-    it('sends the error page back to recovery with refresh=true', () => {
-      expect(urlWithRecoveryRefresh('https://console.example/auth/error?id=abc&return_to=%2F')).toBe(
-        'https://console.example/auth/recovery?return_to=%2F&refresh=true'
-      );
-    });
-
-    it('returns null when recovery was already refreshed', () => {
-      expect(urlWithRecoveryRefresh('https://console.example/auth/recovery?refresh=true')).toBeNull();
-    });
-  });
-
   describe('RecoveryFlowErrorHandler', () => {
-    it('restarts recovery with refresh=true when a session blocks it', () => {
-      const error$ = throwError(() =>
-        makeHttpError(400, ErrorEnum.SessionAlreadyAvailable, ErrorStatusEnum.BadRequest, {}, RECOVERY_BLOCKED_BY_SESSION)
+    it('emits null when the auth server cannot be reached', () => {
+      const error$ = throwError(
+        () => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', error: null })
       ) as Observable<RecoveryFlow>;
+      const next = jasmine.createSpy('next');
 
-      RecoveryFlowErrorHandler(error$).subscribe();
+      RecoveryFlowErrorHandler(error$).subscribe(next);
 
-      expect(redirectSpy).toHaveBeenCalledWith(urlWithRecoveryRefresh(window.location.href)!);
+      expect(next).toHaveBeenCalledWith(null);
+      expect(redirectSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('LogoutFlowErrorHandler', () => {
-    it('should call the API logout endpoint on SessionInactive', () => {
+    it('should redirect to window.location.origin on SessionInactive', () => {
       const error$ = throwError(() =>
         makeHttpError(401, ErrorEnum.SessionInactive)
       ) as Observable<LogoutFlow>;
 
       LogoutFlowErrorHandler(error$).subscribe();
 
-      expect(redirectSpy).toHaveBeenCalledWith(API_LOGOUT_URL);
+      expect(redirectSpy).toHaveBeenCalledWith(window.location.origin);
     });
   });
 });
