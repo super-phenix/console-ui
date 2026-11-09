@@ -46,6 +46,27 @@ describe('LayoutComponent', () => {
     expect(rules.some(rule => rule.includes('scale(0.8)'))).toBeTrue();
   });
 
+  it('should fill the viewport height with the form column', () => {
+    const section = fixture.debugElement.query(By.css('.app__section')).nativeElement as HTMLElement;
+
+    expect(section.getBoundingClientRect().height).toBeGreaterThanOrEqual(window.innerHeight);
+  });
+
+  it('should keep the illustration in view when the form is taller than the viewport', () => {
+    const outlet = fixture.debugElement.query(By.css('.app__router')).nativeElement as HTMLElement;
+    const tall = document.createElement('div');
+    tall.style.height = `${window.innerHeight * 3}px`;
+    outlet.append(tall);
+    const visual = getComputedStyle(fixture.debugElement.query(By.css('.app__visual')).nativeElement);
+
+    // Below 950px the illustration is hidden, so its position is checked rather than its size.
+    expect(visual.position).toBe('sticky');
+    expect(visual.top).toBe('0px');
+    expect(
+      fixture.debugElement.query(By.css('.app__section')).nativeElement.getBoundingClientRect().height
+    ).toBeGreaterThanOrEqual(window.innerHeight * 3);
+  });
+
   it('should not render a theme switch', () => {
     expect(fixture.debugElement.query(By.css('.app__header'))).toBeNull();
     expect(fixture.debugElement.query(By.css('mat-button-toggle-group'))).toBeNull();
