@@ -29,6 +29,10 @@ export interface AZ {
   logoUrl?: string;
 }
 
+export interface AzDefaultCloudInit {
+  config: string;
+}
+
 export class Product {
   id!: string;
   eid!: string;

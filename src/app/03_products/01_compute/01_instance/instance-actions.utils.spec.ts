@@ -395,6 +395,15 @@ describe('InstanceActions Utilities', () => {
       expect(payload.containerDisks).toEqual(['registry.spx/image:v1']);
     });
 
+    it('should omit cloud-init when the stored one is empty', () => {
+      const instance = withMemory('2Gi');
+      instance.vm!.spec!.template!.spec!.volumes = [
+        { name: 'cloud-init', cloudInitNoCloud: { userData: '' } },
+      ] as never;
+
+      expect(buildUpdatePayloadFromInstance(instance, [])!.cloudInit).toBeUndefined();
+    });
+
     it('should handle default and missing values gracefully', () => {
       const payload = buildUpdatePayloadFromInstance(withMemory('2Gi'), [])!;
 

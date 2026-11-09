@@ -16,7 +16,6 @@ import {
   CPU_DEFAULT_VALUE,
   CreateInstanceDisk,
   CreateInstanceNetwork,
-  DEFAULT_CLOUD_INIT,
   NETWORK_MODEL_AUTO,
   UpdateInstance,
   VM_TYPE_DEFAULT,
@@ -208,11 +207,11 @@ export function buildUpdatePayloadFromInstance(
     payload.disks = disks;
   }
 
-  if (cloudInitConfig !== undefined) {
+  if (cloudInitConfig) {
     payload.cloudInit = {
       config: cloudInitConfig,
       bus: cloudInitBus,
-      custom: cloudInitConfig !== DEFAULT_CLOUD_INIT,
+      custom: true,
     };
   }
 

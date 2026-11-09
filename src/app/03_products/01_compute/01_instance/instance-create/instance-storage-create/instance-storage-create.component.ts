@@ -20,6 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ContainerDiskCardComponent } from '@products/00_shared/components/container-disk-card/container-disk-card.component';
 import { ContainerDisk } from '@products/00_shared/models/compute/instance/container-disk';
 import {
@@ -27,12 +28,14 @@ import {
   BUS_LIST,
   CreateInstanceCloudInit,
   CreateInstanceDisk,
-  DEFAULT_CLOUD_INIT,
 } from '@products/00_shared/models/compute/instance/instance';
 import { ProductDisk } from '@products/00_shared/models/product.model';
 import { CreateDisk } from '@products/00_shared/models/storage/disk/create-disk.model';
+import { AZService } from '@products/00_shared/services/az.service';
 import { DiskService } from '@products/00_shared/services/disk.service';
 import { InstanceService } from '@products/00_shared/services/instance.service';
+import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
+import { DefaultCloudInitSnackbar } from '@shared/models/snackbar';
 import { StateService } from '@shared/services/state.service';
 import { distinctUntilChanged, firstValueFrom, map, of, startWith } from 'rxjs';
 import { InstanceCreateDiskFormDialog } from '../dialogs/instance-create-disk-form-dialog.component';
@@ -74,9 +77,11 @@ export class InstanceStorageCreateComponent {
   protected fb = inject(FormBuilder);
   protected diskSvc = inject(DiskService);
   protected instanceSvc = inject(InstanceService);
+  protected azSvc = inject(AZService);
   protected stateSvc = inject(StateService);
 
   private readonly dialog = inject(MatDialog);
+  private readonly snackbar = inject(MatSnackBar);
 
   protected readonly BUS_LIST = BUS_LIST;
   protected readonly BUS_AUTO = BUS_AUTO;
@@ -116,7 +121,7 @@ export class InstanceStorageCreateComponent {
 
   cloudInitForm = this.fb.group({
     custom: this.fb.nonNullable.control(false, Validators.required),
-    config: this.fb.nonNullable.control(DEFAULT_CLOUD_INIT, Validators.required),
+    config: this.fb.nonNullable.control('', Validators.required),
     bus: this.fb.nonNullable.control<string>(BUS_AUTO.value),
   });
 
@@ -149,6 +154,15 @@ export class InstanceStorageCreateComponent {
       }
     },
   });
+
+  defaultCloudInit = rxResource({
+    params: () => ({ orgId: this.stateSvc.organization()?.id, az: this.az() }),
+    stream: ({ params: { orgId, az } }) => (orgId && az ? this.azSvc.getDefaultCloudInit(orgId, az) : of(undefined)),
+  });
+
+  defaultConfig = computed(() =>
+    this.defaultCloudInit.hasValue() ? this.defaultCloudInit.value()?.config : undefined
+  );
 
   /**
    * Platform catalog of container-disk types. The list is platform-static
@@ -292,11 +306,29 @@ export class InstanceStorageCreateComponent {
       }
     });
 
+    // show the AZ default until the user customizes the config
+    effect(() => {
+      const defaultConfig = this.defaultConfig();
+      if (defaultConfig && !this.cloudInitForm.controls.custom.value) {
+        this.cloudInitForm.controls.config.setValue(defaultConfig, { emitEvent: false });
+      }
+    });
+
+    effect(() => {
+      if (this.defaultCloudInit.error()) {
+        this.snackbar.open(
+          DefaultCloudInitSnackbar.message,
+          DefaultCloudInitSnackbar.action,
+          DefaultCloudInitSnackbar.config
+        );
+      }
+    });
+
     // update cloudinit config when init config is loaded
     effect(() => {
       if (this.initCloudInit()) {
         this.cloudInitForm.reset({
-          custom: this.initCloudInit()!.config !== DEFAULT_CLOUD_INIT,
+          custom: this.initCloudInit()!.custom,
           config: this.initCloudInit()!.config,
           bus: this.initCloudInit()!.bus,
         });
@@ -411,6 +443,32 @@ export class InstanceStorageCreateComponent {
   diskBusChange(disk: DiskItem, event: MatSelectChange) {
     disk.bus = event.value;
     this.updateOutput();
+  }
+
+  async onCustomChange(custom: boolean) {
+    if (custom) {
+      return;
+    }
+
+    const { custom: customControl, config } = this.cloudInitForm.controls;
+    const defaultConfig = this.defaultConfig() ?? '';
+    if (config.value !== defaultConfig) {
+      const ref = this.dialog.open(ConfirmDialog, {
+        data: {
+          title: 'Disable custom configuration',
+          content:
+            'Your custom cloud-init configuration will be replaced by the default one of this availability zone.',
+          confirmBtn: 'Replace',
+          cancelBtn: 'Keep my configuration',
+        },
+      });
+      if (!(await firstValueFrom<boolean | undefined>(ref.afterClosed()))) {
+        customControl.setValue(true);
+        return;
+      }
+    }
+
+    config.setValue(defaultConfig);
   }
 
   async openTextEditor() {

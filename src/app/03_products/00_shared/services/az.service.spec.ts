@@ -1,4 +1,7 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { SKIP_ERROR_SNACKBAR } from '@shared/interceptor/errors.interceptor';
 
 import { AZ } from '../models/product.model';
 import { AZService } from './az.service';
@@ -7,12 +10,29 @@ describe('AZService', () => {
   let service: AZService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     service = TestBed.inject(AZService);
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('getDefaultCloudInit', () => {
+    it('should fetch the default cloud-init of the AZ', () => {
+      const httpMock = TestBed.inject(HttpTestingController);
+      let config: string | undefined;
+
+      service.getDefaultCloudInit('org1', 'az1').subscribe(res => (config = res.config));
+
+      const req = httpMock.expectOne(r => r.url.endsWith('/organization/org1/az/az1/default-cloud-init'));
+      expect(req.request.method).toBe('GET');
+      expect(req.request.context.get(SKIP_ERROR_SNACKBAR)).toBeTrue();
+      req.flush({ config: '#cloud-config' });
+
+      expect(config).toBe('#cloud-config');
+      httpMock.verify();
+    });
   });
 
   describe('getLogoUrl', () => {
