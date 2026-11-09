@@ -34,7 +34,7 @@ export class SpanCopyComponent {
   /** Draw the value and its copy button as a compact id chip. */
   boxed = input(false, { transform: booleanAttribute });
   /** Keep the copy button hidden until the chip or its row is hovered. */
-  copyOnHover = input(false, { transform: booleanAttribute });
+  showCopyOnHover = input(false, { transform: booleanAttribute });
 
   protected showBox = computed(
     () => this.boxed() || this.hostIsResourceId || /id$/i.test(this.key()?.trim() ?? '')
@@ -79,7 +79,7 @@ export class SpanCopyComponent {
   copy() {
     if (this.value()) {
       this.clipboard.copy(this.value()!);
-      this.snackbar.open('Copy to clipboard!', undefined, {
+      this.snackbar.open('Copy to clipboard!', 'Close', {
         horizontalPosition: 'end',
         duration: 3000,
       });

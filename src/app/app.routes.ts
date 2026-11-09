@@ -22,7 +22,9 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./00_public/inactive-account/inactive-account.component').then(m => m.InactiveAccountComponent),
+          import('./98_kratos-pages/components/inactive-account/inactive-account.component').then(
+            m => m.InactiveAccountComponent,
+          ),
         title: 'Inactive account',
       },
     ],

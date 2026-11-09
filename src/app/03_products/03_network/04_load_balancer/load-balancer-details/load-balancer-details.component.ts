@@ -144,7 +144,7 @@ export class LoadBalancerDetailsComponent {
 
   copy(value: string) {
     this.clipboard.copy(value);
-    this.snackbar.open('Copy to clipboard!', undefined, {
+    this.snackbar.open('Copy to clipboard!', 'Close', {
       horizontalPosition: 'end',
       duration: 3000,
     });

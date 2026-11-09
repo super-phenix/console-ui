@@ -16,7 +16,6 @@ import { ProductDisk, ProductInstance } from '@products/00_shared/models/product
 import { DiskService } from '@products/00_shared/services/disk.service';
 import { InstanceService } from '@products/00_shared/services/instance.service';
 import { BannerComponent } from '@shared/components/banner/banner.component';
-import { GitopsMarkComponent } from '@shared/components/gitops-mark/gitops-mark.component';
 import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { GridDirective } from '@shared/directives/grid.directive';
@@ -53,7 +52,6 @@ interface DiskObject {
     MatProgressSpinnerModule,
     BannerComponent,
     SpanCopyComponent,
-    GitopsMarkComponent,
     GridDirective,
   ],
   templateUrl: './instance-details-storage.component.html',

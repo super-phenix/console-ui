@@ -35,7 +35,7 @@ describe('SpanCopyComponent', () => {
 
   it('hides the copy button until hover when asked', () => {
     fixture.componentRef.setInput('boxed', true);
-    fixture.componentRef.setInput('copyOnHover', true);
+    fixture.componentRef.setInput('showCopyOnHover', true);
     fixture.detectChanges();
 
     const button = fixture.nativeElement.querySelector('.span-copy__button');

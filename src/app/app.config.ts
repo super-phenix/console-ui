@@ -6,13 +6,12 @@ import { kratosCredentialsInterceptor } from './98_kratos-pages/shared/intercept
 import { MAT_CARD_CONFIG } from '@angular/material/card';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
-import { MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBar } from '@angular/material/snack-bar';
+import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { provideRouter } from '@angular/router';
 import { authErrorInterceptor } from '@shared/interceptor/auth-error.interceptor';
 import { errorsInterceptor } from '@shared/interceptor/errors.interceptor';
 import { tokenInterceptor } from '@shared/interceptor/token.interceptor';
-import { AppSnackBar } from '@shared/services/app-snack-bar.service';
 import { routes } from './app.routes';
 
 registerLocaleData(localeFr);
@@ -32,7 +31,6 @@ export const appConfig: ApplicationConfig = {
         panelClass: ['snackbar', 'snackbar--multiline'],
       },
     },
-    { provide: MatSnackBar, useClass: AppSnackBar },
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: {

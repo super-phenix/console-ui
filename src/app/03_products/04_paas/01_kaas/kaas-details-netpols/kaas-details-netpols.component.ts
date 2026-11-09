@@ -13,7 +13,6 @@ import { AZService } from '@products/00_shared/services/az.service';
 import { InstanceService } from '@products/00_shared/services/instance.service';
 import { KaasService } from '@products/00_shared/services/kaas.service';
 import { AutoRefreshComponent } from '@shared/components/auto-refresh/auto-refresh.component';
-import { GitopsMarkComponent } from '@shared/components/gitops-mark/gitops-mark.component';
 import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 import { DR_LABEL_KEYS } from '@shared/models/consts';
 import { StateService } from '@shared/services/state.service';
@@ -36,7 +35,6 @@ interface ProductSecurityGroupItem {
     MatMenuModule,
     AutoRefreshComponent,
     SpanCopyComponent,
-    GitopsMarkComponent,
     RouterLink,
   ],
   templateUrl: './kaas-details-netpols.component.html',

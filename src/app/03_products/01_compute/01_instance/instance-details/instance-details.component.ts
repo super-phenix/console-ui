@@ -21,7 +21,6 @@ import { isClusterResource } from '@products/00_shared/utils/cluster-utils';
 import { BannerComponent } from '@shared/components/banner/banner.component';
 import { ButtonWithDropdownComponent } from '@shared/components/button-with-dropdown/button-with-dropdown.component';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
-import { GitopsMarkComponent } from '@shared/components/gitops-mark/gitops-mark.component';
 import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 import { nonBlockingErrorHandler } from '@shared/http/customHandler';
 import { DR_LABEL_KEYS } from '@shared/models/consts';
@@ -55,7 +54,6 @@ import { environment } from '@env/environment';
     RouterLink,
     BannerComponent,
     SpanCopyComponent,
-    GitopsMarkComponent,
     ButtonWithDropdownComponent,
   ],
   templateUrl: './instance-details.component.html',
@@ -258,7 +256,7 @@ export class InstanceDetailsComponent extends TabsBase {
 
   copy(value: string) {
     this.clipboard.copy(value);
-    this.snackbar.open('Copy to clipboard!', undefined, {
+    this.snackbar.open('Copy to clipboard!', 'Close', {
       horizontalPosition: 'end',
       duration: 3000,
     });

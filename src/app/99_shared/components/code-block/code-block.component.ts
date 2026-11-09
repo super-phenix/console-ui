@@ -20,7 +20,7 @@ export class CodeBlockComponent {
   copy() {
     if (this.code()) {
       this.clipboard.copy(this.code());
-      this.snackbar.open('Copy to clipboard!', undefined, {
+      this.snackbar.open('Copy to clipboard!', 'Close', {
         horizontalPosition: 'end',
         duration: 3000,
       });

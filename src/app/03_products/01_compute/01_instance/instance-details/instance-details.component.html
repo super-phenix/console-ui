@@ -201,7 +201,7 @@
                     <mat-cell *matCellDef="let el">
                       <span class="product-name">
                         @if (el.gitops === 'true') {
-                          <spx-gitops-mark />
+                          <span class="gitops-mark" role="img" title="Managed by GitOps" aria-label="Managed by GitOps"></span>
                         }
                         @if (el.productName) {
                           <spx-span-copy [value]="el.productName" />
@@ -217,7 +217,7 @@
                     <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
                     <!-- In case the ssh key have been deleted -->
                     <mat-cell *matCellDef="let el">
-                      <spx-span-copy boxed copyOnHover [value]="el.eid || el.error.context.effectiveId" />
+                      <spx-span-copy boxed showCopyOnHover [value]="el.eid || el.error.context.effectiveId" />
                     </mat-cell>
                   </ng-container>
 

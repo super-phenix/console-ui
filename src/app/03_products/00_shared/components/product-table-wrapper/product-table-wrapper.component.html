@@ -22,7 +22,7 @@
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header>ID</mat-header-cell>
     <mat-cell *matCellDef="let el">
-      <spx-span-copy boxed copyOnHover [value]="el.data.eid" />
+      <spx-span-copy boxed showCopyOnHover [value]="el.data.eid" />
     </mat-cell>
   </ng-container>
 
@@ -31,7 +31,7 @@
     <mat-cell *matCellDef="let el" [class.mat-column-name--dr-child]="el.isDR">
       <span class="product-name">
         @if (el.data.gitops === 'true') {
-          <spx-gitops-mark />
+          <span class="gitops-mark" role="img" title="Managed by GitOps" aria-label="Managed by GitOps"></span>
         }
         <span class="text-truncate">{{ el.data.productName }}</span>
       </span>

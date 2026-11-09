@@ -23,7 +23,6 @@ import {
 } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { Product } from '@products/00_shared/models/product.model';
-import { GitopsMarkComponent } from '@shared/components/gitops-mark/gitops-mark.component';
 import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 import { AZService } from '@products/00_shared/services/az.service';
 import { StateService } from '@shared/services/state.service';
@@ -78,7 +77,7 @@ export function drGroupSort<T extends ProductItem>(data: T[], cmp: (a: T, b: T) 
 
 @Component({
   selector: 'spx-product-table-wrapper',
-  imports: [MatTableModule, MatButtonModule, MatIconModule, MatSortModule, RouterLink, SpanCopyComponent, GitopsMarkComponent],
+  imports: [MatTableModule, MatButtonModule, MatIconModule, MatSortModule, RouterLink, SpanCopyComponent],
   templateUrl: './product-table-wrapper.component.html',
   styleUrl: './product-table-wrapper.component.scss',
 })

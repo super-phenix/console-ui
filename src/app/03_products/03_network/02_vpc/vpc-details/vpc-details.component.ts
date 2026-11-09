@@ -20,7 +20,6 @@ import { ProductSubnet } from '@products/00_shared/models/product.model';
 import { SubnetService } from '@products/00_shared/services/subnet.service';
 import { VPCService } from '@products/00_shared/services/vpc.service';
 import { getProductLabelInfo } from '@products/00_shared/utils/product-label-utils';
-import { GitopsMarkComponent } from '@shared/components/gitops-mark/gitops-mark.component';
 import { BannerComponent } from '@shared/components/banner/banner.component';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
@@ -59,7 +58,6 @@ class StaticRouteDisplay implements StaticRoute {
     RouterLink,
     BannerComponent,
     SpanCopyComponent,
-    GitopsMarkComponent,
     GridDirective,
     KeyValuePipe,
   ],
@@ -172,7 +170,7 @@ export class VpcDetailsComponent extends TabsBase {
 
   copy(value: string) {
     this.clipboard.copy(value);
-    this.snackbar.open('Copy to clipboard!', undefined, {
+    this.snackbar.open('Copy to clipboard!', 'Close', {
       horizontalPosition: 'end',
       duration: 3000,
     });
