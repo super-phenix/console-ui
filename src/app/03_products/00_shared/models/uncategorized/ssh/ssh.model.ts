@@ -9,3 +9,8 @@ export interface SSH {
   };
   type: string;
 }
+
+export interface SSHUser {
+  eid: string;
+  productName: string;
+}
