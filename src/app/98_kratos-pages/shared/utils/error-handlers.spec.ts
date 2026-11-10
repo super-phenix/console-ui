@@ -89,6 +89,27 @@ describe('error-handlers (URL constants)', () => {
         jasmine.stringContaining('/auth/login')
       );
     });
+
+    it('should send the user to the second factor and back on SessionAal2Required', () => {
+      const redirectTo = 'http://localhost:4433/self-service/login/browser?aal=aal2';
+      const error = makeHttpError(403, ErrorEnum.SessionAal2Required);
+      error.error.redirect_browser_to = redirectTo;
+
+      SettingsFlowErrorHandler(throwError(() => error) as Observable<SettingsFlow>).subscribe();
+
+      const target = new URL(redirectSpy.calls.mostRecent().args[0]);
+      expect(target.origin + target.pathname).toBe('http://localhost:4433/self-service/login/browser');
+      expect(target.searchParams.get('aal')).toBe('aal2');
+      expect(target.searchParams.get('return_to')).toBe(location.href);
+    });
+
+    it('should not redirect on another 403', () => {
+      const error$ = throwError(() => makeHttpError(403, 'security_csrf_violation')) as Observable<SettingsFlow>;
+
+      SettingsFlowErrorHandler(error$).subscribe();
+
+      expect(redirectSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('LogoutFlowErrorHandler', () => {

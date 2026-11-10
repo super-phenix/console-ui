@@ -1,13 +1,27 @@
-<div class="input__field-submit" [formGroup]="form">
+<div class="input__field-submit" [class.input__key]="securityKey" [formGroup]="form">
+  @if (securityKey; as key) {
+    <mat-icon aria-hidden="true">key</mat-icon>
+    <div class="input__key-details">
+      <span class="input__key-name">{{ key.display_name || i18n.getTranslation('ui', 'key_unnamed') }}</span>
+      <span class="input__key-date"
+        >{{ i18n.getTranslation('ui', 'key_added') }}
+        {{ key.added_at | date: 'mediumDate' : undefined : 'en-US' }}</span
+      >
+    </div>
+  }
   <button
-    mat-flat-button
+    [matButton]="appearance"
+    [class.input__danger]="danger"
+    [class.input__back]="back"
+    [attr.aria-label]="securityKey ? meta.label?.text : null"
     [type]="attributes.type"
     appI18n
     [id]="meta.label?.id"
     [group]="meta.label?.type"
     [context]="meta.label?.context"
     [value]="attributes.value"
-    [name]="attributes.name">
+    [name]="attributes.name"
+    (click)="trigger()">
     {{ meta.label?.text }}
   </button>
 </div>

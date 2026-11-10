@@ -2,9 +2,13 @@
   @if (flow(); as flow) {
     <div class="flow__app-logo" role="img" aria-label="Superphenix Logo"></div>
 
-    <h1 class="flow__title">{{ this.route.title | async }}</h1>
+    <h1 class="flow__title">
+      {{ secondFactor() ? i18n.getTranslation('ui', 'second_factor_title') : (this.route.title | async) }}
+    </h1>
 
-    @if (form) {
+    @if (noSecondFactor()) {
+      <p class="flow__notice" role="alert">{{ i18n.getTranslation('ui', 'second_factor_unavailable') }}</p>
+    } @else if (form) {
       <spx-auth-dynamic-form
         [flow]="flow"
         [(form)]="form"
@@ -14,11 +18,19 @@
   }
 
   <div class="flow__links">
-    <div class="flow__link">
-      <a matButton="outlined" [routerLink]="['/auth/registration']">{{ i18n.getTranslation('ui', 'registration') }}</a>
-    </div>
-    <div class="flow__link">
-      <a matButton="text" [routerLink]="['/auth/recovery']">{{ i18n.getTranslation('ui', 'forgot_password') }}</a>
-    </div>
+    @if (secondFactor()) {
+      <div class="flow__link">
+        <a matButton="text" [routerLink]="['/auth/logout']">{{ i18n.getTranslation('ui', 'different_account') }}</a>
+      </div>
+    } @else {
+      <div class="flow__link">
+        <a matButton="outlined" [routerLink]="['/auth/registration']">{{
+          i18n.getTranslation('ui', 'registration')
+        }}</a>
+      </div>
+      <div class="flow__link">
+        <a matButton="text" [routerLink]="['/auth/recovery']">{{ i18n.getTranslation('ui', 'forgot_password') }}</a>
+      </div>
+    }
   </div>
 </div>

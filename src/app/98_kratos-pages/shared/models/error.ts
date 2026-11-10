@@ -2,6 +2,7 @@ export enum ErrorEnum {
   SessionAlreadyAvailable = 'session_already_available',
   ReturnToForbidden = 'self_service_flow_return_to_forbidden',
   SessionInactive = 'session_inactive',
+  SessionAal2Required = 'session_aal2_required',
 }
 
 export enum ErrorStatusEnum {

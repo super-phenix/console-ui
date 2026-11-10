@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { FlowTypeEnum } from '@kratos-pages/shared/models/common';
 import { environment } from '@env/environment';
 import { FlowError, Session } from '@ory/client';
+import { IGNORE_ERROR_STATUSES } from '@shared/interceptor/errors.interceptor';
 import { take } from 'rxjs';
 
 @Injectable({
@@ -44,6 +45,8 @@ export class FlowService {
   sendForm(url: string, body: any) {
     return this.http.post<Session>(url, body, {
       headers: { Accept: 'application/json' },
+      // 422 only asks the browser to move on, see BaseFlowComponent.submit.
+      context: new HttpContext().set(IGNORE_ERROR_STATUSES, [422]),
     });
   }
 }

@@ -7,6 +7,7 @@ import { FlowTypeEnum } from '@kratos-pages/shared/models/common';
 import { Session } from '@ory/client';
 import { Observable, firstValueFrom } from 'rxjs';
 import { FlowService } from '@kratos-pages/shared/services/flow.service';
+import { redirectWithReturnTo } from '@kratos-pages/shared/utils/error-handlers';
 
 /**
  * This abstract component provides initialization for Kratos flow.
@@ -113,6 +114,10 @@ export abstract class BaseFlowComponent<T> implements OnInit {
         this.successSubmit(res);
       })
       .catch((err: HttpErrorResponse) => {
+        // The password was right, but this identity also has to complete a second factor.
+        if (err.status === 422 && err.error.redirect_browser_to) {
+          redirectWithReturnTo(err.error.redirect_browser_to, this.returnTo);
+        }
         if (err.status === 400) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if (err.error.ui.messages.findIndex((v: any) => v.id === 4000010) !== -1) {
