@@ -23,7 +23,7 @@ import {
   endpointRoleLabel,
   formatAmount,
   memoryGiB,
-  sortEndpoints,
+  privateEndpoints,
 } from '../../dbaas-actions.utils';
 
 @Component({
@@ -51,9 +51,8 @@ export class DBaaSDetailsGeneralComponent {
   readonly endpointRoleHint = endpointRoleHint;
 
   db = input.required<ProductDBaaS>();
-  // Endpoints through the Elastic IP, empty while unknown or when the user cannot read EIPs
+  // Endpoints through the Elastic IP, empty until it has an address
   publicEndpoints = input<DBaaSEndpoint[]>([]);
-  publicLoading = input(false);
   // Asks the page to open the Connect tab on the given network
   connect = output<DBaaSNetwork>();
 
@@ -75,7 +74,7 @@ export class DBaaSDetailsGeneralComponent {
   // Zone from the organization's AZ list, for its display name and logo
   zone = computed(() => this.stateSvc.azList().find(az => az.code === this.db().codeAZ));
   version = computed(() => postgresVersionFromImage(this.db().cluster?.spec?.imageName));
-  endpoints = computed(() => sortEndpoints(this.db().endpoints));
+  endpoints = computed(() => privateEndpoints(this.db().endpoints));
   primaryEndpoint = computed(() => this.endpoints()[0]);
   // Every endpoint shares the load balancer VIP
   host = computed(() => this.primaryEndpoint()?.host);

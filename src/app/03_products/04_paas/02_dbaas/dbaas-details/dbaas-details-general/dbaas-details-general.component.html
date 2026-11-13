@@ -47,8 +47,8 @@
 
           @if (publicEndpoints().length) {
             <ng-container *ngTemplateOutlet="endpointRows; context: { $implicit: publicEndpoints() }" />
-          } @else if (publicLoading()) {
-            <p class="dbaas-overview__empty">Loading the address…</p>
+          } @else {
+            <p class="dbaas-overview__empty">Waiting for the Elastic IP address…</p>
           }
         }
 

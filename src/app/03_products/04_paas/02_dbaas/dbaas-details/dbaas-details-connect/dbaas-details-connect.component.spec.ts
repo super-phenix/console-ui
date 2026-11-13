@@ -14,6 +14,7 @@ function db(phase?: string): ProductDBaaS {
     endpoints: [
       { role: 'r', host: '198.18.0.10', port: 5434 },
       { role: 'rw', host: '198.18.0.10', port: 5432 },
+      { role: 'rw', host: '51.159.24.88', port: 5432, external: true },
     ],
   };
 }
@@ -42,6 +43,10 @@ describe('DBaaSDetailsConnectComponent', () => {
   it('stays on the private network while the public address is unknown', () => {
     component.network.set('public');
     expect(component.activeNetwork()).toBe('private');
+  });
+
+  it('lists only the private endpoints', () => {
+    expect(component.endpoints().map(e => e.host)).toEqual(['198.18.0.10', '198.18.0.10']);
   });
 
   it('treats only the healthy phase as ready', () => {

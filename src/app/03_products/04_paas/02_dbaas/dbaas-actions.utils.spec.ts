@@ -1,5 +1,13 @@
-import { PostgresCluster } from '@products/00_shared/models/paas/dbaas/dbaas.model';
-import { cpuCores, dbaasPhaseChip, formatAmount, memoryGiB, sortEndpoints } from './dbaas-actions.utils';
+import { DBaaSEndpoint, PostgresCluster } from '@products/00_shared/models/paas/dbaas/dbaas.model';
+import {
+  cpuCores,
+  dbaasPhaseChip,
+  formatAmount,
+  memoryGiB,
+  privateEndpoints,
+  publicEndpoints,
+  sortEndpoints,
+} from './dbaas-actions.utils';
 
 function cluster(phase?: string): PostgresCluster {
   return {
@@ -61,6 +69,36 @@ describe('sortEndpoints', () => {
 
   it('handles a missing list', () => {
     expect(sortEndpoints(null)).toEqual([]);
+  });
+});
+
+describe('private and public endpoints', () => {
+  const vip = '198.18.0.10';
+  const eip = '51.159.24.88';
+  const mixed: DBaaSEndpoint[] = [
+    { role: 'r', host: vip, port: 5434 },
+    { role: 'rw', host: vip, port: 5432 },
+    { role: 'r', host: eip, port: 5434, external: true },
+    { role: 'rw', host: eip, port: 5432, external: true },
+  ];
+  const cases: {
+    name: string;
+    split: (endpoints?: DBaaSEndpoint[] | null) => DBaaSEndpoint[];
+    endpoints: DBaaSEndpoint[] | null;
+    hosts: string[];
+  }[] = [
+    { name: 'private of a mixed list', split: privateEndpoints, endpoints: mixed, hosts: [vip, vip] },
+    { name: 'public of a mixed list', split: publicEndpoints, endpoints: mixed, hosts: [eip, eip] },
+    { name: 'public without external access', split: publicEndpoints, endpoints: mixed.slice(0, 2), hosts: [] },
+    { name: 'private of a missing list', split: privateEndpoints, endpoints: null, hosts: [] },
+  ];
+
+  cases.forEach(({ name, split, endpoints, hosts }) => {
+    it(name, () => {
+      const result = split(endpoints);
+      expect(result.map(e => e.host)).toEqual(hosts);
+      expect(result.map(e => e.role)).toEqual(hosts.length ? ['rw', 'r'] : []);
+    });
   });
 });
 

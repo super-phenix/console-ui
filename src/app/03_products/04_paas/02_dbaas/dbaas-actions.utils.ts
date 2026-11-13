@@ -55,6 +55,16 @@ export function sortEndpoints(endpoints?: DBaaSEndpoint[] | null): DBaaSEndpoint
   return [...(endpoints || [])].sort((a, b) => order[a.role || 'r'] - order[b.role || 'r']);
 }
 
+// Load balancer endpoints, reachable from the database subnet.
+export function privateEndpoints(endpoints?: DBaaSEndpoint[] | null): DBaaSEndpoint[] {
+  return sortEndpoints(endpoints?.filter(e => !e.external));
+}
+
+// Elastic IP endpoints, reachable from the internet.
+export function publicEndpoints(endpoints?: DBaaSEndpoint[] | null): DBaaSEndpoint[] {
+  return sortEndpoints(endpoints?.filter(e => e.external));
+}
+
 export function endpointRoleLabel(role?: string): string {
   switch (role) {
     case 'rw':

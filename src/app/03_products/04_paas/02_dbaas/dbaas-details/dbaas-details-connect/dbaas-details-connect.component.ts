@@ -20,7 +20,7 @@ import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
 import { firstValueFrom } from 'rxjs';
-import { endpointRoleHint, endpointRoleLabel, isDBaaSHealthy, sortEndpoints } from '../../dbaas-actions.utils';
+import { endpointRoleHint, endpointRoleLabel, isDBaaSHealthy, privateEndpoints } from '../../dbaas-actions.utils';
 
 type ClientFlavour = 'psql' | 'uri';
 
@@ -58,7 +58,7 @@ export class DBaaSDetailsConnectComponent {
   canProjectDBaaSWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectDBaaSWrite));
 
   isReady = computed(() => isDBaaSHealthy(this.db().cluster));
-  endpoints = computed(() => sortEndpoints(this.db().endpoints));
+  endpoints = computed(() => privateEndpoints(this.db().endpoints));
 
   credentials = signal<DBaaSCredentials | undefined>(undefined);
   credentialsLoading = signal(false);

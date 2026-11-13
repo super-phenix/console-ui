@@ -170,11 +170,7 @@
       [selectedIndex]="selectedTab()">
       <mat-tab label="Overview">
         <ng-template matTabContent>
-          <spx-dbaas-details-general
-            [db]="db"
-            [publicEndpoints]="publicEndpoints()"
-            [publicLoading]="eip.isLoading()"
-            (connect)="openConnect($event)" />
+          <spx-dbaas-details-general [db]="db" [publicEndpoints]="publicEndpoints()" (connect)="openConnect($event)" />
         </ng-template>
       </mat-tab>
 

@@ -24,6 +24,8 @@ export interface DBaaSEndpoint {
   role?: DBaaSEndpointRole;
   host: string;
   port: number;
+  // True when host is the Elastic IP of the database instead of the load balancer VIP
+  external?: boolean;
 }
 
 export interface DBaaSCredentials {

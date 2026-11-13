@@ -20,14 +20,13 @@ import {
   postgresVersionFromImage,
 } from '@products/00_shared/models/paas/dbaas/dbaas.model';
 import { DBaaSService } from '@products/00_shared/services/dbaas.service';
-import { EipService } from '@products/00_shared/services/eip.service';
 import { BannerComponent } from '@shared/components/banner/banner.component';
 import { BannerLevelEnum } from '@shared/models/enums';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
 import { of } from 'rxjs';
-import { DBaaSActions, dbaasPhaseChip, isDBaaSHealthy, sortEndpoints } from '../dbaas-actions.utils';
+import { DBaaSActions, dbaasPhaseChip, isDBaaSHealthy, publicEndpoints } from '../dbaas-actions.utils';
 import { DBaaSDetailsConnectComponent } from './dbaas-details-connect/dbaas-details-connect.component';
 import { DBaaSDetailsGeneralComponent } from './dbaas-details-general/dbaas-details-general.component';
 import { DBaaSDetailsSettingsComponent } from './dbaas-details-settings/dbaas-details-settings.component';
@@ -60,7 +59,6 @@ export class DBaaSDetailsComponent extends TabsBase {
   protected stateSvc = inject(StateService);
   protected permissionSvc = inject(PermissionService);
   protected dbaasSvc = inject(DBaaSService);
-  private readonly eipSvc = inject(EipService);
   private readonly clipboard = inject(Clipboard);
 
   private readonly dialog = inject(MatDialog);
@@ -96,29 +94,7 @@ export class DBaaSDetailsComponent extends TabsBase {
     return cluster?.spec?.instances || cluster?.status?.instances;
   });
 
-  // The API only sends the EIP id, its address comes from the EIP itself. Keyed on a string so the
-  // periodic reloads, which hand in a new db object, do not refetch it.
-  private eipKey = computed(() => {
-    const db = this.db();
-    const eid = db?.externalAccess?.eipEId;
-    const org = this.stateSvc.organization()?.id;
-    const project = this.stateSvc.project()?.id;
-    const canRead = this.permissionSvc.permissions().includes(PermissionsEnum.ProjectEipRead);
-    return eid && org && project && canRead ? [org, project, db.codeAZ, eid].join('/') : undefined;
-  });
-  eip = rxResource({
-    params: () => this.eipKey(),
-    stream: ({ params }) => {
-      const [org, project, az, eid] = params.split('/');
-      return this.eipSvc.get(org, project, az, eid);
-    },
-  });
-  // The Elastic IP forwards every load balancer port as is (sfs-dbaas eip.yaml), so the public
-  // endpoints are the private ones with the EIP address as host.
-  publicEndpoints = computed<DBaaSEndpoint[]>(() => {
-    const ip = this.eip.hasValue() ? this.eip.value()?.eip?.status?.ip : undefined;
-    return ip ? sortEndpoints(this.db()?.endpoints).map(e => ({ ...e, host: ip })) : [];
-  });
+  publicEndpoints = computed<DBaaSEndpoint[]>(() => publicEndpoints(this.db()?.endpoints));
 
   selectedTab = linkedSignal(() => Number(this.initialIndex() ?? 0) || 0);
   // Network preselected on the Connect tab, set by whoever opened it
