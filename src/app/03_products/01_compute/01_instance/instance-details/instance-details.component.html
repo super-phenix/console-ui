@@ -3,8 +3,8 @@
     <spx-content-header
       navBack
       title="Instance details"
-      [resourceName]="instanceProduct.value()?.productName"
-      [resourceId]="instanceProduct.value()?.eid">
+      [resourceName]="instanceProduct.hasValue() ? instanceProduct.value()?.productName : undefined"
+      [resourceId]="instanceProduct.hasValue() ? instanceProduct.value()?.eid : undefined">
     </spx-content-header>
 
     @if (instanceProduct.hasValue()) {

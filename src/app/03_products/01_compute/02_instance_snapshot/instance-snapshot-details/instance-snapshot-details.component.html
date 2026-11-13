@@ -3,8 +3,8 @@
     <spx-content-header
       navBack
       title="Instance snapshot details"
-      [resourceName]="instanceSnapshotProduct.value()?.productName"
-      [resourceId]="instanceSnapshotProduct.value()?.eid">
+      [resourceName]="instanceSnapshotProduct.hasValue() ? instanceSnapshotProduct.value()?.productName : undefined"
+      [resourceId]="instanceSnapshotProduct.hasValue() ? instanceSnapshotProduct.value()?.eid : undefined">
     </spx-content-header>
 
     @if (instanceSnapshotProduct.hasValue()) {
