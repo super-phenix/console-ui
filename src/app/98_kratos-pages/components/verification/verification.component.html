@@ -1,7 +1,7 @@
 <div class="flow">
-  @if (flow(); as flow) {
-    <div class="flow__app-logo" role="img" aria-label="Superphenix Logo"></div>
+  <div class="flow__app-logo" role="img" aria-label="Superphenix Logo"></div>
 
+  @if (flow(); as flow) {
     <h1 class="flow__title">{{ this.route.title | async }}</h1>
 
     @if (form) {

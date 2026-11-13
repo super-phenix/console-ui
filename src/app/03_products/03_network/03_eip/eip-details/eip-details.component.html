@@ -1,6 +1,11 @@
 <div class="product-details main-content">
   <div class="d-flex justify-content-between">
-    <spx-content-header navBack title="Elastic IP Details"></spx-content-header>
+    <spx-content-header
+      navBack
+      title="Elastic IP Details"
+      [resourceName]="eipProduct.hasValue() ? eipProduct.value()?.productName : undefined"
+      [resourceId]="eipProduct.hasValue() ? eipProduct.value()?.eid : undefined">
+    </spx-content-header>
 
     @if (eipProduct.hasValue()) {
       <div class="d-flex align-items-center gap-3">

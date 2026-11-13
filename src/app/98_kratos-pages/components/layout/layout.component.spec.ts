@@ -24,19 +24,30 @@ describe('LayoutComponent', () => {
     expect(outlet).toBeTruthy();
   });
 
-  it('should render the footer with logo and copyright', () => {
-    const footer = fixture.debugElement.query(By.css('.app__footer'));
-    expect(footer).toBeTruthy();
-
-    const logo = footer.query(By.css('.footer__logo'));
-    expect(logo.nativeElement.tagName).toBe('DIV');
-
-    const copyright = footer.query(By.css('.footer__copyright'));
-    expect(copyright.nativeElement.textContent).toContain('© 2026');
+  it('should not render a footer', () => {
+    expect(fixture.debugElement.query(By.css('.app__footer'))).toBeNull();
   });
 
-  it('should have the app logo section', () => {
-    const logo = fixture.debugElement.query(By.css('.app__logo'));
-    expect(logo).toBeTruthy();
+  it('should paint the side illustration from the theme image variable', () => {
+    const visual = fixture.debugElement.query(By.css('.app__visual'));
+    expect(visual).toBeTruthy();
+    const style = getComputedStyle(visual.nativeElement);
+    const illustration = getComputedStyle(visual.nativeElement, '::before');
+    expect(style.backgroundColor).toBe('rgb(26, 22, 23)');
+    expect(illustration.backgroundImage).toContain('auth-visual.svg');
+    expect(illustration.backgroundSize).toBe('contain');
+    const rules = [...document.styleSheets].flatMap(sheet => {
+      try {
+        return [...sheet.cssRules].map(rule => rule.cssText);
+      } catch {
+        return [];
+      }
+    });
+    expect(rules.some(rule => rule.includes('scale(0.8)'))).toBeTrue();
+  });
+
+  it('should not render a theme switch', () => {
+    expect(fixture.debugElement.query(By.css('.app__header'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('mat-button-toggle-group'))).toBeNull();
   });
 });

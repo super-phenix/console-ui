@@ -1,6 +1,11 @@
 <div class="product-details main-content">
   <div class="d-flex justify-content-between">
-    <spx-content-header navBack title="Bucket details"></spx-content-header>
+    <spx-content-header
+      navBack
+      title="Bucket details"
+      [resourceName]="bucketProduct.hasValue() ? bucketProduct.value()?.productName : undefined"
+      [resourceId]="bucketProduct.hasValue() ? bucketProduct.value()?.eid : undefined">
+    </spx-content-header>
 
     @if (bucketProduct.hasValue()) {
       <div class="d-flex align-items-center gap-3">

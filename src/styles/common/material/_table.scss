@@ -116,18 +116,80 @@ mat-table {
     --col-min-width: 150px;
   }
 
+  // Resource IDs stay on one line. The copy chip fades the end instead of an ellipsis.
+  .mat-mdc-cell.mat-column-id {
+    overflow: hidden;
+
+    > .text-truncate {
+      display: block;
+      flex: 1 1 auto;
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: clip;
+      line-clamp: unset;
+      -webkit-line-clamp: unset;
+      -webkit-box-orient: unset;
+    }
+
+    spx-span-copy {
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .span-copy,
+    .span-copy__value {
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .span-copy__text {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: clip;
+    }
+
+    .span-copy__button,
+    .span-copy > strong {
+      flex: none;
+    }
+  }
+
   .mat-column-name {
     --col-min-width: 250px;
+
+    .product-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      max-width: 100%;
+
+      .text-truncate {
+        min-width: 0;
+      }
+
+      .gitops-mark {
+        display: inline-flex;
+        flex: none;
+        width: var(--gitops-icon-size);
+        height: var(--gitops-icon-size);
+        background-image: var(--gitops-icon-image);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+      }
+    }
   }
 
   .mat-column-az {
     --col-min-width: 100px;
-    max-width: var(--col-min-width);
-  }
-
-  .mat-column-gitops {
-    justify-content: center;
-    --col-min-width: 80px;
     max-width: var(--col-min-width);
   }
 

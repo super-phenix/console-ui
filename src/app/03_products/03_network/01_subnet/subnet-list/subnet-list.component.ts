@@ -67,7 +67,7 @@ export class SubnetListComponent {
   canProjectEipWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectEipWrite));
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'cidr', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'cidr', 'actions'];
 
   subnetProduct;
 

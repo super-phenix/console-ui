@@ -58,15 +58,15 @@ Branding assets are stored in `public/assets/images/`:
 
 | File             | Usage                                                                       |
 | ---------------- | --------------------------------------------------------------------------- |
-| `logo.svg`       | Application logo, referenced via `--logo-image` CSS variable.               |
-| `background.svg` | Background image, referenced via `--background-image` CSS variable.         |
-| `favicon.svg`    | Footer logo, referenced via `--footer-image` (in `public/assets/favicon/`). |
+| `logo-full.svg`   | Application wordmark, referenced via `--logo-image`.                             |
+| `auth-visual.svg` | Auth-page illustration, referenced via `--auth-visual-image`.                    |
+
+The panel behind the illustration uses `--auth-visual-background`.
 
 To replace branding images, either:
 
 - Swap the SVG files in `public/assets/images/`, or
-- Override the `--background-image`, `--logo-image` and `--footer-image` CSS variables in
-  `theme-override.css`.
+- Override `--auth-visual-image`, `--auth-visual-background` and `--logo-image` in `theme-override.css`.
 
 ### Logo sizing
 
@@ -75,6 +75,5 @@ Override these variables in `theme-override.css` to resize the box:
 
 | Variable                                       | Surface                           | Default |
 | ---------------------------------------------- | --------------------------------- | ------- |
-| `--logo-width` / `--logo-height`               | Header                            | 40×32   |
-| `--logo-auth-width` / `--logo-auth-height`     | Auth and inactive-account pages   | 181×56  |
-| `--footer-logo-width` / `--footer-logo-height` | Auth and inactive-account footers | 16×16   |
+| `--logo-width` / `--logo-height`           | Header                         | 208×32 |
+| `--logo-auth-width` / `--logo-auth-height` | Wordmark above the auth form   | 270×42 |

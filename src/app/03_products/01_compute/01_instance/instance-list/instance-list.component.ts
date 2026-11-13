@@ -95,7 +95,7 @@ export class InstanceListComponent {
   );
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'ip', 'status', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'ip', 'status', 'actions'];
 
   instanceResource;
 

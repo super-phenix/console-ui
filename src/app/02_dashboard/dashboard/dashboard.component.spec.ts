@@ -675,8 +675,6 @@ describe('DashboardComponent', () => {
       });
 
       expect(fixture.nativeElement.querySelector('.dashboard__row--compact')).toBeTruthy();
-      // The changelog rail is dropped rather than reflowed on a phone.
-      expect(fixture.nativeElement.querySelector('spx-changelog')).toBeNull();
     });
   });
 

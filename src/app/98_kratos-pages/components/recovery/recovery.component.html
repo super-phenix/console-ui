@@ -1,12 +1,19 @@
 <div class="flow">
-  @if (flow(); as flow) {
-    <div class="flow__app-logo" role="img" aria-label="Superphenix Logo"></div>
+  <div class="flow__app-logo" role="img" aria-label="Superphenix Logo"></div>
 
+  @if (flow(); as flow) {
     <h1 class="flow__title">{{ this.route.title | async }}</h1>
 
     @if (form) {
       <spx-auth-dynamic-form [flow]="flow" [(form)]="form"></spx-auth-dynamic-form>
     }
+  } @else if (error()) {
+    <div class="flow__error">
+      <mat-icon>error_outline</mat-icon>
+      <h1 class="flow__error-title">{{ i18n.getTranslation('ui', 'flow_error_title') }}</h1>
+      <p class="flow__error-message">{{ i18n.getTranslation('ui', 'flow_error_message') }}</p>
+      <button matButton="outlined" (click)="retry()">{{ i18n.getTranslation('ui', 'retry') }}</button>
+    </div>
   }
 
   <div class="flow__links">

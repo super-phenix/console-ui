@@ -13,6 +13,7 @@ import { AZService } from '@products/00_shared/services/az.service';
 import { InstanceService } from '@products/00_shared/services/instance.service';
 import { KaasService } from '@products/00_shared/services/kaas.service';
 import { AutoRefreshComponent } from '@shared/components/auto-refresh/auto-refresh.component';
+import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 import { DR_LABEL_KEYS } from '@shared/models/consts';
 import { StateService } from '@shared/services/state.service';
 import { catchError, of } from 'rxjs';
@@ -33,6 +34,7 @@ interface ProductSecurityGroupItem {
     MatChipsModule,
     MatMenuModule,
     AutoRefreshComponent,
+    SpanCopyComponent,
     RouterLink,
   ],
   templateUrl: './kaas-details-netpols.component.html',
@@ -45,7 +47,7 @@ export class KaasDetailsNetpolsComponent {
   protected azSvc = inject(AZService);
   protected route = inject(ActivatedRoute);
 
-  displayedColumns: string[] = ['id', 'name', 'description', 'policyType', 'gitops', 'actions'];
+  displayedColumns: string[] = ['id', 'name', 'description', 'policyType', 'actions'];
 
   netPolResource;
 

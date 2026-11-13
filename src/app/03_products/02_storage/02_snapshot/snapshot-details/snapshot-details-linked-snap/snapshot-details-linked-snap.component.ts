@@ -7,6 +7,7 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { Snapshot } from '@products/00_shared/models/storage/snapshot/snapshot.model';
+import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
@@ -26,7 +27,7 @@ function sortData(this: Sort, a: Snapshot, b: Snapshot) {
 
 @Component({
   selector: 'spx-snapshot-details-linked-snap',
-  imports: [MatButtonModule, MatTableModule, MatIconModule, MatChipsModule, RouterLink, MatSortModule, DatePipe],
+  imports: [MatButtonModule, MatTableModule, MatIconModule, MatChipsModule, RouterLink, MatSortModule, DatePipe, SpanCopyComponent],
   templateUrl: './snapshot-details-linked-snap.component.html',
   styleUrl: './snapshot-details-linked-snap.component.scss',
 })

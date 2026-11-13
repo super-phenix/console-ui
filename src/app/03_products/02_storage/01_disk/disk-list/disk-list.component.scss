@@ -1,0 +1,21 @@
+// Size and type are short values. Keep them fixed so the storage class can use the row.
+.mat-column-size {
+  --col-min-width: 88px;
+  flex: 0 0 88px;
+  max-width: 88px;
+}
+
+.mat-column-type {
+  --col-min-width: 120px;
+  flex: 0 0 120px;
+  max-width: 120px;
+}
+
+.mat-column-storageClass {
+  flex-grow: 2;
+  min-width: 0;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
