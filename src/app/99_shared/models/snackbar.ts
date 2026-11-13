@@ -24,6 +24,15 @@ export const UnauthorizedSnackbar: SnackbarModel = {
   },
 };
 
+export const DefaultCloudInitSnackbar: SnackbarModel = {
+  message: 'Unable to load the default cloud-init of this availability zone.',
+  config: {
+    horizontalPosition: 'end',
+    duration: 5000,
+    panelClass: ['snackbar', 'snackbar--multiline'],
+  },
+};
+
 export const BadRequestSnackbar: SnackbarModel = {
   message: 'The submitted form is invalid, please check your input.',
   config: {

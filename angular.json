@@ -102,7 +102,6 @@
             "exclude": [
               "src/app/03_products/01_compute/01_instance/instance-create/instance-create.component.spec.ts",
               "src/app/03_products/01_compute/01_instance/instance-create/instance-ssh-create/instance-ssh-create.component.spec.ts",
-              "src/app/03_products/01_compute/01_instance/instance-create/instance-storage-create/instance-storage-create.component.spec.ts",
               "src/app/03_products/01_compute/01_instance/instance-details/instance-details-general/instance-details-general.component.spec.ts",
               "src/app/03_products/01_compute/01_instance/instance-details/instance-details-storage/instance-details-storage.component.spec.ts",
               "src/app/03_products/01_compute/01_instance/instance-update/instance-update.component.spec.ts",

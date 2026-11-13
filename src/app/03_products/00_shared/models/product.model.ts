@@ -29,6 +29,10 @@ export interface AZ {
   logoUrl?: string;
 }
 
+export interface AzDefaultCloudInit {
+  config: string;
+}
+
 export class Product {
   id!: string;
   eid!: string;
@@ -85,6 +89,7 @@ export interface ProductSnapshot extends Product {
 
 export interface ProductSSH extends Product {
   ssh?: SSH;
+  isUsed?: boolean;
 }
 
 export interface ProductLoadBalancer extends Product {

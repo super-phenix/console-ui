@@ -37,6 +37,15 @@
       emptyMessage="No SSH keys yet."
       emptyCreateLabel="Create an SSH key"
       [canCreate]="canProjectSSHWrite()">
+      <ng-container matColumnDef="isUsed">
+        <mat-header-cell *matHeaderCellDef> Used </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @if (el.data.isUsed) {
+            <mat-icon aria-hidden="false" aria-label="Used">check</mat-icon>
+          }
+        </mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="date">
         <mat-header-cell *matHeaderCellDef> Creation Date </mat-header-cell>
         <mat-cell *matCellDef="let el">
@@ -52,10 +61,20 @@
           </button>
 
           <mat-menu #menu="matMenu">
+            @if (el.data.isUsed && canProjectInstanceRead()) {
+              <button mat-menu-item aria-label="See usage button" (click)="openUsage(el.data)">
+                <mat-icon>visibility</mat-icon>
+                See Usage
+              </button>
+            }
             @if (el.data.gitops !== 'true' && canProjectSSHWrite()) {
-              <button mat-menu-item aria-label="Delete ssh button" (click)="deleteSSH(el.data)">
+              <button
+                mat-menu-item
+                aria-label="Delete ssh button"
+                [disabled]="el.data.isUsed"
+                (click)="deleteSSH(el.data)">
                 <mat-icon>delete</mat-icon>
-                Delete
+                {{ el.data.isUsed ? 'In use by an instance, cannot delete' : 'Delete' }}
               </button>
             }
           </mat-menu>

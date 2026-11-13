@@ -22,6 +22,7 @@ import { mapHandlerReplacer, mapHandlerReviver } from '@shared/utils/json-utils'
 import { catchError, firstValueFrom, of } from 'rxjs';
 import { ProductTableWrapperComponent } from '@products/00_shared/components/product-table-wrapper/product-table-wrapper.component';
 import { DEFAULT_REFRESH_INTERVAL } from '@shared/models/consts';
+import { SSH_USAGE_DIALOG_CONFIG, SshUsageDialog } from '../ssh-usage-dialog/ssh-usage-dialog.component';
 
 interface ProductSSHItem {
   data: ProductSSH;
@@ -65,6 +66,7 @@ export class SshListComponent {
   });
 
   canProjectSSHWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectSSHWrite));
+  canProjectInstanceRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectInstanceRead));
 
   displayedColumns: string[] = ['az', 'name', 'date', 'actions'];
 
@@ -107,6 +109,19 @@ export class SshListComponent {
 
   updateFilter(key: string, value: string) {
     this.filterValue.update(prev => new Map(prev).set(key, value));
+  }
+
+  openUsage(sshKey: ProductSSH) {
+    this.dialog.open(SshUsageDialog, {
+      data: {
+        orgaId: this.stateSvc.organization()!.id,
+        projectId: this.stateSvc.project()!.id,
+        az: sshKey.codeAZ!,
+        eid: sshKey.eid!,
+        name: sshKey.productName || sshKey.eid!,
+      },
+      ...SSH_USAGE_DIALOG_CONFIG,
+    });
   }
 
   deleteSSH(sshKey: ProductSSH) {

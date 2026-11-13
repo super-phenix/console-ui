@@ -10,7 +10,7 @@
       </div>
 
       <div>
-        <mat-slide-toggle formControlName="custom" labelPosition="before">
+        <mat-slide-toggle formControlName="custom" labelPosition="before" (change)="onCustomChange($event.checked)">
           <span>Customize configuration</span>
         </mat-slide-toggle>
       </div>
