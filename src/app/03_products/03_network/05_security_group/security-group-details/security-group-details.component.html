@@ -21,7 +21,12 @@
           <button matButton="filled" [matMenuTriggerFor]="menu" aria-label="Open options">Options</button>
 
           <mat-menu #menu="matMenu">
-            @if (canProjectSecurityGroupWrite() && sgProduct.value().gitops !== 'true' && !isClusterSecurityGroup()) {
+            @if (
+              canProjectSecurityGroupWrite() &&
+              sgProduct.value().gitops !== 'true' &&
+              !isClusterSecurityGroup() &&
+              !isGeneratedSecurityGroup()
+            ) {
               <button
                 mat-menu-item
                 aria-label="Edit security group button"
@@ -58,7 +63,7 @@
                 mat-menu-item
                 aria-label="Delete security group button"
                 (click)="deleteSecurityGroup()"
-                [disabled]="isClusterSecurityGroup()">
+                [disabled]="isClusterSecurityGroup() || isGeneratedSecurityGroup()">
                 <mat-icon>delete</mat-icon>
                 Delete
               </button>
@@ -69,11 +74,18 @@
     }
   </div>
 
+  @if (isGeneratedSecurityGroup()) {
+    <spx-banner [level]="BannerLevelEnum.Info">
+      <span>Managed by another product, this security group can't be edited or deleted.</span>
+    </spx-banner>
+  }
+
   @if (
     sgProduct.hasValue() &&
     sgProduct.value().gitops !== 'true' &&
     !sgProduct.value().productTypeId &&
-    !isClusterSecurityGroup()
+    !isClusterSecurityGroup() &&
+    !isGeneratedSecurityGroup()
   ) {
     <spx-banner [level]="BannerLevelEnum.Warn" multiline>
       <span>Product not synchronized with the database.</span>

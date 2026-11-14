@@ -23,6 +23,9 @@ export const APP_NAME_LABEL_KEY = 'app.kubernetes.io/name';
 export const APP_NAME_CLUSTER_LABEL_VALUE = 'sfs-kaas';
 
 export const WORKLOAD_CLASS_LABEL_KEY = 'superphenix.net/workloadClass';
+
+// Set on resources a chart renders for another product, read-only for users
+export const GENERATED_LABEL_KEY = 'superphenix.net/generated';
 export const WORKLOAD_CLASS_KAAS_DATASTORE_VALUE = 'kaas-datastore';
 
 export const DEFAULT_REFRESH_INTERVAL = 0;

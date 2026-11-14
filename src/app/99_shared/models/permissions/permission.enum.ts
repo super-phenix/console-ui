@@ -48,6 +48,9 @@ export enum PermissionsEnum {
   ProjectBucketCredentials = 'ProjectBucketCredentials',
   ProjectBucketWrite = 'ProjectBucketWrite',
 
+  ProjectDBaaSRead = 'ProjectDBaaSRead',
+  ProjectDBaaSWrite = 'ProjectDBaaSWrite',
+
   ProjectSSHRead = 'ProjectSSHRead',
   ProjectSSHWrite = 'ProjectSSHWrite',
 

@@ -123,3 +123,11 @@ export function IsIPinRange(range: string, ip: string): boolean {
     }
   });
 }
+
+// Generate a random address in the load balancer virtual IP range (198.18.0.0/16, SPX RFC008),
+// skipping the network and broadcast-like .0 and .255 host bytes.
+export function GenerateRandomVirtualIp(): string {
+  const third = Math.floor(Math.random() * 256);
+  const fourth = 1 + Math.floor(Math.random() * 254);
+  return `198.18.${third}.${fourth}`;
+}

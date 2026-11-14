@@ -1,0 +1,172 @@
+<div class="product-create main-content">
+  <spx-content-header navBack title="Edit database"></spx-content-header>
+
+  <div class="product-create__scrollable">
+    @if (!app()) {
+      <div class="d-flex justify-content-center p-4">
+        <mat-spinner diameter="32"></mat-spinner>
+      </div>
+    } @else {
+      @let current = app()!.spec;
+      <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom">
+        <mat-step [stepControl]="formGroup" errorMessage="Form invalid.">
+          <form [formGroup]="formGroup">
+            <ng-template matStepLabel>Database</ng-template>
+            <ng-template matStepContent>
+              <spx-step-general [formGroup]="formGroup" [showAz]="false"></spx-step-general>
+
+              <div class="info-card">
+                <div class="info-card__title">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="mat-icon--with-bg">
+                      <mat-icon>database</mat-icon>
+                    </div>
+                    PostgreSQL
+                  </div>
+                </div>
+                <div class="info-card__content info-card__content--multi-block">
+                  <div class="info-card__block">
+                    <span
+                      ><i>Only minor versions of PostgreSQL {{ current.version.split('.')[0] }} are available.</i></span
+                    >
+                  </div>
+                  <div class="info-card__block">
+                    <mat-form-field class="info-card__item">
+                      <mat-label>Version</mat-label>
+                      <mat-select formControlName="version">
+                        @for (version of sameMajorVersions(); track version) {
+                          <mat-option [value]="version">{{ version }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-card">
+                <div class="info-card__title">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="mat-icon--with-bg">
+                      <mat-icon>hub</mat-icon>
+                    </div>
+                    Instances
+                  </div>
+                </div>
+                <div class="info-card__content info-card__content--multi-block">
+                  <div class="info-card__block">
+                    <mat-button-toggle-group
+                      formControlName="instances"
+                      aria-label="Number of instances"
+                      hideSingleSelectionIndicator>
+                      @for (count of INSTANCE_LIST; track count) {
+                        <mat-button-toggle [value]="count">{{ count }}</mat-button-toggle>
+                      }
+                    </mat-button-toggle-group>
+                  </div>
+                  <div class="info-card__block flex-column">
+                    <spx-dbaas-topology [instances]="instances()" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-card">
+                <div class="info-card__title">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="mat-icon--with-bg">
+                      <mat-icon>memory</mat-icon>
+                    </div>
+                    Resources per instance
+                  </div>
+                </div>
+                <div class="info-card__content info-card__content--multi-block">
+                  <div class="info-card__block">
+                    <mat-form-field class="info-card__item">
+                      <mat-label>vCPU</mat-label>
+                      <mat-select formControlName="cpu">
+                        @for (cpu of CPU_LIST; track cpu) {
+                          <mat-option [value]="cpu">{{ cpu }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field class="info-card__item">
+                      <mat-label>Memory</mat-label>
+                      <mat-select formControlName="memory">
+                        @for (memory of MEMORY_LIST; track memory) {
+                          <mat-option [value]="memory">{{ memory }} GiB</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="info-card__block">
+                    <mat-form-field class="info-card__item">
+                      <mat-label>Storage</mat-label>
+                      <input type="number" matInput [min]="current.storage" formControlName="storage" />
+                      <span matTextSuffix>GiB</span>
+                      <mat-hint>Can grow from {{ current.storage }} GiB, never shrink.</mat-hint>
+                      @if (formGroup.controls.storage.hasError('min')) {
+                        <mat-error>Storage cannot go below {{ current.storage }} GiB.</mat-error>
+                      }
+                    </mat-form-field>
+
+                    <div class="info-card__item info-card__item--fixed justify-content-center">
+                      <span class="info-card__item-label">Storage class</span>
+                      <span class="info-card__item-text">{{ current.storageClass }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-card">
+                <div class="info-card__title">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="mat-icon--with-bg">
+                      <mat-icon>network_manage</mat-icon>
+                    </div>
+                    Network
+                  </div>
+                </div>
+                <div class="info-card__content info-card__content--multi-block">
+                  <div class="info-card__block info-card__block--space-evenly">
+                    <div class="info-card__item">
+                      <span class="info-card__item-label">Localisation</span>
+                      <span class="info-card__item-text">{{ selectedAz().toUpperCase() }}</span>
+                    </div>
+                    <div class="info-card__item">
+                      <span class="info-card__item-label">Subnet</span>
+                      <span class="info-card__item-text text-break-all">{{
+                        subnet.value()?.productName || current.subnetEId
+                      }}</span>
+                    </div>
+                    <div class="info-card__item">
+                      <span class="info-card__item-label">Virtual IP</span>
+                      <span class="info-card__item-text">{{ current.vip }}</span>
+                    </div>
+                  </div>
+                  <div class="info-card__block flex-column">
+                    <mat-slide-toggle formControlName="externalAccess"
+                      >Reach the database from the internet</mat-slide-toggle
+                    >
+                    <span>
+                      <i
+                        >Assigns an Elastic IP that exposes the same ports as the private network: 5432 read-write, 5433
+                        read-only with replicas, 5434 any instance. The subnet needs a NAT gateway.</i
+                      >
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="product-create__step-buttons product-create__step-buttons--justify-end">
+                <button matButton="filled" [disabled]="formGroup.invalid || updating()" (click)="update()">
+                  Update database
+                </button>
+              </div>
+            </ng-template>
+          </form>
+        </mat-step>
+      </mat-stepper>
+    }
+  </div>
+</div>

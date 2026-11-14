@@ -8,6 +8,7 @@ import { LoadBalancer } from './network/load-balancer/load-balancer.model';
 import { NatGateway, Subnet } from './network/subnet/subnet.model';
 import { VPC } from './network/vpc/vpc.model';
 import { Cluster } from './paas/kaas/cluster.model';
+import { DBaaSEndpoint, PostgresCluster } from './paas/dbaas/dbaas.model';
 import { BaaS } from './storage/baas/baas.model';
 import { BucketView } from './storage/bucket/bucket.model';
 import { Disk, MountStatus } from './storage/disk/disk.model';
@@ -103,6 +104,13 @@ export interface ProductSecurityGroup extends Product {
 export interface ProductKaaS extends Product {
   cluster?: Cluster;
   outdated?: boolean;
+}
+
+export interface ProductDBaaS extends Product {
+  cluster?: PostgresCluster | null;
+  endpoints?: DBaaSEndpoint[] | null;
+  // Only filled by the get endpoint, never by the list
+  externalAccess?: { eipEId: string };
 }
 
 export interface ProductBaaS extends Product {

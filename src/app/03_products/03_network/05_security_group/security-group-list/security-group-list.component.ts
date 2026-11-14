@@ -14,7 +14,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductListFilterComponent } from '@products/00_shared/components/product-list-filter/product-list-filter.component';
 import { ProductSecurityGroup } from '@products/00_shared/models/product.model';
 import { SecurityGroupService } from '@products/00_shared/services/security-group.service';
-import { isClusterResource } from '@products/00_shared/utils/cluster-utils';
+import { isClusterResource, isGeneratedResource } from '@products/00_shared/utils/cluster-utils';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { DEFAULT_REFRESH_INTERVAL, DR_LABEL_KEYS } from '@shared/models/consts';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
@@ -33,6 +33,7 @@ interface ProductSecurityGroupItem {
   data: ProductSecurityGroup;
   isDR: boolean;
   isClusterSecurityGroup: boolean;
+  isGenerated: boolean;
 }
 
 @Component({
@@ -101,6 +102,7 @@ export class SecurityGroupListComponent {
         data: i,
         isDR: isDR,
         isClusterSecurityGroup: isCluster,
+        isGenerated: isGeneratedResource(i.securityGroup?.metadata.labels),
       };
     });
     const dataSource = new MatTableDataSource(datas);

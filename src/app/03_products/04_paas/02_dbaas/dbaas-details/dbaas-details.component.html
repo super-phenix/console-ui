@@ -1,0 +1,194 @@
+<div class="product-details main-content dbaas-details">
+  @if (dbaasProduct.isLoading() && !db()) {
+    <div class="d-flex justify-content-center p-4">
+      <mat-spinner diameter="32"></mat-spinner>
+    </div>
+  }
+
+  @if (dbaasProduct.error()) {
+    <div class="dbaas-header">
+      <a matIconButton class="dbaas-header__back" aria-label="Back to databases" routerLink="/products/paas/dbaas">
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+    </div>
+    <spx-banner [level]="BannerLevelEnum.Error">Failed to load the database. Use refresh to try again.</spx-banner>
+    <button matButton class="align-self-start" (click)="reload()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  }
+
+  @if (db(); as db) {
+    <header class="dbaas-header">
+      <a matIconButton class="dbaas-header__back" aria-label="Back to databases" routerLink="/products/paas/dbaas">
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+
+      <div class="dbaas-header__tile" [attr.aria-label]="'PostgreSQL ' + (major() || '')" role="img">
+        <span class="dbaas-header__tile-engine">PG</span>
+        @if (major()) {
+          <span class="dbaas-header__tile-major">{{ major() }}</span>
+        }
+      </div>
+
+      <div class="dbaas-header__identity">
+        <div class="dbaas-header__title-row">
+          <h1 class="dbaas-header__name">{{ db.productName || db.eid }}</h1>
+          <span
+            class="dbaas-status"
+            [class]="'dbaas-status--' + statusLevel()"
+            [matTooltip]="chip().title"
+            matTooltipPosition="below">
+            <span class="dbaas-status__dot" aria-hidden="true"></span>
+            {{ chip().label }}
+          </span>
+        </div>
+
+        <ul class="dbaas-header__meta" aria-label="Database summary">
+          @if (zone()?.logoUrl) {
+            <li>
+              <img
+                class="dbaas-header__az-logo"
+                [src]="zone()!.logoUrl"
+                [alt]="zone()!.name || db.codeAZ"
+                [title]="zone()!.name || db.codeAZ" />
+            </li>
+          } @else {
+            <li [title]="zone()?.name || ''">
+              <mat-icon aria-hidden="true">location_on</mat-icon>
+              {{ db.codeAZ?.toUpperCase() }}
+            </li>
+          }
+          @if (version()) {
+            <li>
+              <mat-icon aria-hidden="true">database</mat-icon>
+              PostgreSQL {{ version() }}
+            </li>
+          }
+          @if (instances(); as instances) {
+            <li>
+              <mat-icon aria-hidden="true">dns</mat-icon>
+              {{ instances }} {{ instances === 1 ? 'instance' : 'instances' }}
+            </li>
+          }
+          @if (db.cluster?.metadata?.creationTimestamp; as created) {
+            <li>
+              <mat-icon aria-hidden="true">schedule</mat-icon>
+              Created {{ created | date: 'mediumDate' }}
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div class="dbaas-header__actions">
+        <button matButton="filled" (click)="openConnect()">
+          <mat-icon>terminal</mat-icon>
+          Connect
+        </button>
+
+        <button
+          matIconButton
+          class="icon-btn--border icon-btn--medium"
+          aria-label="Refresh database"
+          matTooltip="Refresh"
+          [disabled]="dbaasProduct.isLoading()"
+          (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+
+        <button
+          matIconButton
+          class="icon-btn--border icon-btn--medium"
+          aria-label="More actions"
+          [matMenuTriggerFor]="menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+
+        <mat-menu #menu="matMenu" xPosition="before">
+          @if (db.gitops !== 'true' && canProjectDBaaSWrite()) {
+            <a mat-menu-item [routerLink]="['/products/paas/dbaas', 'update', db.codeAZ, db.eid]">
+              <mat-icon>tune</mat-icon>
+              Edit or resize
+            </a>
+          }
+
+          <button mat-menu-item (click)="copyShareLink()">
+            <mat-icon>share</mat-icon>
+            Copy share link
+          </button>
+
+          @if (canProjectArgoCdRead()) {
+            <button mat-menu-item (click)="openArgoCD()">
+              <mat-icon>open_in_new</mat-icon>
+              See in ArgoCD
+            </button>
+          }
+        </mat-menu>
+      </div>
+    </header>
+
+    @if (!isReady()) {
+      <div class="dbaas-progress" [class]="'dbaas-progress--' + statusLevel()" role="status">
+        <span class="dbaas-progress__text">
+          <strong>{{ chip().label }}</strong>
+          @if (chip().title !== chip().label) {
+            <span>{{ chip().title }}</span>
+          }
+        </span>
+        <span class="dbaas-progress__hint">
+          @if (dbaasProduct.isLoading()) {
+            Checking…
+          } @else {
+            Refreshes every {{ pollSeconds }} seconds
+          }
+        </span>
+      </div>
+    }
+
+    @if (db.gitops !== 'true' && !db.productTypeId) {
+      <spx-banner [level]="BannerLevelEnum.Warn" multiline>
+        <span>Product not synchronized with the database.</span>
+        <span>
+          Please contact support at
+          <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+        </span>
+      </spx-banner>
+    }
+
+    @if (db.gitops === 'true') {
+      <spx-banner [level]="BannerLevelEnum.Warn">
+        This resource is managed by GitOps. You cannot modify it from the console.
+      </spx-banner>
+    }
+
+    <mat-tab-group
+      class="product-details__tabs mat-tab-fill-height"
+      mat-stretch-tabs="false"
+      mat-align-tabs="start"
+      preserveContent
+      (selectedIndexChange)="selectTab($event)"
+      [selectedIndex]="selectedTab()">
+      <mat-tab label="Overview">
+        <ng-template matTabContent>
+          <spx-dbaas-details-general [db]="db" [publicEndpoints]="publicEndpoints()" (connect)="openConnect($event)" />
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="Connect">
+        <ng-template matTabContent>
+          <spx-dbaas-details-connect
+            [db]="db"
+            [az]="az()"
+            [publicEndpoints]="publicEndpoints()"
+            [initialNetwork]="connectNetwork()" />
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab label="Settings">
+        <ng-template matTabContent>
+          <spx-dbaas-details-settings [db]="db" (restart)="restartDBaaS()" (delete)="deleteDBaaS()" />
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>
