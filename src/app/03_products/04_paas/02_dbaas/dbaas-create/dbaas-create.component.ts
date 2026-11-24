@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -145,6 +145,14 @@ export class DBaaSCreateComponent {
     defaultValue: [],
   });
 
+  subnetEId = toSignal(this.networkFormGroup.controls.subnetEId.valueChanges, { initialValue: '' });
+
+  // External access needs a NAT gateway on the subnet to hold the Elastic IP
+  externalAccessBlocked = computed(() => {
+    const subnetEId = this.subnetEId();
+    return !!subnetEId && !this.subnetsProduct.value().find(subnet => subnet.eid === subnetEId)?.natGateway;
+  });
+
   constructor() {
     // The API lists versions newest first
     effect(() => {
@@ -163,6 +171,16 @@ export class DBaaSCreateComponent {
     effect(() => {
       this.selectedAz();
       this.networkFormGroup.controls.subnetEId.setValue('');
+    });
+
+    effect(() => {
+      const externalAccess = this.networkFormGroup.controls.externalAccess;
+      if (this.externalAccessBlocked()) {
+        externalAccess.setValue(false);
+        externalAccess.disable();
+      } else {
+        externalAccess.enable();
+      }
     });
   }
 

@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -111,6 +111,9 @@ export class DBaaSUpdateComponent {
         : EMPTY,
   });
 
+  // External access needs a NAT gateway on the subnet to hold the Elastic IP
+  noNatGateway = computed(() => this.subnet.hasValue() && !this.subnet.value()?.natGateway);
+
   // Only minor versions of the current major are accepted; the current one stays selectable even if retired.
   sameMajorVersions = computed(() => {
     const current = this.app()?.spec.version;
@@ -134,6 +137,17 @@ export class DBaaSUpdateComponent {
     } else {
       location.back();
     }
+
+    // A database that already has external access can still turn it off
+    effect(() => {
+      const externalAccess = this.formGroup.controls.externalAccess;
+      if (this.noNatGateway() && !this.app()?.spec.externalAccess) {
+        externalAccess.setValue(false);
+        externalAccess.disable();
+      } else {
+        externalAccess.enable();
+      }
+    });
   }
 
   async loadApp() {

@@ -248,6 +248,12 @@
                       later.</i
                     >
                   </span>
+                  @if (externalAccessBlocked()) {
+                    <span class="color-warn"
+                      >This subnet has no NAT gateway. Enable one on the subnet to reach the database from the
+                      internet.</span
+                    >
+                  }
                 </div>
               </div>
             </div>
