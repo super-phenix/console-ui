@@ -1,5 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
-import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, inject, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -18,7 +18,8 @@ import { ProtocolEnum } from '@products/00_shared/models/network/subnet/protocol
 import { SubnetService } from '@products/00_shared/services/subnet.service';
 import { VPCService } from '@products/00_shared/services/vpc.service';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
-import { MAX_NAME_LENGTH } from '@shared/models/consts';
+import { CidrOverlaps } from '@products/00_shared/utils/ip';
+import { KAAS_RESERVED_CIDRS, MAX_NAME_LENGTH } from '@shared/models/consts';
 import { StateService } from '@shared/services/state.service';
 import { firstValueFrom, of } from 'rxjs';
 
@@ -79,6 +80,20 @@ export class SubnetCreateComponent {
     dnsV6: this.fb.control(null),
   });
 
+  private ipv4Value = toSignal(this.secondFormGroup.controls.ipv4.valueChanges, { initialValue: '' });
+  private ipv6Value = toSignal(this.secondFormGroup.controls.ipv6.valueChanges, { initialValue: '' });
+  private protocolValue = toSignal(this.secondFormGroup.controls.protocol.valueChanges, {
+    initialValue: this.secondFormGroup.controls.protocol.value,
+  });
+
+  kaasOverlaps = computed(() => {
+    const protocol = this.protocolValue();
+    const entered = [
+      protocol !== ProtocolEnum.IPv6 ? this.ipv4Value() : null,
+      protocol !== ProtocolEnum.IPv4 ? this.ipv6Value() : null,
+    ].filter((c): c is string => !!c);
+    return KAAS_RESERVED_CIDRS.filter(r => entered.some(c => CidrOverlaps(c, r.cidr)));
+  });
 
   vpcResource = rxResource({
     params: () => ({ az: this.selectedAz() }),

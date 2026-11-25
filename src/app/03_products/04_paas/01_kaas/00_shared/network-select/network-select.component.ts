@@ -13,6 +13,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { ProductSubnet } from '@products/00_shared/models/product.model';
+import { OverlappedRanges } from '@products/00_shared/utils/ip';
+import { KAAS_RESERVED_CIDRS } from '@shared/models/consts';
 
 @Component({
   selector: 'spx-network-select',
@@ -80,6 +82,20 @@ export class NetworkSelectComponent {
   drop(event: CdkDragDrop<never[]>) {
     moveItemInArray(this.networkList, event.previousIndex, event.currentIndex);
     this.updateOutput();
+  }
+
+  kaasOverlaps(subnet: ProductSubnet) {
+    return OverlappedRanges(subnet.subnet?.spec?.cidrBlock ?? '', KAAS_RESERVED_CIDRS);
+  }
+
+  kaasOverlappingSiblings(subnet: ProductSubnet) {
+    const vpc = subnet.subnet?.spec?.vpc;
+    if (!vpc) {
+      return [];
+    }
+    return this.subnets().filter(
+      s => s.eid !== subnet.eid && s.subnet?.spec?.vpc === vpc && this.kaasOverlaps(s).length > 0
+    );
   }
 
   removeItemByIndex(index: number) {

@@ -35,3 +35,10 @@ export const PROJECT_ID_LABEL_KEY = 'superphenix.net/projectID';
 export const ORGANIZATION_ID_LABEL_KEY = 'superphenix.net/organizationID';
 export const RESOURCE_LOCAL_ID_LABEL_KEY = 'superphenix.net/resourceLocalID';
 export const RESOURCE_EFFECTIVE_ID_LABEL_KEY = 'superphenix.net/resourceEffectiveID';
+
+export const KAAS_RESERVED_CIDRS = [
+  { name: 'pod', cidr: '10.0.0.0/12' },
+  { name: 'pod', cidr: 'fd00:100::/96' },
+  { name: 'service', cidr: '10.96.0.0/16' },
+  { name: 'service', cidr: 'fd00:100:ffff::/112' },
+];
