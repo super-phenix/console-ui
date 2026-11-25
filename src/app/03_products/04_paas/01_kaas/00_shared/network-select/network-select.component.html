@@ -43,6 +43,21 @@
             </span>
           </div>
         }
+        @let siblings = kaasOverlappingSiblings(network);
+        @if (siblings.length > 0) {
+          <div class="px-3 pb-3">
+            <span class="color-warn">
+              <i>
+                <strong>Warning:</strong> other subnets of this VPC overlap the default KaaS ranges:
+                @for (s of siblings; track s.eid; let last = $last) {
+                  {{ s.productName }} ({{ s.subnet?.spec?.cidrBlock }}){{ last ? '.' : ',' }}
+                }
+                <br />
+                KaaS pods may not be able to reach them.
+              </i>
+            </span>
+          </div>
+        }
       </div>
     }
   </div>

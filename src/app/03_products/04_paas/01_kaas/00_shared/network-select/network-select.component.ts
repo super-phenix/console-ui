@@ -88,6 +88,16 @@ export class NetworkSelectComponent {
     return OverlappedRanges(subnet.subnet?.spec?.cidrBlock ?? '', KAAS_RESERVED_CIDRS);
   }
 
+  kaasOverlappingSiblings(subnet: ProductSubnet) {
+    const vpc = subnet.subnet?.spec?.vpc;
+    if (!vpc) {
+      return [];
+    }
+    return this.subnets().filter(
+      s => s.eid !== subnet.eid && s.subnet?.spec?.vpc === vpc && this.kaasOverlaps(s).length > 0
+    );
+  }
+
   removeItemByIndex(index: number) {
     transferArrayItem(this.networkList, [], index, 0);
     this.updateOutput();
