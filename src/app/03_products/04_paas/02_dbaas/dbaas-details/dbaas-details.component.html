@@ -19,17 +19,14 @@
   @if (db(); as db) {
     <header class="dbaas-header">
       <div class="dbaas-header__identity">
-        <div class="dbaas-header__title-row">
-          <h1 class="dbaas-header__name">{{ db.productName || db.eid }}</h1>
-          <span
-            class="dbaas-status"
-            [class]="'dbaas-status--' + statusLevel()"
-            [matTooltip]="chip().title"
-            matTooltipPosition="below">
-            <span class="dbaas-status__dot" aria-hidden="true"></span>
-            {{ chip().label }}
-          </span>
-        </div>
+        <span
+          class="dbaas-status"
+          [class]="'dbaas-status--' + statusLevel()"
+          [matTooltip]="chip().title"
+          matTooltipPosition="below">
+          <span class="dbaas-status__dot" aria-hidden="true"></span>
+          {{ chip().label }}
+        </span>
 
         <ul class="dbaas-header__meta" aria-label="Database summary">
           @if (zone()?.logoUrl) {
