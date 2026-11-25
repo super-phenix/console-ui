@@ -72,7 +72,7 @@ export class BaasListComponent {
   canProjectBaaSWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectBaaSWrite));
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'scope', 'type', 'lastBackup', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'scope', 'type', 'lastBackup', 'actions'];
 
   baasProduct;
 

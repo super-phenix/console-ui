@@ -1,5 +1,5 @@
 <div class="dashboard main-content">
-  <div class="dashboard__grid" [class.dashboard__grid--mobile]="screenSvc.isMobile()">
+  <div class="dashboard__grid">
     <div id="dashboard__title">
       <spx-content-header titleOnly [title]="'Dashboard'"></spx-content-header>
     </div>
@@ -185,9 +185,6 @@
         </div>
       </div>
     </div>
-    @if (!screenSvc.isMobile()) {
-      <spx-changelog id="dashboard__side"></spx-changelog>
-    }
   </div>
 </div>
 

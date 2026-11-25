@@ -12,7 +12,7 @@ The source code under `src/app/` is organized into numbered directories:
 | ------------------ | ---------------------------------------------------------------------------------------------------- |
 | `00_public/`       | Publicly accessible pages (redirects, OAuth callbacks, inactive account, WIP).                       |
 | `01_common/`       | Core layout and shell components: header, sidenav, context selector, and the main wrapper.           |
-| `02_dashboard/`    | Application dashboard and changelog views.                                                           |
+| `02_dashboard/`    | Application dashboard.                                                                               |
 | `03_products/`     | Feature modules organized by product category (see below).                                           |
 | `04_user/`         | User profile and details management.                                                                 |
 | `05_organization/` | Organization management: settings, projects, users, IAM, and details.                                |

@@ -1,13 +1,14 @@
 import { Location } from '@angular/common';
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { StateService } from '@shared/services/state.service';
+import { buildBreadcrumbs } from './breadcrumb';
 
 @Component({
   selector: 'spx-content-header',
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule, MatIconModule, RouterLink],
   templateUrl: './content-header.component.html',
   styleUrl: './content-header.component.scss',
 })
@@ -20,6 +21,16 @@ export class ContentHeaderComponent {
   subtitle = input<string>();
   navBack = input();
   titleOnly = input();
+  /** Name of the resource being viewed or edited. The breadcrumb falls back to its id. */
+  resourceName = input<string | null | undefined>();
+  resourceId = input<string | null | undefined>();
+
+  protected crumbs = computed(() =>
+    buildBreadcrumbs(this.router.url, this.title(), {
+      name: this.resourceName(),
+      id: this.resourceId(),
+    }),
+  );
 
   navigateBack() {
     if (this.router.url.includes('update')) {

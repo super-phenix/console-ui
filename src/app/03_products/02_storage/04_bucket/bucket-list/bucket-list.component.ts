@@ -73,7 +73,7 @@ export class BucketListComponent {
   canProjectBucketWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectBucketWrite));
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'storageClass', 'phase', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'storageClass', 'phase', 'actions'];
 
   // Extends the wrapper's default az/name/id sort with the bucket-specific columns.
   readonly bucketSortFunc = (sort: Sort, a: ProductBucketItem, b: ProductBucketItem): number => {

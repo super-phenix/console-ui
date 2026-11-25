@@ -68,7 +68,7 @@ export class SshListComponent {
   canProjectSSHWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectSSHWrite));
   canProjectInstanceRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectInstanceRead));
 
-  displayedColumns: string[] = ['az', 'name', 'isUsed', 'date', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'name', 'date', 'actions'];
 
   sshProduct;
 

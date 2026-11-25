@@ -13,7 +13,9 @@
       [trackBy]="trackBy">
       <ng-container matColumnDef="id">
         <mat-header-cell *matHeaderCellDef mat-sort-header> ID </mat-header-cell>
-        <mat-cell *matCellDef="let el"> {{ el.metadata.name }} </mat-cell>
+        <mat-cell *matCellDef="let el">
+          <spx-span-copy boxed showCopyOnHover [value]="el.metadata.name" />
+        </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="date">

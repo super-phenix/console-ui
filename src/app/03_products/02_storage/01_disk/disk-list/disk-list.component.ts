@@ -74,7 +74,7 @@ export class DiskListComponent {
   );
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'size', 'type', 'mountStatus', 'progress', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'size', 'type', 'storageClass', 'mountStatus', 'progress', 'actions'];
 
   diskProduct;
 

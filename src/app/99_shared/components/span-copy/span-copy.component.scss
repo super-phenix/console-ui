@@ -1,5 +1,98 @@
+:host {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .span-copy {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  max-width: 100%;
+  min-width: 0;
+
+  &__value {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  &__text {
+    min-width: 0;
+  }
+
+  // Tighter than a label chip: the outline sits close to the text, and the copy button is inside.
+  &__value--box {
+    --span-copy-inset: 6px;
+    gap: var(--span-copy-inset);
+    height: 24px;
+    padding-inline: var(--span-copy-inset);
+    border: 1px solid var(--stroke-default);
+    border-radius: var(--mat-sys-corner-small);
+    background-color: var(--mat-sys-surface-container);
+
+    // A hidden hover button must not eat the right inset.
+    &:has(> .span-copy__button--hover) {
+      gap: 0;
+    }
+
+    .span-copy__text {
+      flex: 1 1 auto;
+      font: var(--mat-sys-body-small);
+      line-height: 16px;
+      overflow: hidden;
+      text-overflow: clip;
+      white-space: nowrap;
+    }
+
+    .span-copy__button {
+      flex: none;
+      --mdc-icon-button-state-layer-size: 22px;
+      --mdc-icon-button-icon-size: 14px;
+      --mat-icon-button-state-layer-size: 22px;
+      --mat-icon-button-icon-size: 14px;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      color: inherit;
+
+      .mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+}
+
+.span-copy__text--fade {
+  --span-copy-fade: 1rem;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--span-copy-fade)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--span-copy-fade)), transparent);
+}
+
+:host(:hover) .span-copy__value--box:has(> .span-copy__button--hover),
+:host(:focus-within) .span-copy__value--box:has(> .span-copy__button--hover),
+:host-context(.mat-mdc-row:hover) .span-copy__value--box:has(> .span-copy__button--hover) {
+  gap: var(--span-copy-inset);
+}
+
+.span-copy__value--box .span-copy__button--hover {
+  width: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+:host(:hover) .span-copy__value--box .span-copy__button--hover,
+:host(:focus-within) .span-copy__value--box .span-copy__button--hover,
+:host-context(.mat-mdc-row:hover) .span-copy__value--box .span-copy__button--hover {
+  width: 22px;
+  opacity: 1;
+  pointer-events: auto;
 }

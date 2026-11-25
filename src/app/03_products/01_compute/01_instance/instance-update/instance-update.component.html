@@ -1,5 +1,11 @@
 <div class="product-create main-content">
-  <spx-content-header navBack titleOnly title="Edit an Instance"></spx-content-header>
+  <spx-content-header
+    navBack
+    titleOnly
+    title="Edit an Instance"
+    [resourceName]="instance()?.productName"
+    [resourceId]="instance()?.eid">
+  </spx-content-header>
 
   <div class="product-create__scrollable">
     <mat-stepper class="product-create__form-stepper" linear labelPosition="bottom" #stepper>

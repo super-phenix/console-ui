@@ -1,6 +1,11 @@
 <div class="product-details main-content">
   <div class="d-flex justify-content-between">
-    <spx-content-header navBack title="Instance details"></spx-content-header>
+    <spx-content-header
+      navBack
+      title="Instance details"
+      [resourceName]="instanceProduct.hasValue() ? instanceProduct.value()?.productName : undefined"
+      [resourceId]="instanceProduct.hasValue() ? instanceProduct.value()?.eid : undefined">
+    </spx-content-header>
 
     @if (instanceProduct.hasValue()) {
       @let instance = instanceProduct.value()!;
@@ -194,9 +199,14 @@
                   <ng-container matColumnDef="name">
                     <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
                     <mat-cell *matCellDef="let el">
-                      @if (el.productName) {
-                        <spx-span-copy [value]="el.productName" />
-                      }
+                      <span class="product-name">
+                        @if (el.gitops === 'true') {
+                          <span class="gitops-mark" role="img" title="Managed by GitOps" aria-label="Managed by GitOps"></span>
+                        }
+                        @if (el.productName) {
+                          <spx-span-copy [value]="el.productName" />
+                        }
+                      </span>
                       @if (el.error) {
                         <i>Key deleted</i>
                       }
@@ -207,7 +217,7 @@
                     <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
                     <!-- In case the ssh key have been deleted -->
                     <mat-cell *matCellDef="let el">
-                      <spx-span-copy [value]="el.eid || el.error.context.effectiveId" />
+                      <spx-span-copy boxed showCopyOnHover [value]="el.eid || el.error.context.effectiveId" />
                     </mat-cell>
                   </ng-container>
 

@@ -1,5 +1,5 @@
 <div class="product-create main-content">
-  <spx-content-header navBack titleOnly title="Update KaaS Cluster"></spx-content-header>
+  <spx-content-header navBack titleOnly title="Update KaaS Cluster" [resourceName]="name()"></spx-content-header>
 
   @if (unsupportedKubeVersion()) {
     <spx-banner [level]="BannerLevelEnum.Warn">

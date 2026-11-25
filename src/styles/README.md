@@ -227,16 +227,12 @@ Logos are drawn as `background-image` with `background-size: contain`. Override 
 ```css
 html {
   /* header */
-  --logo-width: 40px;
+  --logo-width: 208px;
   --logo-height: 32px;
 
-  /* auth and inactive-account pages */
-  --logo-auth-width: 181px;
-  --logo-auth-height: 56px;
-
-  /* auth and inactive-account footers */
-  --footer-logo-width: 16px;
-  --footer-logo-height: 16px;
+  /* wordmark above the authentication form */
+  --logo-auth-width: 270px;
+  --logo-auth-height: 42px;
 }
 ```
 

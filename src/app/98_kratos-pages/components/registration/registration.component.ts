@@ -9,10 +9,11 @@ import { BaseFlowComponent } from '@kratos-pages/shared/components/base-flow/bas
 import { DynamicFormComponent } from '@kratos-pages/shared/components/dynamic-form/dynamic-form.component';
 import { LoginRegisterFlowErrorHandler } from '@kratos-pages/shared/utils/error-handlers';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'spx-auth-registration',
-  imports: [AsyncPipe, DynamicFormComponent, RouterModule, MatButtonModule],
+  imports: [AsyncPipe, DynamicFormComponent, RouterModule, MatButtonModule, MatIconModule],
   templateUrl: './registration.component.html',
   styleUrls: ['../../shared/components/base-flow/base-flow.component.scss', './registration.component.scss'],
 })
@@ -21,9 +22,9 @@ export class RegistrationComponent extends BaseFlowComponent<RegistrationFlow> {
   i18n = inject(I18nService);
 
   override getFlow(flow$: Observable<RegistrationFlow>): void {
-    LoginRegisterFlowErrorHandler(flow$).subscribe(res => this.updateFlow(res));
+    LoginRegisterFlowErrorHandler(flow$).subscribe(res => (res ? this.updateFlow(res) : this.setError()));
   }
   override initFlow(flow$: Observable<RegistrationFlow>): void {
-    LoginRegisterFlowErrorHandler(flow$).subscribe(res => this.updateFlow(res));
+    LoginRegisterFlowErrorHandler(flow$).subscribe(res => (res ? this.updateFlow(res) : this.setError()));
   }
 }

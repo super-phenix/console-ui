@@ -99,7 +99,7 @@ export class KaasUpdateComponent {
 
   private fb = inject(FormBuilder);
   protected eid;
-  protected name = '';
+  protected name = signal('');
 
   readonly MaxNodeGroups = 5;
   readonly controlPlaneNetworkPolicies = controlPlaneNetworkPolicies;
@@ -245,7 +245,7 @@ export class KaasUpdateComponent {
   }
 
   loadKaaSCluser(kaas: UpdateKaaSProduct) {
-    this.name = kaas.productName || kaas.eid;
+    this.name.set(kaas.productName || kaas.eid);
 
     if (kaas.chart?.outdated && !kaas.chart.target) {
       this.unsupportedKubeVersion.set(kaas.spec?.kubeVersion || 'current');
@@ -394,7 +394,7 @@ export class KaasUpdateComponent {
       const ref = this.dialog.open(ConfirmDialog, {
         data: {
           title: `Update cluster`,
-          content: `Are you sure you want to update "${this.name}" ?`,
+          content: `Are you sure you want to update "${this.name()}" ?`,
         },
       });
 

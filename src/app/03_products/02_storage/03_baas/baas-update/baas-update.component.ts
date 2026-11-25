@@ -45,7 +45,7 @@ export class BaasUpdateComponent {
   private fb = inject(FormBuilder);
 
   protected eid;
-  protected name = '';
+  protected name = signal('');
 
   selectedAz = signal<string>('');
   isScheduled = signal(false);
@@ -79,7 +79,7 @@ export class BaasUpdateComponent {
 
   loadBaaSCluser(baas: UpdateBaaSProduct) {
     if (baas && baas.spec) {
-      this.name = baas.productName || baas.eid;
+      this.name.set(baas.productName || baas.eid);
       this.firstFormGroup.reset({
         az: this.selectedAz(),
         productName: baas.productName,

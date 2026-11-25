@@ -1,22 +1,28 @@
 @use 'sass:color';
 
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100%;
+}
+
 .flow {
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 
-  padding-block: 60px;
-  padding-inline: 125px;
+  padding-block: 2rem;
+  padding-inline: 2.5rem;
 
-  width: 350px;
-
-  background-color: var(--mat-sys-surface);
-
-  border-radius: 1rem;
+  width: 100%;
+  max-width: 350px;
 
   &__app-logo {
     align-self: center;
     margin-bottom: 1.5rem;
-    width: var(--logo-auth-width);
+    width: min(100%, var(--logo-auth-width));
     height: var(--logo-auth-height);
     background-image: var(--logo-image);
     background-size: contain;
@@ -29,6 +35,34 @@
     text-align: center;
     font: var(--mat-sys-headline-large);
     margin-block: 1.5rem;
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+
+    mat-icon {
+      color: var(--mat-sys-error);
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 2.5rem;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+  }
+
+  &__error-title {
+    font: var(--mat-sys-title-large);
+  }
+
+  &__error-message {
+    color: var(--mat-sys-on-surface-variant);
   }
 
   &__links {
@@ -44,8 +78,12 @@
       justify-content: center;
       width: 100%;
 
-      a {
+      a,
+      button {
         width: 100%;
+      }
+
+      a {
         text-decoration: none;
         color: var(--text-title);
 
@@ -59,7 +97,6 @@
 
 @media (max-width: 435px) {
   .flow {
-    width: calc(85vw - 80px);
-    min-width: 200px;
+    padding-inline: 1.5rem;
   }
 }

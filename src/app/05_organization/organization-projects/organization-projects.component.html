@@ -25,10 +25,7 @@
     <ng-container matColumnDef="id">
       <mat-header-cell *matHeaderCellDef> ID </mat-header-cell>
       <mat-cell *matCellDef="let element">
-        {{ element.id }}
-        <button mat-icon-button (click)="copy(element.id)">
-          <mat-icon>content_copy</mat-icon>
-        </button>
+        <spx-span-copy boxed [value]="element.id"></spx-span-copy>
       </mat-cell>
     </ng-container>
 

@@ -70,12 +70,23 @@
         <mat-table [dataSource]="dataSource()">
           <ng-container matColumnDef="id">
             <mat-header-cell *matHeaderCellDef> Effective ID </mat-header-cell>
-            <mat-cell *matCellDef="let el"> {{ el.product?.eid }} </mat-cell>
+            <mat-cell *matCellDef="let el">
+              @if (el.product?.eid) {
+                <spx-span-copy boxed showCopyOnHover [value]="el.product!.eid" />
+              }
+            </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="name">
             <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
-            <mat-cell *matCellDef="let el"> {{ el.name }} </mat-cell>
+            <mat-cell *matCellDef="let el">
+              <span class="product-name">
+                @if (el.product?.gitops === 'true') {
+                  <span class="gitops-mark" role="img" title="Managed by GitOps" aria-label="Managed by GitOps"></span>
+                }
+                <span class="text-truncate">{{ el.name }}</span>
+              </span>
+            </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="type">

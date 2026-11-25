@@ -68,7 +68,7 @@ export class LoadBalancerListComponent {
 
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'actions'];
 
   lbProduct;
 

@@ -52,6 +52,16 @@
         </mat-cell>
       </ng-container>
 
+      <ng-container matColumnDef="storageClass">
+        <mat-header-cell *matHeaderCellDef> Storage class </mat-header-cell>
+        <mat-cell *matCellDef="let el">
+          @let storageClass = el.data?.pvc?.spec?.storageClassName;
+          @if (storageClass && storageClass !== 'undefined-storage-class') {
+            {{ storageClass }}
+          }
+        </mat-cell>
+      </ng-container>
+
       <ng-container matColumnDef="mountStatus">
         <mat-header-cell *matHeaderCellDef> Mounted </mat-header-cell>
         <mat-cell *matCellDef="let el">
@@ -62,7 +72,7 @@
       </ng-container>
 
       <ng-container matColumnDef="progress">
-        <mat-header-cell *matHeaderCellDef> Progress </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
         <mat-cell *matCellDef="let el">
           <mat-chip-set aria-label="instance status">
             @if (!el.data.disk && !el.data.pvc) {

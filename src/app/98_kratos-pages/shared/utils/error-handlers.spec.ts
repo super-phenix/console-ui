@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorEnum, ErrorStatusEnum } from '@kratos-pages/shared/models/error';
 import { API_TOKEN_URL } from '@env/environment';
-import { LoginFlow, LogoutFlow, SettingsFlow } from '@ory/client';
+import { LoginFlow, LogoutFlow, RecoveryFlow, SettingsFlow } from '@ory/client';
 import { Observable, throwError } from 'rxjs';
 import {
   LoginRegisterFlowErrorHandler,
   LogoutFlowErrorHandler,
+  RecoveryFlowErrorHandler,
   SettingsFlowErrorHandler,
   redirect,
 } from './error-handlers';
@@ -66,6 +67,18 @@ describe('error-handlers (URL constants)', () => {
       expect(redirectSpy).toHaveBeenCalledWith(`${window.location.origin}/auth/login`);
     });
 
+    it('emits null when the auth server cannot be reached', () => {
+      const error$ = throwError(
+        () => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', error: null })
+      ) as Observable<LoginFlow>;
+      const next = jasmine.createSpy('next');
+
+      LoginRegisterFlowErrorHandler(error$).subscribe(next);
+
+      expect(next).toHaveBeenCalledWith(null);
+      expect(redirectSpy).not.toHaveBeenCalled();
+    });
+
     it('should redirect to window.location.origin on 404 NotFound', () => {
       const error$ = throwError(() =>
         makeHttpError(404, '', ErrorStatusEnum.NotFound)
@@ -88,6 +101,20 @@ describe('error-handlers (URL constants)', () => {
       expect(redirectSpy).toHaveBeenCalledWith(
         jasmine.stringContaining('/auth/login')
       );
+    });
+  });
+
+  describe('RecoveryFlowErrorHandler', () => {
+    it('emits null when the auth server cannot be reached', () => {
+      const error$ = throwError(
+        () => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', error: null })
+      ) as Observable<RecoveryFlow>;
+      const next = jasmine.createSpy('next');
+
+      RecoveryFlowErrorHandler(error$).subscribe(next);
+
+      expect(next).toHaveBeenCalledWith(null);
+      expect(redirectSpy).not.toHaveBeenCalled();
     });
   });
 

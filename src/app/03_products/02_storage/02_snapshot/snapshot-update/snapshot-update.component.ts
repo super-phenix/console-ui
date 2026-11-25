@@ -51,6 +51,7 @@ export class SnapshotUpdateComponent {
   private fb = inject(FormBuilder);
 
   selectedAz = signal<string>('');
+  protected loaded = signal(false);
   protected eid;
 
   labelSelector = signal<string[]>([]);
@@ -124,6 +125,7 @@ export class SnapshotUpdateComponent {
             });
           }
           this.initLabels.set(labels);
+          this.loaded.set(true);
         } else {
           this.location.back();
         }
