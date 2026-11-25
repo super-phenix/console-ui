@@ -28,11 +28,7 @@ export class RedirectComponent {
       .getAccessToken()
       .then(() => {
         if (this.auth.userLoggedIn()) {
-          if (productId === '') {
-            this.router.navigate(['dashboard']);
-          } else {
-            this.loadProduct(orgaId, projectId, codeAz, productType, productId);
-          }
+          this.open(orgaId, projectId, codeAz, productType, productId);
         } else {
           this.auth.redirectToFlow('login');
         }
@@ -42,15 +38,19 @@ export class RedirectComponent {
       });
   }
 
-  async loadProduct(orgaId: string, projectId: string, codeAz: string, productType: string, productId: string) {
-    const productPath = getProduct(productType);
-    if (productPath !== '') {
-      this.stateSvc.setOrganization(orgaId);
-      this.stateSvc.setProject(projectId);
-
-      this.router.navigate([`products/${productPath}/details/${codeAz}/${productId}`]);
-    } else {
-      this.router.navigate(['dashboard']);
+  private async open(orgaId: string, projectId: string, codeAz: string, productType: string, productId: string) {
+    let target = 'dashboard';
+    if (await this.stateSvc.setOrganization(orgaId)) {
+      if (projectId === '') {
+        target = 'organization/settings';
+      } else {
+        this.stateSvc.setProject(projectId);
+        const productPath = productId && getProduct(productType);
+        if (productPath) {
+          target = `products/${productPath}/details/${codeAz}/${productId}`;
+        }
+      }
     }
+    this.router.navigate([target]);
   }
 }

@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialogModule } from '@angular/material/dialog';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { InstanceAdvancedCreateComponent } from './instance-advanced-create.component';
 import { AdvancedOptionsInput } from '@products/00_shared/models/compute/instance/advanced-options.model';
@@ -14,7 +13,6 @@ describe('InstanceAdvancedCreateComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [InstanceAdvancedCreateComponent, MatDialogModule],
-      providers: [provideNoopAnimations()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(InstanceAdvancedCreateComponent);

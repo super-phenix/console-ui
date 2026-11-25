@@ -189,9 +189,8 @@ describe('InstanceDetailsNetworkComponent', () => {
     const cards = fixture.nativeElement.querySelectorAll('.interface-card');
     const firstCard = cards[0];
 
-    const subnetLink = firstCard.querySelector('a.interface-card__link-button');
-    expect(subnetLink).toBeTruthy();
-    expect(subnetLink?.getAttribute('aria-label')).toBe('View subnet details');
+    const subnetLink = firstCard.querySelector('a[aria-label="View subnet details"]');
+    expect(subnetLink?.getAttribute('href')).toBe(`/products/network/subnet/details/${az}/subnet-eid-0`);
 
     expect(firstCard.textContent).toContain('default-subnet');
     expect(firstCard.textContent).toContain('10.0.0.0/24');
@@ -199,15 +198,9 @@ describe('InstanceDetailsNetworkComponent', () => {
 
   it('should render Multus network name when interface is not linked to a subnet', async () => {
     const unlinkedMock = createMockInstance({
-      networks: [
-        { name: 'interface-custom', multusNetworkName: 'custom-bridge-net' },
-      ],
-      devicesInterfaces: [
-        { name: 'interface-custom', model: 'virtio', state: 'up' },
-      ],
-      vmiInterfaces: [
-        { name: 'interface-custom', ipAddresses: ['192.168.1.50'], linkState: 'up' },
-      ],
+      networks: [{ name: 'interface-custom', multusNetworkName: 'custom-bridge-net' }],
+      devicesInterfaces: [{ name: 'interface-custom', model: 'virtio', state: 'up' }],
+      vmiInterfaces: [{ name: 'interface-custom', ipAddresses: ['192.168.1.50'], linkState: 'up' }],
     });
 
     fixture.componentRef.setInput('instance', unlinkedMock);

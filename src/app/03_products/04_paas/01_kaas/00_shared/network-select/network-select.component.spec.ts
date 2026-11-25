@@ -8,12 +8,13 @@ describe('NetworkSelectComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NetworkSelectComponent]
-    })
-    .compileComponents();
+      imports: [NetworkSelectComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(NetworkSelectComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('az', 'az1');
+    fixture.componentRef.setInput('subnets', []);
     await fixture.whenStable();
   });
 

@@ -15,7 +15,7 @@ describe('SidenavComponent', () => {
   });
 
   afterEach(() => {
-    (environment as any).helpLinks = originalHelpLinks;
+    environment.helpLinks = originalHelpLinks;
   });
 
   async function createComponent(): Promise<void> {
@@ -35,7 +35,7 @@ describe('SidenavComponent', () => {
   });
 
   it('should hide the help button when helpLinks is empty', async () => {
-    (environment as any).helpLinks = [];
+    environment.helpLinks = [];
     await createComponent();
 
     const footer = fixture.debugElement.query(By.css('.sidenav__footer'));
@@ -43,7 +43,7 @@ describe('SidenavComponent', () => {
   });
 
   it('should hide the help button when helpLinks is undefined', async () => {
-    (environment as any).helpLinks = undefined;
+    environment.helpLinks = undefined;
     await createComponent();
 
     const footer = fixture.debugElement.query(By.css('.sidenav__footer'));
@@ -51,7 +51,7 @@ describe('SidenavComponent', () => {
   });
 
   it('should show the help button when helpLinks has entries', async () => {
-    (environment as any).helpLinks = [
+    environment.helpLinks = [
       { icon: 'help', text: 'Help', url: 'https://example.com' },
     ];
     await createComponent();
@@ -61,7 +61,7 @@ describe('SidenavComponent', () => {
   });
 
   it('should render one menu item per help link', async () => {
-    (environment as any).helpLinks = [
+    environment.helpLinks = [
       { icon: 'live_help', text: 'Support', url: 'https://support.test' },
       { icon: 'docs', text: 'Docs', url: 'https://docs.test' },
     ];
@@ -76,7 +76,7 @@ describe('SidenavComponent', () => {
   });
 
   it('should set the correct href and target on menu items', async () => {
-    (environment as any).helpLinks = [
+    environment.helpLinks = [
       { icon: 'live_help', text: 'Support', url: 'https://support.test' },
     ];
     await createComponent();
@@ -91,7 +91,7 @@ describe('SidenavComponent', () => {
   });
 
   it('should display the correct icon and text for each link', async () => {
-    (environment as any).helpLinks = [
+    environment.helpLinks = [
       { icon: 'live_help', text: 'Support', url: 'https://support.test' },
     ];
     await createComponent();

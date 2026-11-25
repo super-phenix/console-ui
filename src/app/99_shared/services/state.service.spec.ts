@@ -27,7 +27,7 @@ describe('StateService', () => {
       needRefresh: new Subject<void>(),
     });
 
-    permSvcSpy = jasmine.createSpyObj('PermissionService', ['loadPermissions']);
+    permSvcSpy = jasmine.createSpyObj('PermissionService', ['loadPermissions', 'invalidate']);
 
     TestBed.configureTestingModule({
       providers: [
@@ -66,9 +66,7 @@ describe('StateService', () => {
     it('should update azList when organization changes', async () => {
       const newOrgId = 'org-456';
       const newMockOrg = { id: newOrgId, projects: [] } as unknown as Organization;
-      const newAzList: AZ[] = [
-        { code: 'az3', name: 'Zone 3', logoUrl: 'https://cdn.example.com/az3.svg' },
-      ];
+      const newAzList: AZ[] = [{ code: 'az3', name: 'Zone 3', logoUrl: 'https://cdn.example.com/az3.svg' }];
 
       orgSvcSpy.getOrg.and.returnValue(of(mockOrg));
       await service.setOrganization(orgId);
@@ -106,6 +104,57 @@ describe('StateService', () => {
       orgSvcSpy.getOrg.and.returnValue(throwError(() => new Error('403')));
       expect(await service.setOrganization('org-forbidden')).toBeFalse();
       expect(service.organization()?.id).toBe(orgId);
+    });
+
+    describe('concurrent switches', () => {
+      let slow: Subject<Organization>;
+      let first: Promise<boolean>;
+
+      beforeEach(() => {
+        slow = new Subject();
+        orgSvcSpy.getOrg.and.callFake(id =>
+          id === orgId ? slow : of({ id, projects: [] } as unknown as Organization)
+        );
+        first = service.setOrganization(orgId);
+      });
+
+      it('should ignore an older switch that resolves after a newer one', async () => {
+        expect(await service.setOrganization('org-456')).toBeTrue();
+
+        slow.next(mockOrg);
+        expect(await first).toBeFalse();
+        expect(service.organization()?.id).toBe('org-456');
+      });
+
+      it('should still apply an older switch when the newer one failed', async () => {
+        orgSvcSpy.getOrg.and.returnValue(throwError(() => new Error('403')));
+        expect(await service.setOrganization('org-456')).toBeFalse();
+
+        slow.next(mockOrg);
+        expect(await first).toBeTrue();
+        expect(service.organization()?.id).toBe(orgId);
+      });
+
+      it('should ignore the AZ list of the previous organization', async () => {
+        const slowAzs = new Subject<AZ[]>();
+        azSvcSpy.listAZs.and.callFake(id => (id === orgId ? slowAzs : of([mockAzList[1]])));
+        slow.next(mockOrg);
+        await first;
+        await service.setOrganization('org-456');
+
+        slowAzs.next(mockAzList);
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(service.azList()).toEqual([mockAzList[1]]);
+      });
+    });
+
+    it('should invalidate the permissions before the debounced reload', async () => {
+      orgSvcSpy.getOrg.and.returnValue(of(mockOrg));
+
+      await service.setOrganization(orgId);
+
+      expect(permSvcSpy.invalidate).toHaveBeenCalled();
+      expect(permSvcSpy.loadPermissions).not.toHaveBeenCalled();
     });
 
     describe('projects', () => {

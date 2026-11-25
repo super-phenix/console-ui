@@ -18,3 +18,8 @@ if (!w.$environment) {
     ],
   };
 }
+
+// There is no API under Karma. A request left unmocked stays pending: its failure would otherwise land in another
+// spec, or redirect the test page to the login.
+globalThis.fetch = () => new Promise(() => undefined);
+XMLHttpRequest.prototype.send = () => undefined;

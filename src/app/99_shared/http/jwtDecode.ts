@@ -43,8 +43,7 @@ export function jwtDecode(token: string, options?: { header?: boolean }) {
   if (typeof token !== 'string') {
     throw new InvalidTokenError('Invalid token specified: must be a string');
   }
-  options = options || (options = {});
-  const pos = options.header === true ? 0 : 1;
+  const pos = options?.header === true ? 0 : 1;
   const part = token.split('.')[pos];
   if (typeof part !== 'string') {
     throw new InvalidTokenError(`Invalid token specified: missing part #${pos + 1}`);

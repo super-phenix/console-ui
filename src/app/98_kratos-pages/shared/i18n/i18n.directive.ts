@@ -11,7 +11,7 @@ import { I18nService } from './i18n.service';
  * @example
  * <!-- in `dynamic-form.component.html`, for example -->
  * <span
- *   appI18n
+ *   spxI18n
  *   [id]="msg.id"
  *   [group]="msg.type"
  *   [context]="msg.context">
@@ -19,7 +19,7 @@ import { I18nService } from './i18n.service';
  * </span>
  */
 @Directive({
-  selector: '[appI18n]',
+  selector: '[spxI18n]',
   standalone: true,
 })
 export class I18nDirective {

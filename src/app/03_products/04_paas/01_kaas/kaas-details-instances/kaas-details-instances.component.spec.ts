@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { KaasDetailsInstancesComponent } from './kaas-details-instances.component';
 
@@ -8,9 +9,9 @@ describe('KaasDetailsInstancesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [KaasDetailsInstancesComponent]
-    })
-    .compileComponents();
+      imports: [KaasDetailsInstancesComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(KaasDetailsInstancesComponent);
     component = fixture.componentInstance;

@@ -8,12 +8,12 @@ describe('ButtonWithDropdownComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ButtonWithDropdownComponent]
-    })
-    .compileComponents();
+      imports: [ButtonWithDropdownComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ButtonWithDropdownComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('btnText', 'Create');
     await fixture.whenStable();
   });
 

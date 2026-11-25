@@ -39,6 +39,14 @@ export const routes: Routes = [
     loadComponent: () => import('./03_products/01_compute/01_instance/vnc/vnc.component').then(m => m.VNCComponent),
   },
   {
+    path: 'redirect/:orgId',
+    loadComponent: () => import('./00_public/redirect/redirect.component').then(m => m.RedirectComponent),
+  },
+  {
+    path: 'redirect/:orgId/:projectId',
+    loadComponent: () => import('./00_public/redirect/redirect.component').then(m => m.RedirectComponent),
+  },
+  {
     path: 'redirect/:orgId/:projectId/:az/:productType/:productId',
     loadComponent: () => import('./00_public/redirect/redirect.component').then(m => m.RedirectComponent),
   },

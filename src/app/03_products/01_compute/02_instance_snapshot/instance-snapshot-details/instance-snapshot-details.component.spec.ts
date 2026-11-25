@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { InstanceSnapshotDetailsComponent } from './instance-snapshot-details.component';
 
@@ -8,9 +9,9 @@ describe('InstanceSnapshotDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InstanceSnapshotDetailsComponent]
-    })
-    .compileComponents();
+      imports: [InstanceSnapshotDetailsComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(InstanceSnapshotDetailsComponent);
     component = fixture.componentInstance;

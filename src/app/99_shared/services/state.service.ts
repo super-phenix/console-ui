@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { OrganizationService } from './organization.service';
 import { compareByName, Organization, Project } from '../models/data/organization';
-import { debounceTime, firstValueFrom, Subject } from 'rxjs';
+import { debounceTime, firstValueFrom, Subject, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { getUserOrganization, User } from '@shared/models/data/user';
 import { PermissionService } from './permission.service';
@@ -21,6 +21,9 @@ export class StateService {
 
   private destroyRef = inject(DestroyRef);
 
+  private lastRequest = 0;
+  private appliedRequest = 0;
+
   organization: WritableSignal<Organization | undefined> = signal(undefined);
   project: WritableSignal<Project | undefined> = signal(undefined);
   azList: WritableSignal<AZ[]> = signal([]);
@@ -34,7 +37,11 @@ export class StateService {
       this.reloadOrganization();
     });
 
-    this.stateChanged.pipe(takeUntilDestroyed(this.destroyRef), debounceTime(20)).subscribe(() => {
+    this.stateChanged.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      tap(() => this.permissionSvc.invalidate()),
+      debounceTime(20),
+    ).subscribe(() => {
       if (this.organization()) {
         //  Update cached state
         this.updateStateCache();
@@ -61,26 +68,36 @@ export class StateService {
     }
   }
 
-  /** Switches to the organization. Resolves to false, keeping the current one, when it cannot be loaded. */
+  /**
+   * Switches to the organization. Resolves to false, keeping the current one, when it cannot be loaded
+   * or when a more recent switch was applied meanwhile (e.g. a redirect racing with the one of `onLogin`).
+   */
   async setOrganization(orgId: string, forceRefresh = false): Promise<boolean> {
     if (orgId === '') {
       return false;
     }
 
+    const request = ++this.lastRequest;
     if (!forceRefresh && this.organization()?.id === orgId) {
+      this.appliedRequest = request;
       return true;
     }
 
     // The errors interceptor already tells the user why it failed.
     const fetched = await firstValueFrom(this.orgSvc.getOrg(orgId)).catch(() => undefined);
-    if (!fetched) {
+    if (!fetched || request < this.appliedRequest) {
       return false;
     }
+    this.appliedRequest = request;
     const org = { ...fetched, projects: [...(fetched.projects ?? [])].sort(compareByName) };
     this.organization.set(org);
 
     //  Load AZ list for the selected organization
-    firstValueFrom(this.azSvc.listAZs(orgId)).then(azList => this.azList.set(azList));
+    firstValueFrom(this.azSvc.listAZs(orgId)).then(azList => {
+      if (this.organization()?.id === orgId) {
+        this.azList.set(azList);
+      }
+    });
 
     //  Update project
     const cacheProject = localStorage.getItem(ProjectLocalStorageKey);

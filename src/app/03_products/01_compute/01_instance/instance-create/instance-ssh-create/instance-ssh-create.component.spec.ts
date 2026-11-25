@@ -13,6 +13,7 @@ describe('InstanceSshCreateComponent', () => {
 
     fixture = TestBed.createComponent(InstanceSshCreateComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('az', 'az1');
     fixture.detectChanges();
   });
 

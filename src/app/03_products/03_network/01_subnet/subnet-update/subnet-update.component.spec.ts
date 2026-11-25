@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { SubnetUpdateComponent } from './subnet-update.component';
 
@@ -8,9 +9,9 @@ describe('SubnetUpdateComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SubnetUpdateComponent]
-    })
-    .compileComponents();
+      imports: [SubnetUpdateComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SubnetUpdateComponent);
     component = fixture.componentInstance;

@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { AdvancedBlocksComponent } from './advanced-blocks.component';
 import {
@@ -69,7 +68,6 @@ describe('AdvancedBlocksComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AdvancedBlocksComponent],
-      providers: [provideNoopAnimations()],
     }).compileComponents();
   });
 

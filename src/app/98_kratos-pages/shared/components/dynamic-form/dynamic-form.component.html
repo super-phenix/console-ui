@@ -1,7 +1,7 @@
 <div class="dynamic-form">
   <div class="dynamic-form__message">
     @for (msg of flow.ui.messages; track $index) {
-      <span [classList]="msg.type" appI18n [id]="msg.id" [group]="msg.type" [context]="msg.context">
+      <span [classList]="msg.type" spxI18n [id]="msg.id" [group]="msg.type" [context]="msg.context">
         {{ msg.text }}
       </span>
     }
