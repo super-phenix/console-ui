@@ -16,7 +16,6 @@ import { TabsBase } from '@products/00_shared/components/tabs-base/tab-base.comp
 import {
   DBaaSEndpoint,
   DBaaSNetwork,
-  postgresMajor,
   postgresVersionFromImage,
 } from '@products/00_shared/models/paas/dbaas/dbaas.model';
 import { DBaaSService } from '@products/00_shared/services/dbaas.service';
@@ -85,10 +84,6 @@ export class DBaaSDetailsComponent extends TabsBase {
   statusLevel = computed(() => this.chip().cls.replace('status-chip--', ''));
   isReady = computed(() => isDBaaSHealthy(this.db()?.cluster));
   version = computed(() => postgresVersionFromImage(this.db()?.cluster?.spec?.imageName));
-  major = computed(() => {
-    const version = this.version();
-    return version ? postgresMajor(version) : undefined;
-  });
   // Zone from the organization's AZ list, for its display name and logo
   zone = computed(() => this.stateSvc.azList().find(az => az.code === this.db()?.codeAZ));
   instances = computed(() => {

@@ -18,13 +18,6 @@
 
   @if (db(); as db) {
     <header class="dbaas-header">
-      <div class="dbaas-header__tile" [attr.aria-label]="'PostgreSQL ' + (major() || '')" role="img">
-        <span class="dbaas-header__tile-engine">PG</span>
-        @if (major()) {
-          <span class="dbaas-header__tile-major">{{ major() }}</span>
-        }
-      </div>
-
       <div class="dbaas-header__identity">
         <div class="dbaas-header__title-row">
           <h1 class="dbaas-header__name">{{ db.productName || db.eid }}</h1>
