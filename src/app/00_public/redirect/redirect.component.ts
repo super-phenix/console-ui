@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getProduct } from '@shared/models/data/product.enum';
+import { InaccessibleProjectSnackbar } from '@shared/models/snackbar';
 import { AuthService } from '@shared/services/auth.service';
 import { StateService } from '@shared/services/state.service';
 
@@ -14,6 +16,7 @@ export class RedirectComponent {
   protected router = inject(Router);
   protected auth = inject(AuthService);
   protected stateSvc = inject(StateService);
+  private snackBar = inject(MatSnackBar);
 
   constructor() {
     const route = inject(ActivatedRoute);
@@ -43,12 +46,17 @@ export class RedirectComponent {
     if (await this.stateSvc.setOrganization(orgaId)) {
       if (projectId === '') {
         target = 'organization/settings';
-      } else {
-        this.stateSvc.setProject(projectId);
+      } else if (this.stateSvc.setProject(projectId)) {
         const productPath = productId && getProduct(productType);
         if (productPath) {
           target = `products/${productPath}/details/${codeAz}/${productId}`;
         }
+      } else {
+        this.snackBar.open(
+          InaccessibleProjectSnackbar.message,
+          InaccessibleProjectSnackbar.action,
+          InaccessibleProjectSnackbar.config
+        );
       }
     }
     this.router.navigate([target]);

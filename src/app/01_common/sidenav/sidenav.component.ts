@@ -10,6 +10,7 @@ import { ProductList, ProductUncategorized } from '@shared/models/data/product.e
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { ScreenService } from '@shared/services/screen.service';
+import { StateService } from '@shared/services/state.service';
 
 @Component({
   selector: 'spx-sidenav',
@@ -28,6 +29,7 @@ import { ScreenService } from '@shared/services/screen.service';
 export class SidenavComponent {
   protected screenSvc = inject(ScreenService);
   protected permissionSvc = inject(PermissionService);
+  protected stateSvc = inject(StateService);
 
   canAuditLogRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.OrganizationAuditLogRead));
 

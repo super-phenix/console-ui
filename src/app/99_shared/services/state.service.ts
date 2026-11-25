@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { OrganizationService } from './organization.service';
 import { compareByName, Organization, Project } from '../models/data/organization';
 import { debounceTime, firstValueFrom, Subject, tap } from 'rxjs';
@@ -26,6 +26,8 @@ export class StateService {
 
   organization: WritableSignal<Organization | undefined> = signal(undefined);
   project: WritableSignal<Project | undefined> = signal(undefined);
+  /** The organization is loaded but the user cannot access any of its projects. */
+  noProject = computed(() => !!this.organization() && !this.project());
   azList: WritableSignal<AZ[]> = signal([]);
 
   stateChanged = new Subject<void>();
@@ -101,7 +103,7 @@ export class StateService {
 
     //  Update project
     const cacheProject = localStorage.getItem(ProjectLocalStorageKey);
-    if (org.projects && org.projects.length > 0) {
+    if (org.projects.length > 0) {
       if (cacheProject && org.projects.some(p => p.id === cacheProject)) {
         this.setProject(cacheProject);
       } else {
@@ -110,19 +112,23 @@ export class StateService {
           this.setProject(org.projects[0].id);
         }
       }
+    } else {
+      this.project.set(undefined);
     }
 
     this.stateChanged.next();
     return true;
   }
 
-  setProject(projectId: string) {
-    if (this.organization()) {
-      const org = this.organization()!;
-      const project = org.projects.find(v => v.id === projectId);
-      this.project.set(project);
-      this.stateChanged.next();
+  /** Switches to the project. Returns false, keeping the current one, when the organization has no such accessible project. */
+  setProject(projectId: string): boolean {
+    const project = this.organization()?.projects.find(v => v.id === projectId);
+    if (!project) {
+      return false;
     }
+    this.project.set(project);
+    this.stateChanged.next();
+    return true;
   }
 
   private reloadOrganization() {

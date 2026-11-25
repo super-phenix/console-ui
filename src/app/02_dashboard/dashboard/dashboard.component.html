@@ -9,181 +9,185 @@
         <spx-banner [level]="announcementLevel()" multiline>{{ announcementText() }}</spx-banner>
       }
 
-      <!-- What the project holds, and how much of its capacity that takes. -->
-      <div class="info-card dashboard__inventory" [class.dashboard__inventory--stacked]="!screenSvc.isWeb()">
-        <div class="info-card__title">
-          <span>Resources</span>
-          @if (quota(); as quota) {
-            <span class="dashboard__quota" [class.dashboard__quota--near-limit]="quota.nearLimit">
-              <span class="dashboard__quota-value">
-                {{ quota.used | number }} of {{ quota.limit | number }} resources
-              </span>
-              <mat-progress-bar
-                class="dashboard__quota-bar"
-                mode="determinate"
-                [value]="quota.percent"></mat-progress-bar>
-            </span>
-          }
-        </div>
-        <div class="info-card__content info-card__content--space-evenly">
-          @for (card of cards(); track card.title) {
-            <div class="info-card__item dashboard__segment">
-              <a class="dashboard__segment-main" [routerLink]="card.link">
-                <div class="mat-icon--with-bg--large">
-                  <mat-icon>{{ card.icon }}</mat-icon>
-                </div>
-                <span class="dashboard__segment-name">{{ card.title }}</span>
-                <span class="dashboard__segment-value">{{ card.value ?? '—' }}</span>
-              </a>
-              <a
-                class="dashboard__segment-create"
-                matIconButton
-                [routerLink]="card.createLink"
-                [attr.aria-label]="'Create a ' + card.title + ' resource'">
-                <mat-icon>add</mat-icon>
-              </a>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- What the project uses of each resource, split among its availability zones. -->
-      @if (canReadQuota()) {
-        <div class="info-card dashboard__quotas">
+      @if (stateSvc.noProject()) {
+        <spx-banner [level]="BannerLevelEnum.Warn">You do not have access to any project of this organization.</spx-banner>
+      } @else {
+        <!-- What the project holds, and how much of its capacity that takes. -->
+        <div class="info-card dashboard__inventory" [class.dashboard__inventory--stacked]="!screenSvc.isWeb()">
           <div class="info-card__title">
-            <span>Quota usage</span>
-            @if (canOpenQuotaSettings()) {
-              <button mat-icon-button [matMenuTriggerFor]="quotaMenu" aria-label="Quota actions">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #quotaMenu="matMenu">
-                <a mat-menu-item [routerLink]="quotaSettingsLink" [fragment]="quotaSettingsFragment">
-                  <mat-icon>tune</mat-icon>
-                  <span>Configure the quotas</span>
-                </a>
-              </mat-menu>
+            <span>Resources</span>
+            @if (quota(); as quota) {
+              <span class="dashboard__quota" [class.dashboard__quota--near-limit]="quota.nearLimit">
+                <span class="dashboard__quota-value">
+                  {{ quota.used | number }} of {{ quota.limit | number }} resources
+                </span>
+                <mat-progress-bar
+                  class="dashboard__quota-bar"
+                  mode="determinate"
+                  [value]="quota.percent"></mat-progress-bar>
+              </span>
             }
           </div>
-          <div class="info-card__content dashboard__quotas-content">
-            @let quotaData = quotas.value();
-            @if (quotas.isLoading() && !quotaData) {
-              <span class="dashboard__row-empty">Loading quotas…</span>
-            } @else if (!quotaData) {
-              <span class="dashboard__row-empty">The quotas could not be loaded.</span>
-            } @else if (quotaFills()?.unlimited) {
-              <span class="dashboard__row-empty">No quota applies to this project.</span>
-            } @else if (quotaFills(); as fills) {
-              @if (!fills.complete) {
-                <span class="dashboard__row-empty dashboard__quotas-warning">
-                  <mat-icon>warning_amber</mat-icon> Some availability zones could not be reached: the usage may be
-                  underestimated.
-                </span>
-              }
-
-              @if (fills.azs.length > 0) {
-                <div class="dashboard__quota-azs" role="table" aria-label="Quota usage per availability zone">
-                  <div class="dashboard__quota-row dashboard__quota-row--header" role="row">
-                    <span role="columnheader">Availability Zones</span>
-                    @for (resource of quotaResources; track resource) {
-                      <span role="columnheader">{{ quotaLabels[resource] }}</span>
-                    }
+          <div class="info-card__content info-card__content--space-evenly">
+            @for (card of cards(); track card.title) {
+              <div class="info-card__item dashboard__segment">
+                <a class="dashboard__segment-main" [routerLink]="card.link">
+                  <div class="mat-icon--with-bg--large">
+                    <mat-icon>{{ card.icon }}</mat-icon>
                   </div>
-                  @for (row of fills.azs; track row.code) {
-                    <div class="dashboard__quota-row" role="row">
-                      <span role="rowheader" class="dashboard__quota-name">{{ row.name }}</span>
+                  <span class="dashboard__segment-name">{{ card.title }}</span>
+                  <span class="dashboard__segment-value">{{ card.value ?? '—' }}</span>
+                </a>
+                <a
+                  class="dashboard__segment-create"
+                  matIconButton
+                  [routerLink]="card.createLink"
+                  [attr.aria-label]="'Create a ' + card.title + ' resource'">
+                  <mat-icon>add</mat-icon>
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- What the project uses of each resource, split among its availability zones. -->
+        @if (canReadQuota()) {
+          <div class="info-card dashboard__quotas">
+            <div class="info-card__title">
+              <span>Quota usage</span>
+              @if (canOpenQuotaSettings()) {
+                <button mat-icon-button [matMenuTriggerFor]="quotaMenu" aria-label="Quota actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #quotaMenu="matMenu">
+                  <a mat-menu-item [routerLink]="quotaSettingsLink" [fragment]="quotaSettingsFragment">
+                    <mat-icon>tune</mat-icon>
+                    <span>Configure the quotas</span>
+                  </a>
+                </mat-menu>
+              }
+            </div>
+            <div class="info-card__content dashboard__quotas-content">
+              @let quotaData = quotas.value();
+              @if (quotas.isLoading() && !quotaData) {
+                <span class="dashboard__row-empty">Loading quotas…</span>
+              } @else if (!quotaData) {
+                <span class="dashboard__row-empty">The quotas could not be loaded.</span>
+              } @else if (quotaFills()?.unlimited) {
+                <span class="dashboard__row-empty">No quota applies to this project.</span>
+              } @else if (quotaFills(); as fills) {
+                @if (!fills.complete) {
+                  <span class="dashboard__row-empty dashboard__quotas-warning">
+                    <mat-icon>warning_amber</mat-icon> Some availability zones could not be reached: the usage may be
+                    underestimated.
+                  </span>
+                }
+
+                @if (fills.azs.length > 0) {
+                  <div class="dashboard__quota-azs" role="table" aria-label="Quota usage per availability zone">
+                    <div class="dashboard__quota-row dashboard__quota-row--header" role="row">
+                      <span role="columnheader">Availability Zones</span>
+                      @for (resource of quotaResources; track resource) {
+                        <span role="columnheader">{{ quotaLabels[resource] }}</span>
+                      }
+                    </div>
+                    @for (row of fills.azs; track row.code) {
+                      <div class="dashboard__quota-row" role="row">
+                        <span role="rowheader" class="dashboard__quota-name">{{ row.name }}</span>
+                        @for (resource of quotaResources; track resource) {
+                          <span role="cell" class="dashboard__quota-cell">
+                            <ng-container
+                              *ngTemplateOutlet="fill; context: { $implicit: row.cells[resource] }"></ng-container>
+                          </span>
+                        }
+                      </div>
+                    }
+                    <div class="dashboard__quota-row dashboard__quota-row--total" role="row">
+                      <span role="rowheader" class="dashboard__quota-name">Total of the project</span>
                       @for (resource of quotaResources; track resource) {
                         <span role="cell" class="dashboard__quota-cell">
                           <ng-container
-                            *ngTemplateOutlet="fill; context: { $implicit: row.cells[resource] }"></ng-container>
+                            *ngTemplateOutlet="fill; context: { $implicit: fills.project[resource] }"></ng-container>
                         </span>
                       }
                     </div>
-                  }
-                  <div class="dashboard__quota-row dashboard__quota-row--total" role="row">
-                    <span role="rowheader" class="dashboard__quota-name">Total of the project</span>
-                    @for (resource of quotaResources; track resource) {
-                      <span role="cell" class="dashboard__quota-cell">
-                        <ng-container
-                          *ngTemplateOutlet="fill; context: { $implicit: fills.project[resource] }"></ng-container>
-                      </span>
-                    }
                   </div>
-                </div>
-              } @else {
-                <span class="dashboard__row-empty"
-                  >Nothing is allocated to this project in its availability zones.</span
-                >
+                } @else {
+                  <span class="dashboard__row-empty"
+                    >Nothing is allocated to this project in its availability zones.</span
+                  >
+                }
               }
-            }
+            </div>
+          </div>
+        }
+
+        <div class="dashboard__panels">
+          <div class="info-card dashboard__panels-recent">
+            <div class="info-card__title"><span>Recently created</span></div>
+            <div class="info-card__content dashboard__list">
+              @for (product of recent(); track product.id) {
+                <a
+                  class="dashboard__row dashboard__row--link"
+                  [class.dashboard__row--compact]="screenSvc.isMobile()"
+                  [routerLink]="product.link">
+                  <span class="dashboard__row-name">{{ product.productName }}</span>
+                  <span class="dashboard__row-detail dashboard__row-type">{{ product.typeTitle }}</span>
+                  @if (product.logoUrl) {
+                    <img
+                      class="dashboard__row-logo"
+                      [src]="product.logoUrl"
+                      [alt]="product.codeAz"
+                      [title]="product.codeAz" />
+                  } @else {
+                    <span class="dashboard__row-detail">{{ product.codeAz }}</span>
+                  }
+                  <span class="dashboard__row-detail dashboard__row-date">
+                    {{ product.createdAt | date: 'mediumDate' }}
+                  </span>
+                  <mat-icon class="dashboard__row-chevron">chevron_right</mat-icon>
+                </a>
+              } @empty {
+                <span class="dashboard__row-empty">
+                  @if (summary.isLoading()) {
+                    Loading resources…
+                  } @else {
+                    No resources yet.
+                    <a class="color-primary" [routerLink]="['/products', 'compute', 'instance', 'create']">
+                      Create an instance
+                    </a>
+                  }
+                </span>
+              }
+            </div>
+          </div>
+
+          <div class="info-card dashboard__panels-zones">
+            <div class="info-card__title"><span>Availability zones</span></div>
+            <div class="info-card__content dashboard__list">
+              @for (zone of zones(); track zone.code) {
+                <div class="dashboard__row">
+                  @if (zone.logoUrl) {
+                    <img class="dashboard__row-logo" [src]="zone.logoUrl" [alt]="zone.code" [title]="zone.code" />
+                  }
+                  <span class="dashboard__row-name">{{ zone.name }}</span>
+                  <span class="dashboard__row-detail">
+                    {{ zone.count | number }} {{ zone.count === 1 ? 'resource' : 'resources' }}
+                  </span>
+                </div>
+              } @empty {
+                <span class="dashboard__row-empty">
+                  @if (summary.isLoading()) {
+                    Loading zones…
+                  } @else {
+                    No resources in any zone yet.
+                  }
+                </span>
+              }
+            </div>
           </div>
         </div>
       }
-
-      <div class="dashboard__panels">
-        <div class="info-card dashboard__panels-recent">
-          <div class="info-card__title"><span>Recently created</span></div>
-          <div class="info-card__content dashboard__list">
-            @for (product of recent(); track product.id) {
-              <a
-                class="dashboard__row dashboard__row--link"
-                [class.dashboard__row--compact]="screenSvc.isMobile()"
-                [routerLink]="product.link">
-                <span class="dashboard__row-name">{{ product.productName }}</span>
-                <span class="dashboard__row-detail dashboard__row-type">{{ product.typeTitle }}</span>
-                @if (product.logoUrl) {
-                  <img
-                    class="dashboard__row-logo"
-                    [src]="product.logoUrl"
-                    [alt]="product.codeAz"
-                    [title]="product.codeAz" />
-                } @else {
-                  <span class="dashboard__row-detail">{{ product.codeAz }}</span>
-                }
-                <span class="dashboard__row-detail dashboard__row-date">
-                  {{ product.createdAt | date: 'mediumDate' }}
-                </span>
-                <mat-icon class="dashboard__row-chevron">chevron_right</mat-icon>
-              </a>
-            } @empty {
-              <span class="dashboard__row-empty">
-                @if (summary.isLoading()) {
-                  Loading resources…
-                } @else {
-                  No resources yet.
-                  <a class="color-primary" [routerLink]="['/products', 'compute', 'instance', 'create']">
-                    Create an instance
-                  </a>
-                }
-              </span>
-            }
-          </div>
-        </div>
-
-        <div class="info-card dashboard__panels-zones">
-          <div class="info-card__title"><span>Availability zones</span></div>
-          <div class="info-card__content dashboard__list">
-            @for (zone of zones(); track zone.code) {
-              <div class="dashboard__row">
-                @if (zone.logoUrl) {
-                  <img class="dashboard__row-logo" [src]="zone.logoUrl" [alt]="zone.code" [title]="zone.code" />
-                }
-                <span class="dashboard__row-name">{{ zone.name }}</span>
-                <span class="dashboard__row-detail">
-                  {{ zone.count | number }} {{ zone.count === 1 ? 'resource' : 'resources' }}
-                </span>
-              </div>
-            } @empty {
-              <span class="dashboard__row-empty">
-                @if (summary.isLoading()) {
-                  Loading zones…
-                } @else {
-                  No resources in any zone yet.
-                }
-              </span>
-            }
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>

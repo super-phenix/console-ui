@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@shared/guard/auth.guard';
 import { permissionGuard } from '@shared/guard/permission.guard';
+import { projectGuard } from '@shared/guard/project.guard';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 
 export const routes: Routes = [
@@ -98,6 +99,7 @@ export const routes: Routes = [
       },
       {
         path: 'products',
+        canActivate: [projectGuard],
         children: [
           {
             path: 'compute',

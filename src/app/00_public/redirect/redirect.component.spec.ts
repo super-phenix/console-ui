@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { InaccessibleProjectSnackbar } from '@shared/models/snackbar';
 import { AuthService } from '@shared/services/auth.service';
 import { StateService } from '@shared/services/state.service';
 
@@ -9,6 +11,7 @@ import { routes } from '../../app.routes';
 describe('RedirectComponent', () => {
   let auth: jasmine.SpyObj<AuthService>;
   let stateSvc: jasmine.SpyObj<StateService>;
+  let snackBar: jasmine.SpyObj<MatSnackBar>;
   let navigate: jasmine.Spy;
 
   const open = async (url: string) => {
@@ -22,6 +25,8 @@ describe('RedirectComponent', () => {
     auth.userLoggedIn.and.returnValue(true);
     stateSvc = jasmine.createSpyObj('StateService', ['setOrganization', 'setProject']);
     stateSvc.setOrganization.and.callFake(async orgId => orgId !== '');
+    stateSvc.setProject.and.returnValue(true);
+    snackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     TestBed.configureTestingModule({
       providers: [
@@ -30,6 +35,7 @@ describe('RedirectComponent', () => {
         ),
         { provide: AuthService, useValue: auth },
         { provide: StateService, useValue: stateSvc },
+        { provide: MatSnackBar, useValue: snackBar },
       ],
     });
     navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
@@ -53,6 +59,7 @@ describe('RedirectComponent', () => {
       expect(stateSvc.setOrganization).toHaveBeenCalledOnceWith(url === '/' ? '' : 'org');
       expect(stateSvc.setProject.calls.allArgs()).toEqual(project ? [[project]] : []);
       expect(navigate).toHaveBeenCalledOnceWith([target]);
+      expect(snackBar.open).not.toHaveBeenCalled();
     });
   });
 
@@ -77,6 +84,21 @@ describe('RedirectComponent', () => {
       await open(url);
 
       expect(stateSvc.setProject).not.toHaveBeenCalled();
+      expect(navigate).toHaveBeenCalledOnceWith(['dashboard']);
+    });
+  });
+
+  ['/redirect/org/project', '/redirect/org/project/az1/disk/disk-1'].forEach(url => {
+    it(`should show an error and open the dashboard from ${url} when the project is not accessible`, async () => {
+      stateSvc.setProject.and.returnValue(false);
+
+      await open(url);
+
+      expect(snackBar.open).toHaveBeenCalledOnceWith(
+        InaccessibleProjectSnackbar.message,
+        InaccessibleProjectSnackbar.action,
+        InaccessibleProjectSnackbar.config
+      );
       expect(navigate).toHaveBeenCalledOnceWith(['dashboard']);
     });
   });

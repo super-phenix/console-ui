@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { environment } from '@env/environment';
+import { Organization, Project } from '@shared/models/data/organization';
+import { StateService } from '@shared/services/state.service';
 
 import { SidenavComponent } from './sidenav.component';
 
@@ -32,6 +34,22 @@ describe('SidenavComponent', () => {
   it('should create', async () => {
     await createComponent();
     expect(component).toBeTruthy();
+  });
+
+  it('should only link to the dashboard and the settings without accessible project', async () => {
+    await createComponent();
+    const stateSvc = TestBed.inject(StateService);
+    const links = () =>
+      [...fixture.nativeElement.querySelectorAll('a')].map((a: HTMLAnchorElement) => a.getAttribute('href'));
+
+    stateSvc.organization.set({ id: 'org' } as Organization);
+    stateSvc.project.set({ id: 'project' } as Project);
+    fixture.detectChanges();
+    expect(links()).toContain('/products/uncategorized/ssh');
+
+    stateSvc.project.set(undefined);
+    fixture.detectChanges();
+    expect(links()).toEqual(['/dashboard', '/organization/settings']);
   });
 
   it('should hide the help button when helpLinks is empty', async () => {

@@ -125,6 +125,8 @@ export class DashboardComponent {
   private permissionSvc = inject(PermissionService);
   private quotaSvc = inject(QuotaService);
 
+  protected readonly BannerLevelEnum = BannerLevelEnum;
+
   protected announcement: Announcement | undefined = environment.announcement;
 
   protected announcementText = computed(() => this.announcement?.longText ?? this.announcement?.text ?? '');

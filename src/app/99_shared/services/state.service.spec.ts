@@ -48,6 +48,10 @@ describe('StateService', () => {
     expect(service.azList()).toEqual([]);
   });
 
+  it('should not report a missing project before an organization is loaded', () => {
+    expect(service.noProject()).toBeFalse();
+  });
+
   describe('setOrganization', () => {
     const orgId = 'org-123';
     const mockOrg = { id: orgId, projects: [] } as unknown as Organization;
@@ -191,6 +195,7 @@ describe('StateService', () => {
         await service.setOrganization(orgId);
 
         expect(service.project()?.id).toBe('pd');
+        expect(service.noProject()).toBeFalse();
       });
 
       it('should keep the cached project', async () => {
@@ -199,6 +204,25 @@ describe('StateService', () => {
         await service.setOrganization(orgId);
 
         expect(service.project()?.id).toBe('pz');
+      });
+
+      it('should keep the current project when the requested one is not accessible', async () => {
+        await service.setOrganization(orgId);
+
+        expect(service.setProject('unknown')).toBeFalse();
+        expect(service.project()?.id).toBe('pd');
+        expect(service.setProject('p2')).toBeTrue();
+        expect(service.project()?.id).toBe('p2');
+      });
+
+      it('should drop the previous project when the new organization has none', async () => {
+        await service.setOrganization(orgId);
+        orgSvcSpy.getOrg.and.returnValue(of({ id: 'org-empty', projects: [] } as unknown as Organization));
+
+        await service.setOrganization('org-empty');
+
+        expect(service.project()).toBeUndefined();
+        expect(service.noProject()).toBeTrue();
       });
 
       it('should handle an organization without projects', async () => {

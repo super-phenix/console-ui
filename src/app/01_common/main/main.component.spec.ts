@@ -1,6 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { provideRouter, Router } from '@angular/router';
 import { environment } from '@env/environment';
+import { Organization, Project } from '@shared/models/data/organization';
+import { NoAccessibleProjectSnackbar } from '@shared/models/snackbar';
+import { StateService } from '@shared/services/state.service';
 
 import { MainComponent } from './main.component';
 
@@ -47,6 +51,28 @@ describe('MainComponent', () => {
 
     const appDiv = fixture.nativeElement.querySelector('.app');
     expect(appDiv.classList).not.toContain('app--with-banner');
+  });
+
+  ['/products/compute/instance/create', '/organization/settings'].forEach(url => {
+    const leaves = url.startsWith('/products');
+
+    it(`should ${leaves ? 'leave' : 'stay on'} ${url} when the organization has no accessible project`, () => {
+      const router = TestBed.inject(Router);
+      const stateSvc = TestBed.inject(StateService);
+      spyOnProperty(router, 'url').and.returnValue(url);
+      const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+      const open = spyOn(TestBed.inject(MatSnackBar), 'open');
+      stateSvc.organization.set({ id: 'org' } as Organization);
+      stateSvc.project.set({ id: 'project' } as Project);
+      TestBed.tick();
+      expect(navigate).not.toHaveBeenCalled();
+
+      stateSvc.project.set(undefined);
+      TestBed.tick();
+
+      expect(navigate.calls.allArgs()).toEqual(leaves ? [[['/dashboard']]] : []);
+      expect(open.calls.allArgs().map(args => args[0])).toEqual(leaves ? [NoAccessibleProjectSnackbar.message] : []);
+    });
   });
 
   describe('with announcement', () => {
