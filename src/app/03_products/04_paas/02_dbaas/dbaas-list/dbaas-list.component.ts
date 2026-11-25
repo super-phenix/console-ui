@@ -72,7 +72,7 @@ export class DBaaSListComponent {
   canProjectDBaaSWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectDBaaSWrite));
   canProjectArgoCdRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectArgoCdRead));
 
-  displayedColumns: string[] = ['az', 'id', 'name', 'version', 'instances', 'size', 'phase', 'gitops', 'actions'];
+  displayedColumns: string[] = ['az', 'id', 'name', 'version', 'instances', 'size', 'phase', 'actions'];
 
   // Extends the wrapper's default az/name/id sort with the database-specific columns.
   readonly dbaasSortFunc = (sort: Sort, a: ProductDBaaSItem, b: ProductDBaaSItem): number => {
