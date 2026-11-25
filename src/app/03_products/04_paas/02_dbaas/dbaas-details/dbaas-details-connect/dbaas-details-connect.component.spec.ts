@@ -45,6 +45,19 @@ describe('DBaaSDetailsConnectComponent', () => {
     expect(component.activeNetwork()).toBe('private');
   });
 
+  const cardCases: { name: string; eipEId?: string; expected: 'private' | 'public' }[] = [
+    { name: 'stays private while external access is off', expected: 'private' },
+    { name: 'follows the chosen network with an Elastic IP', eipEId: 'eip-1', expected: 'public' },
+  ];
+
+  cardCases.forEach(({ name, eipEId, expected }) => {
+    it(`endpoints card ${name}`, () => {
+      fixture.componentRef.setInput('db', { ...db(), externalAccess: eipEId ? { eipEId } : undefined });
+      component.network.set('public');
+      expect(component.shownNetwork()).toBe(expected);
+    });
+  });
+
   it('lists only the private endpoints', () => {
     expect(component.endpoints().map(e => e.host)).toEqual(['198.18.0.10', '198.18.0.10']);
   });

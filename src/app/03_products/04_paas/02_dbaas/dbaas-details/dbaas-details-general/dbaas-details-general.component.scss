@@ -2,7 +2,7 @@
   display: block;
 }
 
-// Main column carries what people come for (endpoints, topology); the side rail is reference.
+// Main column carries the topology; the side rail is reference.
 .dbaas-overview {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
@@ -27,12 +27,6 @@
     font-weight: 500;
   }
 
-  // Heading inside a title bar that also holds controls
-  &__card-title {
-    margin: 0;
-    font: inherit;
-  }
-
   // Keeps the title bar as tall as the ones without an action
   &__title-action {
     --mat-button-text-container-height: 24px;
@@ -45,72 +39,9 @@
     min-width: 0;
   }
 
-  &__lede,
   &__empty {
     margin: 0;
     max-width: 65ch;
-    color: var(--mat-sys-on-surface-variant);
-  }
-
-  &__actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.75rem;
-
-    &:empty {
-      display: none;
-    }
-  }
-}
-
-// Private / public switch in the Endpoints title bar
-.dbaas-network {
-  margin-block: -6px; // as tall as a plain title bar
-  font: var(--mat-sys-label-large);
-  font-family: var(--body-font);
-
-  --mat-button-toggle-height: 32px;
-
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 0.25rem;
-    font-size: 18px;
-    vertical-align: -4px;
-  }
-}
-
-// One row per endpoint: role | copyable host:port | what it is for
-.dbaas-endpoints {
-  display: grid;
-  grid-template-columns: max-content minmax(14rem, 22rem) minmax(0, 1fr);
-  align-items: center;
-  column-gap: 1.25rem;
-  row-gap: 0.75rem;
-  margin: 0;
-
-  &__row {
-    display: contents;
-  }
-
-  &__role {
-    font: var(--mat-sys-title-small);
-    color: var(--text-title);
-  }
-
-  &__row--primary &__role {
-    color: var(--mat-sys-primary);
-  }
-
-  &__value,
-  &__hint {
-    margin: 0;
-    min-width: 0;
-  }
-
-  &__hint {
-    font: var(--mat-sys-body-medium);
     color: var(--mat-sys-on-surface-variant);
   }
 }
@@ -200,20 +131,5 @@
 @media (max-width: 1100px) {
   .dbaas-overview {
     grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (max-width: 720px) {
-  .dbaas-network mat-icon {
-    display: none;
-  }
-
-  .dbaas-endpoints {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 0.25rem;
-
-    &__hint {
-      margin-bottom: 0.75rem;
-    }
   }
 }

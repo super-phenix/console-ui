@@ -1,4 +1,5 @@
 import { Clipboard } from '@angular/cdk/clipboard';
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -6,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import {
   DBaaSCredentials,
   DBaaSEndpoint,
@@ -27,6 +29,8 @@ type ClientFlavour = 'psql' | 'uri';
 @Component({
   selector: 'spx-dbaas-details-connect',
   imports: [
+    NgTemplateOutlet,
+    RouterLink,
     MatButtonModule,
     MatButtonToggleModule,
     MatIconModule,
@@ -69,6 +73,15 @@ export class DBaaSDetailsConnectComponent {
   // Falls back to the private network while the public address is unknown
   activeNetwork = computed<DBaaSNetwork>(() =>
     this.network() === 'public' && this.publicEndpoints().length ? 'public' : 'private'
+  );
+  isPublic = computed(() => !!this.db().externalAccess?.eipEId);
+  // Network of the Endpoints card: private while external access is off
+  shownNetwork = computed<DBaaSNetwork>(() => (this.isPublic() ? this.network() : 'private'));
+  canEdit = computed(() => this.db().gitops !== 'true' && this.canProjectDBaaSWrite());
+  publicOffHint = computed(() =>
+    this.canEdit()
+      ? 'Public access is off. Turn it on by editing the database.'
+      : 'Public access is off. The database is only reachable from its subnet.'
   );
   // Endpoints of the network in use; both networks expose the same roles
   activeEndpoints = computed(() => (this.activeNetwork() === 'public' ? this.publicEndpoints() : this.endpoints()));

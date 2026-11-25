@@ -1,45 +1,20 @@
-import { DatePipe, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, computed, inject, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import {
-  DBaaSEndpoint,
-  DBaaSNetwork,
-  postgresVersionFromImage,
-} from '@products/00_shared/models/paas/dbaas/dbaas.model';
+import { postgresVersionFromImage } from '@products/00_shared/models/paas/dbaas/dbaas.model';
 import { ProductDBaaS } from '@products/00_shared/models/product.model';
-import { CodeBlockComponent } from '@shared/components/code-block/code-block.component';
 import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
 import { StateService } from '@shared/services/state.service';
 import { DBaaSTopologyComponent } from '../../00_shared/dbaas-topology/dbaas-topology.component';
-import {
-  cpuCores,
-  endpointRoleHint,
-  endpointRoleLabel,
-  formatAmount,
-  memoryGiB,
-  privateEndpoints,
-} from '../../dbaas-actions.utils';
+import { cpuCores, formatAmount, memoryGiB, privateEndpoints } from '../../dbaas-actions.utils';
 
 @Component({
   selector: 'spx-dbaas-details-general',
-  imports: [
-    DatePipe,
-    NgTemplateOutlet,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatIconModule,
-    MatTooltipModule,
-    RouterLink,
-    CodeBlockComponent,
-    SpanCopyComponent,
-    DBaaSTopologyComponent,
-  ],
+  imports: [DatePipe, MatButtonModule, MatIconModule, RouterLink, SpanCopyComponent, DBaaSTopologyComponent],
   templateUrl: './dbaas-details-general.component.html',
   styleUrl: './dbaas-details-general.component.scss',
 })
@@ -47,28 +22,10 @@ export class DBaaSDetailsGeneralComponent {
   protected permissionSvc = inject(PermissionService);
   protected stateSvc = inject(StateService);
 
-  readonly endpointRoleLabel = endpointRoleLabel;
-  readonly endpointRoleHint = endpointRoleHint;
-
   db = input.required<ProductDBaaS>();
-  // Endpoints through the Elastic IP, empty until it has an address
-  publicEndpoints = input<DBaaSEndpoint[]>([]);
-  // Asks the page to open the Connect tab on the given network
-  connect = output<DBaaSNetwork>();
-
-  network = signal<DBaaSNetwork>('private');
-  isPublic = computed(() => !!this.db().externalAccess?.eipEId);
-  // Falls back to private when public access gets turned off while the public view is open
-  shownNetwork = computed<DBaaSNetwork>(() => (this.isPublic() ? this.network() : 'private'));
-  publicOffHint = computed(() =>
-    this.canEdit()
-      ? 'Public access is off. Turn it on by editing the database.'
-      : 'Public access is off. The database is only reachable from its subnet.'
-  );
 
   canEdit = computed(
-    () =>
-      this.db().gitops !== 'true' && this.permissionSvc.permissions().includes(PermissionsEnum.ProjectDBaaSWrite)
+    () => this.db().gitops !== 'true' && this.permissionSvc.permissions().includes(PermissionsEnum.ProjectDBaaSWrite)
   );
 
   // Zone from the organization's AZ list, for its display name and logo
