@@ -25,8 +25,8 @@ describe('DashboardComponent', () => {
   const organization = signal<{ id: string } | undefined>(undefined);
   const project = signal<{ id: string } | undefined>(undefined);
   const azList = signal<{ code: string; name: string; logoUrl?: string }[]>([]);
-
-  const stateSvcStub = { organization, project, azList };
+  const noProject = signal(false);
+  const stateSvcStub = { organization, project, azList, noProject };
 
   const isMobile = signal(false);
   const isWeb = signal(true);
@@ -71,6 +71,7 @@ describe('DashboardComponent', () => {
   }
 
   beforeEach(async () => {
+    noProject.set(false);
     environment.announcement = undefined;
     organization.set(undefined);
     project.set(undefined);
@@ -620,6 +621,15 @@ describe('DashboardComponent', () => {
       const empty = fixture.nativeElement.querySelectorAll('.dashboard__row-empty');
       expect(empty[1].textContent).toContain('No resources in any zone yet.');
     });
+  });
+
+  it('should only show a message when the organization has no accessible project', async () => {
+    noProject.set(true);
+    await createComponent();
+
+    expect(fixture.nativeElement.querySelector('spx-banner').textContent).toContain('any project of this organization');
+    expect(fixture.nativeElement.querySelector('.info-card')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[href^="/products"]')).toBeNull();
   });
 
   describe('create shortcuts', () => {

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@shared/guard/auth.guard';
 import { permissionGuard } from '@shared/guard/permission.guard';
+import { projectGuard } from '@shared/guard/project.guard';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 
 export const routes: Routes = [
@@ -37,6 +38,14 @@ export const routes: Routes = [
   {
     path: 'vnc/:orgId/:projectId/:az/:productId',
     loadComponent: () => import('./03_products/01_compute/01_instance/vnc/vnc.component').then(m => m.VNCComponent),
+  },
+  {
+    path: 'redirect/:orgId',
+    loadComponent: () => import('./00_public/redirect/redirect.component').then(m => m.RedirectComponent),
+  },
+  {
+    path: 'redirect/:orgId/:projectId',
+    loadComponent: () => import('./00_public/redirect/redirect.component').then(m => m.RedirectComponent),
   },
   {
     path: 'redirect/:orgId/:projectId/:az/:productType/:productId',
@@ -90,6 +99,7 @@ export const routes: Routes = [
       },
       {
         path: 'products',
+        canActivate: [projectGuard],
         children: [
           {
             path: 'compute',

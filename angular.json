@@ -99,24 +99,6 @@
           "options": {
             "polyfills": ["src/test-setup.ts"],
             "tsConfig": "tsconfig.spec.json",
-            "exclude": [
-              "src/app/03_products/01_compute/01_instance/instance-create/instance-create.component.spec.ts",
-              "src/app/03_products/01_compute/01_instance/instance-create/instance-ssh-create/instance-ssh-create.component.spec.ts",
-              "src/app/03_products/01_compute/01_instance/instance-details/instance-details-general/instance-details-general.component.spec.ts",
-              "src/app/03_products/01_compute/01_instance/instance-details/instance-details-storage/instance-details-storage.component.spec.ts",
-              "src/app/03_products/01_compute/01_instance/instance-update/instance-update.component.spec.ts",
-              "src/app/03_products/02_storage/02_snapshot/snapshot-create/snapshot-create.component.spec.ts",
-              "src/app/03_products/02_storage/02_snapshot/snapshot-details/snapshot-details.component.spec.ts",
-              "src/app/03_products/02_storage/02_snapshot/snapshot-details/snapshot-details-linked-snap/snapshot-details-linked-snap.component.spec.ts",
-              "src/app/03_products/02_storage/02_snapshot/snapshot-details/snapshot-details-schedule/snapshot-details-schedule.component.spec.ts",
-              "src/app/03_products/02_storage/02_snapshot/snapshot-details/snapshot-details-single/snapshot-details-single.component.spec.ts",
-              "src/app/03_products/02_storage/02_snapshot/snapshot-update/snapshot-update.component.spec.ts",
-              "src/app/05_organization/organization-details/organization-details.component.spec.ts",
-              "src/app/05_organization/organization-iam/organization-iam.component.spec.ts",
-              "src/app/05_organization/organization-projects/organization-projects.component.spec.ts",
-              "src/app/05_organization/organization-settings/organization-settings.component.spec.ts",
-              "src/app/05_organization/organization-users/organization-users.component.spec.ts"
-            ],
             "inlineStyleLanguage": "scss",
             "assets": [
               {

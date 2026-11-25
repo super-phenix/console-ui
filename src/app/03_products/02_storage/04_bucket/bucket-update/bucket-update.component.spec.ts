@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { BucketUpdateComponent } from './bucket-update.component';
 
@@ -9,6 +10,7 @@ describe('BucketUpdateComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [BucketUpdateComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BucketUpdateComponent);

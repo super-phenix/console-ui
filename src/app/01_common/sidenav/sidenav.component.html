@@ -7,56 +7,58 @@
       routerLinkActive="sidenav__menu-link-btn--active">
       <mat-icon class="mat-icon--normal-size">home</mat-icon>Dashboard
     </a>
-    <mat-accordion multi displayMode="flat">
-      @for (product of ProductList; track $index) {
-        @if (product.title) {
-          <mat-expansion-panel
-            class="mat-elevation-z0"
-            routerLinkActive
-            #rla="routerLinkActive"
-            [expanded]="rla.isActive">
-            <mat-expansion-panel-header>
-              <mat-panel-title class="menu__panel-title">
-                <mat-icon>{{ product.icon }}</mat-icon>
-                <span>{{ product.title }}</span>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <div class="menu__panel-content">
-              @for (item of product.items; track $index) {
-                <a
-                  mat-button
-                  class="sidenav__menu-link-btn"
-                  [routerLink]="['products', product.baseLink, item.link]"
-                  routerLinkActive="sidenav__menu-link-btn--active">
-                  @if (item.icon) {
-                    <mat-icon>{{ item.icon }}</mat-icon>
-                  }
-                  {{ item.title }}
-                </a>
-              }
-            </div>
-          </mat-expansion-panel>
-        }
-      }
-    </mat-accordion>
-
-    <div class="sidenav__menu-hr mt-3"></div>
-
-    <!-- Uncategorized -->
-    <div class="menu__uncategorized-content">
-      @for (item of ProductUncategorized.items; track $index) {
-        <a
-          mat-button
-          class="sidenav__menu-link-btn"
-          [routerLink]="['products', ProductUncategorized.baseLink, item.link]"
-          routerLinkActive="sidenav__menu-link-btn--active">
-          @if (item.icon) {
-            <mat-icon class="mat-icon--normal-size">{{ item.icon }}</mat-icon>
+    @if (!stateSvc.noProject()) {
+      <mat-accordion multi displayMode="flat">
+        @for (product of ProductList; track $index) {
+          @if (product.title) {
+            <mat-expansion-panel
+              class="mat-elevation-z0"
+              routerLinkActive
+              #rla="routerLinkActive"
+              [expanded]="rla.isActive">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="menu__panel-title">
+                  <mat-icon>{{ product.icon }}</mat-icon>
+                  <span>{{ product.title }}</span>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="menu__panel-content">
+                @for (item of product.items; track $index) {
+                  <a
+                    mat-button
+                    class="sidenav__menu-link-btn"
+                    [routerLink]="['products', product.baseLink, item.link]"
+                    routerLinkActive="sidenav__menu-link-btn--active">
+                    @if (item.icon) {
+                      <mat-icon>{{ item.icon }}</mat-icon>
+                    }
+                    {{ item.title }}
+                  </a>
+                }
+              </div>
+            </mat-expansion-panel>
           }
-          {{ item.title }}
-        </a>
-      }
-    </div>
+        }
+      </mat-accordion>
+
+      <div class="sidenav__menu-hr mt-3"></div>
+
+      <!-- Uncategorized -->
+      <div class="menu__uncategorized-content">
+        @for (item of ProductUncategorized.items; track $index) {
+          <a
+            mat-button
+            class="sidenav__menu-link-btn"
+            [routerLink]="['products', ProductUncategorized.baseLink, item.link]"
+            routerLinkActive="sidenav__menu-link-btn--active">
+            @if (item.icon) {
+              <mat-icon class="mat-icon--normal-size">{{ item.icon }}</mat-icon>
+            }
+            {{ item.title }}
+          </a>
+        }
+      </div>
+    }
 
     <div class="sidenav__menu-hr"></div>
 

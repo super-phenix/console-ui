@@ -116,19 +116,13 @@ export class UserDetailsComponent extends TabsBase {
     const filter = this.tokenFilterValue();
     const sort = this.currentSort();
 
-    let result = [];
-    if (!filter) {
-      result = tokens;
-    } else {
-      result = tokens.filter(token => {
-        return (
-          token.name.toLowerCase().includes(filter) ||
-          token.prefix.toLowerCase().includes(filter) ||
-          token.id.toLowerCase().includes(filter)
-        );
-      });
-    }
-    return [...result.sort(sortData.bind(sort))];
+    const result = tokens.filter(
+      token =>
+        token.name.toLowerCase().includes(filter) ||
+        token.prefix.toLowerCase().includes(filter) ||
+        token.id.toLowerCase().includes(filter)
+    );
+    return result.sort(sortData.bind(sort));
   });
 
   constructor() {

@@ -1,54 +1,47 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ProductKaaS } from '@products/00_shared/models/product.model';
+import { KaasService } from '@products/00_shared/services/kaas.service';
+import { StateService } from '@shared/services/state.service';
+import { of, throwError } from 'rxjs';
 
 import { KaasListComponent } from './kaas-list.component';
 
 describe('KaasListComponent', () => {
-  let component: KaasListComponent;
-  let fixture: ComponentFixture<KaasListComponent>;
-
-  beforeEach(async () => {
+  async function setup(list: KaasService['list']) {
     await TestBed.configureTestingModule({
       imports: [KaasListComponent],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        { provide: KaasService, useValue: { list } },
+        {
+          provide: StateService,
+          useValue: { organization: signal({ id: 'org' }), project: signal({ id: 'project' }), azList: signal([]) },
+        },
+      ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(KaasListComponent);
-    component = fixture.componentInstance;
+    const fixture = TestBed.createComponent(KaasListComponent);
     await fixture.whenStable();
-  });
+    return fixture.componentInstance;
+  }
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  const cluster = (eid: string, outdated?: boolean) =>
+    ({ eid, productName: eid, codeAZ: 'az1', outdated }) as ProductKaaS;
 
-  describe('hasOutdatedCluster', () => {
-    const mockClusters = (clusters: ProductKaaS[] | undefined) => {
-      component.kaasProduct = {
-        hasValue: () => clusters !== undefined,
-        value: () => clusters,
-      } as unknown as typeof component.kaasProduct;
-    };
+  const cases: { name: string; list: KaasService['list']; want: boolean }[] = [
+    { name: 'one outdated cluster', list: () => of([cluster('a', false), cluster('b', true)]), want: true },
+    { name: 'no outdated cluster', list: () => of([cluster('a', false), cluster('b')]), want: false },
+    { name: 'no cluster', list: () => of([]), want: false },
+    { name: 'failed list', list: () => throwError(() => new Error('down')), want: false },
+  ];
 
-    it('should return true when at least one cluster is outdated', () => {
-      mockClusters([{ outdated: false } as ProductKaaS, { outdated: true } as ProductKaaS]);
-      expect(component.hasOutdatedCluster()).toBeTrue();
-    });
-
-    it('should return false when no cluster is outdated', () => {
-      mockClusters([{ outdated: false } as ProductKaaS, {} as ProductKaaS]);
-      expect(component.hasOutdatedCluster()).toBeFalse();
-    });
-
-    it('should return false when there is no cluster', () => {
-      mockClusters([]);
-      expect(component.hasOutdatedCluster()).toBeFalse();
-    });
-
-    it('should return false when the resource has no value', () => {
-      mockClusters(undefined);
-      expect(component.hasOutdatedCluster()).toBeFalse();
+  cases.forEach(({ name, list, want }) => {
+    it(`should tell whether a cluster is outdated: ${name}`, async () => {
+      spyOn(console, 'error');
+      const component = await setup(list);
+      expect(component.hasOutdatedCluster()).toBe(want);
     });
   });
 });

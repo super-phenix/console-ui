@@ -66,9 +66,11 @@ export class SshListComponent {
   });
 
   canProjectSSHWrite = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectSSHWrite));
-  canProjectInstanceRead = computed(() => this.permissionSvc.permissions().includes(PermissionsEnum.ProjectInstanceRead));
+  canProjectInstanceRead = computed(() =>
+    this.permissionSvc.permissions().includes(PermissionsEnum.ProjectInstanceRead)
+  );
 
-  displayedColumns: string[] = ['az', 'name', 'date', 'actions'];
+  displayedColumns: string[] = ['az', 'name', 'isUsed', 'date', 'actions'];
 
   sshProduct;
 
@@ -83,7 +85,6 @@ export class SshListComponent {
 
     return dataSource;
   });
-
 
   private needReload = signal(0);
 

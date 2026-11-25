@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { LoadBalancerDetailsComponent } from './load-balancer-details.component';
 
@@ -8,9 +9,9 @@ describe('LoadBalancerDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LoadBalancerDetailsComponent]
-    })
-    .compileComponents();
+      imports: [LoadBalancerDetailsComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(LoadBalancerDetailsComponent);
     component = fixture.componentInstance;

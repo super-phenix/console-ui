@@ -160,7 +160,7 @@ export class SubnetDetailsComponent {
   }
 
   copyShareLink() {
-    const url = `https://${window.location.host}/redirect/${this.stateSvc.organization()?.id}/${this.stateSvc.project()?.id}/${this.az()}/subnet/${this.routeParams()?.['id']}`;
+    const url = `${window.location.origin}/redirect/${this.stateSvc.organization()?.id}/${this.stateSvc.project()?.id}/${this.az()}/subnet/${this.routeParams()?.['id']}`;
     this.copy(url);
   }
 

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { SecurityGroupUpdateComponent } from './security-group-update.component';
 
@@ -8,9 +9,9 @@ describe('SecurityGroupUpdateComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SecurityGroupUpdateComponent]
-    })
-    .compileComponents();
+      imports: [SecurityGroupUpdateComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SecurityGroupUpdateComponent);
     component = fixture.componentInstance;

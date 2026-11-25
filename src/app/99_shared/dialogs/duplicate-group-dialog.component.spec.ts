@@ -10,7 +10,7 @@ function getDefaultName(sourceName: string, existingNames: string[]): string {
   // Access the private method via prototype with injected data
   const instance = Object.create(DuplicateGroupDialog.prototype);
   instance.data = data;
-  return (instance as any)['defaultName']();
+  return instance['defaultName']();
 }
 
 describe('DuplicateGroupDialog – defaultName', () => {

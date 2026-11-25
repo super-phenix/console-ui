@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { SnapshotDetailsLinkedSnapComponent } from './snapshot-details-linked-snap.component';
 
@@ -9,10 +10,12 @@ describe('SnapshotDetailsLinkedSnapComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SnapshotDetailsLinkedSnapComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SnapshotDetailsLinkedSnapComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('snapshots', []);
     await fixture.whenStable();
   });
 

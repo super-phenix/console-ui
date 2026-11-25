@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { VpcDetailsComponent } from './vpc-details.component';
 
@@ -8,9 +9,9 @@ describe('VpcDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [VpcDetailsComponent]
-    })
-    .compileComponents();
+      imports: [VpcDetailsComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(VpcDetailsComponent);
     component = fixture.componentInstance;

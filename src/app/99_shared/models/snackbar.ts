@@ -15,6 +15,24 @@ export const ForbiddenSnackbar: SnackbarModel = {
   },
 };
 
+export const InaccessibleProjectSnackbar: SnackbarModel = {
+  message: 'This project does not exist or you do not have access to it.',
+  config: {
+    horizontalPosition: 'end',
+    duration: 5000,
+    panelClass: ['snackbar', 'snackbar--multiline'],
+  },
+};
+
+export const NoAccessibleProjectSnackbar: SnackbarModel = {
+  message: 'You do not have access to any project of this organization.',
+  config: {
+    horizontalPosition: 'end',
+    duration: 5000,
+    panelClass: ['snackbar', 'snackbar--multiline'],
+  },
+};
+
 export const UnauthorizedSnackbar: SnackbarModel = {
   message: 'Your session has expired.',
   config: {

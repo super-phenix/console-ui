@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { EipCreateComponent } from './eip-create.component';
 
@@ -8,9 +9,9 @@ describe('EipCreateComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EipCreateComponent]
-    })
-    .compileComponents();
+      imports: [EipCreateComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EipCreateComponent);
     component = fixture.componentInstance;

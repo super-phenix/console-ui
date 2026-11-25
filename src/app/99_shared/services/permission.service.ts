@@ -3,7 +3,7 @@ import { Injectable, signal, WritableSignal, inject } from '@angular/core';
 import { API_ENDPOINT, HTTP_PROTOCOL, environment } from '@env/environment';
 import { EntityTypeEnum, Group, PermissionListBody, PermissionSetMap } from '@shared/models/permissions/permission';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
-import { combineLatest, firstValueFrom, Observable, ReplaySubject, timeout } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, firstValueFrom, Observable, timeout } from 'rxjs';
 import { defaultOnceHandler } from '../http/customHandler';
 import { IGNORE_ERROR_STATUSES } from '../interceptor/errors.interceptor';
 
@@ -25,8 +25,17 @@ export class PermissionService {
   private cachedMap = new Map<string, CacheObject>();
   private cacheDuration = 60000 * 5; // 5 minutes
 
-  private ready = new ReplaySubject<boolean>();
-  isReady = this.ready.pipe(timeout(1500));
+  private currentKey = '';
+  private ready = new BehaviorSubject(false);
+  isReady = this.ready.pipe(filter(Boolean), timeout(1500));
+
+  /**
+   * Make `isReady` wait for the next load: the current permissions no longer match the state
+   */
+  invalidate() {
+    this.currentKey = '';
+    this.ready.next(false);
+  }
 
   /**
    * Load user permissions for a given entity
@@ -38,8 +47,10 @@ export class PermissionService {
    */
   async loadPermissions(orgId: string, projectId?: string) {
     const key = `${orgId}_${projectId}`;
+    this.currentKey = key;
     if (this.checkCachedEntity(key)) {
       this.permissions.set(this.cachedMap.get(key)!.permissions);
+      this.ready.next(true);
       return;
     }
 
@@ -57,9 +68,11 @@ export class PermissionService {
     const result = await firstValueFrom(combineLatest(listObs));
     const flattenResult = result.flat();
 
-    this.permissions.set(flattenResult);
     this.updateCache(key, flattenResult);
-    this.ready.next(true);
+    if (key === this.currentKey) {
+      this.permissions.set(flattenResult);
+      this.ready.next(true);
+    }
   }
 
   canAccess(permission: PermissionsEnum) {

@@ -209,7 +209,7 @@ export class VNCComponent implements OnInit {
     // viewport scaling so the display adapts to the new available space.
     setTimeout(() => {
       if (this.rfb) {
-        this.rfb.scaleViewport = this.rfb.scaleViewport;
+        this.rfb.scaleViewport = true;
       }
     });
   }
