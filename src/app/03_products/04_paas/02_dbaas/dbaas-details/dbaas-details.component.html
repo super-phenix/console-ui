@@ -1,4 +1,7 @@
 <div class="product-details main-content dbaas-details">
+  <spx-content-header navBack title="Database Details" [resourceName]="db()?.productName" [resourceId]="db()?.eid">
+  </spx-content-header>
+
   @if (dbaasProduct.isLoading() && !db()) {
     <div class="d-flex justify-content-center p-4">
       <mat-spinner diameter="32"></mat-spinner>
@@ -6,11 +9,6 @@
   }
 
   @if (dbaasProduct.error()) {
-    <div class="dbaas-header">
-      <a matIconButton class="dbaas-header__back" aria-label="Back to databases" routerLink="/products/paas/dbaas">
-        <mat-icon>arrow_back</mat-icon>
-      </a>
-    </div>
     <spx-banner [level]="BannerLevelEnum.Error">Failed to load the database. Use refresh to try again.</spx-banner>
     <button matButton class="align-self-start" (click)="reload()">
       <mat-icon>refresh</mat-icon>
@@ -20,10 +18,6 @@
 
   @if (db(); as db) {
     <header class="dbaas-header">
-      <a matIconButton class="dbaas-header__back" aria-label="Back to databases" routerLink="/products/paas/dbaas">
-        <mat-icon>arrow_back</mat-icon>
-      </a>
-
       <div class="dbaas-header__tile" [attr.aria-label]="'PostgreSQL ' + (major() || '')" role="img">
         <span class="dbaas-header__tile-engine">PG</span>
         @if (major()) {

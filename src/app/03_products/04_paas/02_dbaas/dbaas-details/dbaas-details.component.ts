@@ -21,6 +21,7 @@ import {
 } from '@products/00_shared/models/paas/dbaas/dbaas.model';
 import { DBaaSService } from '@products/00_shared/services/dbaas.service';
 import { BannerComponent } from '@shared/components/banner/banner.component';
+import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
 import { BannerLevelEnum } from '@shared/models/enums';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
@@ -48,6 +49,7 @@ const TAB_CONNECT = 1;
     MatTooltipModule,
     RouterLink,
     BannerComponent,
+    ContentHeaderComponent,
     DBaaSDetailsGeneralComponent,
     DBaaSDetailsConnectComponent,
     DBaaSDetailsSettingsComponent,
