@@ -1,69 +1,9 @@
 <div class="product-details main-content dbaas-details">
-  <spx-content-header navBack title="Database Details" [resourceName]="db()?.productName" [resourceId]="db()?.eid">
-  </spx-content-header>
+  <div class="d-flex justify-content-between">
+    <spx-content-header navBack title="Database Details" [resourceName]="db()?.productName" [resourceId]="db()?.eid">
+    </spx-content-header>
 
-  @if (dbaasProduct.isLoading() && !db()) {
-    <div class="d-flex justify-content-center p-4">
-      <mat-spinner diameter="32"></mat-spinner>
-    </div>
-  }
-
-  @if (dbaasProduct.error()) {
-    <spx-banner [level]="BannerLevelEnum.Error">Failed to load the database. Use refresh to try again.</spx-banner>
-    <button matButton class="align-self-start" (click)="reload()">
-      <mat-icon>refresh</mat-icon>
-      Refresh
-    </button>
-  }
-
-  @if (db(); as db) {
-    <header class="dbaas-header">
-      <div class="dbaas-header__identity">
-        <span
-          class="dbaas-status"
-          [class]="'dbaas-status--' + statusLevel()"
-          [matTooltip]="chip().title"
-          matTooltipPosition="below">
-          <span class="dbaas-status__dot" aria-hidden="true"></span>
-          {{ chip().label }}
-        </span>
-
-        <ul class="dbaas-header__meta" aria-label="Database summary">
-          @if (zone()?.logoUrl) {
-            <li>
-              <img
-                class="dbaas-header__az-logo"
-                [src]="zone()!.logoUrl"
-                [alt]="zone()!.name || db.codeAZ"
-                [title]="zone()!.name || db.codeAZ" />
-            </li>
-          } @else {
-            <li [title]="zone()?.name || ''">
-              <mat-icon aria-hidden="true">location_on</mat-icon>
-              {{ db.codeAZ?.toUpperCase() }}
-            </li>
-          }
-          @if (version()) {
-            <li>
-              <mat-icon aria-hidden="true">database</mat-icon>
-              PostgreSQL {{ version() }}
-            </li>
-          }
-          @if (instances(); as instances) {
-            <li>
-              <mat-icon aria-hidden="true">dns</mat-icon>
-              {{ instances }} {{ instances === 1 ? 'instance' : 'instances' }}
-            </li>
-          }
-          @if (db.cluster?.metadata?.creationTimestamp; as created) {
-            <li>
-              <mat-icon aria-hidden="true">schedule</mat-icon>
-              Created {{ created | date: 'mediumDate' }}
-            </li>
-          }
-        </ul>
-      </div>
-
+    @if (db(); as db) {
       <div class="dbaas-header__actions">
         <button matButton="filled" (click)="openConnect()">
           <mat-icon>terminal</mat-icon>
@@ -109,6 +49,68 @@
           }
         </mat-menu>
       </div>
+    }
+  </div>
+
+  @if (dbaasProduct.isLoading() && !db()) {
+    <div class="d-flex justify-content-center p-4">
+      <mat-spinner diameter="32"></mat-spinner>
+    </div>
+  }
+
+  @if (dbaasProduct.error()) {
+    <spx-banner [level]="BannerLevelEnum.Error">Failed to load the database. Use refresh to try again.</spx-banner>
+    <button matButton class="align-self-start" (click)="reload()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  }
+
+  @if (db(); as db) {
+    <header class="dbaas-header">
+      <span
+        class="dbaas-status"
+        [class]="'dbaas-status--' + statusLevel()"
+        [matTooltip]="chip().title"
+        matTooltipPosition="below">
+        <span class="dbaas-status__dot" aria-hidden="true"></span>
+        {{ chip().label }}
+      </span>
+
+      <ul class="dbaas-header__meta" aria-label="Database summary">
+        @if (zone()?.logoUrl) {
+          <li>
+            <img
+              class="dbaas-header__az-logo"
+              [src]="zone()!.logoUrl"
+              [alt]="zone()!.name || db.codeAZ"
+              [title]="zone()!.name || db.codeAZ" />
+          </li>
+        } @else {
+          <li [title]="zone()?.name || ''">
+            <mat-icon aria-hidden="true">location_on</mat-icon>
+            {{ db.codeAZ?.toUpperCase() }}
+          </li>
+        }
+        @if (version()) {
+          <li>
+            <mat-icon aria-hidden="true">database</mat-icon>
+            PostgreSQL {{ version() }}
+          </li>
+        }
+        @if (instances(); as instances) {
+          <li>
+            <mat-icon aria-hidden="true">dns</mat-icon>
+            {{ instances }} {{ instances === 1 ? 'instance' : 'instances' }}
+          </li>
+        }
+        @if (db.cluster?.metadata?.creationTimestamp; as created) {
+          <li>
+            <mat-icon aria-hidden="true">schedule</mat-icon>
+            Created {{ created | date: 'mediumDate' }}
+          </li>
+        }
+      </ul>
     </header>
 
     @if (!isReady()) {
