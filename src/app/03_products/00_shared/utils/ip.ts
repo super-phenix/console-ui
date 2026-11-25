@@ -123,3 +123,24 @@ export function IsIPinRange(range: string, ip: string): boolean {
     }
   });
 }
+
+export function CidrOverlaps(a: string, b: string): boolean {
+  const parse = (cidr: string) => {
+    const [ip, prefixStr, ...rest] = cidr.trim().split('/');
+    if (rest.length > 0 || !ip || !/^\d{1,3}$/.test(prefixStr ?? '') || !IsValidIp(ip)) {
+      return null;
+    }
+    const isIpv4 = IsValidIPv4(ip);
+    if (ip.includes('.') && !isIpv4) {
+      return null;
+    }
+    return parseInt(prefixStr, 10) <= (isIpv4 ? 32 : 128) ? ip : null;
+  };
+
+  const ipA = parse(a);
+  const ipB = parse(b);
+  if (!ipA || !ipB) {
+    return false;
+  }
+  return IsIPinRange(a.trim(), ipB) || IsIPinRange(b.trim(), ipA);
+}

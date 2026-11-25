@@ -1,4 +1,4 @@
-import { CidrForVersion, CidrNetworkAddress, GenerateRandomMac, IsValidIPv4, IsValidMac } from './ip';
+import { CidrForVersion, CidrOverlaps, CidrNetworkAddress, GenerateRandomMac, IsValidIPv4, IsValidMac } from './ip';
 
 describe('IsValidIPv4', () => {
   const cases: { name: string; value: string; expected: boolean }[] = [
@@ -91,5 +91,36 @@ describe('GenerateRandomMac', () => {
     const mac1 = GenerateRandomMac();
     const mac2 = GenerateRandomMac();
     expect(mac1).not.toEqual(mac2);
+  });
+});
+
+describe('CidrOverlaps', () => {
+  const cases: { name: string; a: string; b: string; expected: boolean }[] = [
+    { name: 'subnet inside a larger range', a: '10.10.0.0/16', b: '10.0.0.0/12', expected: true },
+    { name: 'range containing the other (reversed)', a: '10.0.0.0/12', b: '10.10.0.0/16', expected: true },
+    { name: 'identical ranges', a: '10.96.0.0/16', b: '10.96.0.0/16', expected: true },
+    { name: 'non-canonical host bits', a: '10.5.4.3/16', b: '10.0.0.0/12', expected: true },
+    { name: 'adjacent but disjoint', a: '10.16.0.0/16', b: '10.0.0.0/12', expected: false },
+    { name: 'new default range', a: '10.32.0.0/16', b: '10.0.0.0/12', expected: false },
+    { name: 'unrelated private range', a: '192.168.0.0/24', b: '10.96.0.0/16', expected: false },
+    { name: 'IPv6 inside range', a: 'fd00:100::/64', b: 'fd00:100::/96', expected: true },
+    { name: 'IPv6 disjoint', a: 'fd00:10:32::/64', b: 'fd00:100::/96', expected: false },
+    { name: 'IPv4 vs IPv6', a: '10.0.0.0/8', b: 'fd00:100::/96', expected: false },
+    { name: 'missing prefix', a: '10.0.0.0', b: '10.0.0.0/12', expected: false },
+    { name: 'empty prefix while typing', a: '10.0.0.0/', b: '10.0.0.0/12', expected: false },
+    { name: 'prefix too large', a: '10.0.0.0/33', b: '10.0.0.0/12', expected: false },
+    { name: 'invalid IP', a: '10.0.0.999/16', b: '10.0.0.0/12', expected: false },
+    { name: 'empty string', a: '', b: '10.0.0.0/12', expected: false },
+    { name: 'IPv6 service range', a: 'fd00:100:ffff::/120', b: 'fd00:100:ffff::/112', expected: true },
+    { name: 'uppercase hex', a: 'FD00:100::/64', b: 'fd00:100::/96', expected: true },
+    { name: 'whole IPv4 space', a: '0.0.0.0/0', b: '10.96.0.0/16', expected: true },
+    { name: 'surrounding whitespace', a: ' 10.10.0.0/16 ', b: '10.0.0.0/12', expected: true },
+    { name: 'IPv4-mapped IPv6 is ignored', a: '::ffff:10.0.0.0/4', b: '10.0.0.0/12', expected: false },
+  ];
+
+  cases.forEach(({ name, a, b, expected }) => {
+    it(`should return ${expected} for ${name} ("${a}" vs "${b}")`, () => {
+      expect(CidrOverlaps(a, b)).toBe(expected);
+    });
   });
 });

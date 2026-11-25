@@ -103,6 +103,21 @@
                   </mat-form-field>
                 }
               </div>
+              @if (kaasOverlaps().length > 0) {
+                <div class="info-card__content">
+                  <span class="color-warn">
+                    <i>
+                      <strong>Warning:</strong> this subnet overlaps the default KaaS ranges:
+                      @for (r of kaasOverlaps(); track r.cidr; let last = $last) {
+                        {{ r.name }} ({{ r.cidr }}){{ last ? '.' : ',' }}
+                      }
+                      <br />
+                      KaaS clusters deployed in this subnet may encounter connectivity issues. Other workloads are not
+                      affected.
+                    </i>
+                  </span>
+                </div>
+              }
             </div>
 
             <div class="info-card">
