@@ -132,7 +132,7 @@ export class SnapshotDetailsComponent extends TabsBase {
   }
 
   copyShareLink() {
-    const url = `https://${window.location.host}/redirect/${this.stateSvc.organization()?.id}/${this.stateSvc.project()?.id}/${this.az()}/snapshot/${this.routeParams()?.['id']}`;
+    const url = `${window.location.origin}/redirect/${this.stateSvc.organization()?.id}/${this.stateSvc.project()?.id}/${this.az()}/snapshot/${this.routeParams()?.['id']}`;
     this.copy(url);
   }
 

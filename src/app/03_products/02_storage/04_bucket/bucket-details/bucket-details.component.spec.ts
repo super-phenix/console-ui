@@ -1,3 +1,4 @@
+import { Clipboard } from '@angular/cdk/clipboard';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
@@ -20,5 +21,13 @@ describe('BucketDetailsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should copy a share link with the protocol of the console', () => {
+    const copy = spyOn(TestBed.inject(Clipboard), 'copy');
+
+    component.copyShareLink();
+
+    expect(copy.calls.mostRecent().args[0].startsWith(`${window.location.origin}/redirect/`)).toBeTrue();
   });
 });

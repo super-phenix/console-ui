@@ -181,7 +181,7 @@ export class KaasDetailsComponent extends TabsBase {
   }
 
   copyShareLink() {
-    const url = `https://${window.location.host}/redirect/${this.stateSvc.organization()?.id}/${this.stateSvc.project()?.id}/${this.az()}/kaas/${this.routeParams()?.['id']}`;
+    const url = `${window.location.origin}/redirect/${this.stateSvc.organization()?.id}/${this.stateSvc.project()?.id}/${this.az()}/kaas/${this.routeParams()?.['id']}`;
     this.copy(url);
   }
 
