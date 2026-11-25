@@ -144,3 +144,11 @@ export function CidrOverlaps(a: string, b: string): boolean {
   }
   return IsIPinRange(a.trim(), ipB) || IsIPinRange(b.trim(), ipA);
 }
+
+export function OverlappedRanges<T extends { cidr: string }>(cidrs: string, ranges: readonly T[]): T[] {
+  const entries = cidrs
+    .split(',')
+    .map(c => c.trim())
+    .filter(c => c);
+  return ranges.filter(r => entries.some(c => CidrOverlaps(c, r.cidr)));
+}

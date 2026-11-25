@@ -1,4 +1,12 @@
-import { CidrForVersion, CidrOverlaps, CidrNetworkAddress, GenerateRandomMac, IsValidIPv4, IsValidMac } from './ip';
+import {
+  CidrForVersion,
+  CidrOverlaps,
+  CidrNetworkAddress,
+  GenerateRandomMac,
+  IsValidIPv4,
+  IsValidMac,
+  OverlappedRanges,
+} from './ip';
 
 describe('IsValidIPv4', () => {
   const cases: { name: string; value: string; expected: boolean }[] = [
@@ -122,5 +130,42 @@ describe('CidrOverlaps', () => {
     it(`should return ${expected} for ${name} ("${a}" vs "${b}")`, () => {
       expect(CidrOverlaps(a, b)).toBe(expected);
     });
+  });
+});
+
+describe('OverlappedRanges', () => {
+  const ranges = [
+    { name: 'pod', cidr: '10.0.0.0/12' },
+    { name: 'pod', cidr: 'fd00:100::/96' },
+    { name: 'service', cidr: '10.96.0.0/16' },
+    { name: 'service', cidr: 'fd00:100:ffff::/112' },
+  ];
+  const cases: { name: string; cidrs: string; expected: string[] }[] = [
+    { name: 'single non-overlapping IPv4', cidrs: '192.168.0.0/24', expected: [] },
+    { name: 'single overlapping IPv4', cidrs: '10.10.0.0/16', expected: ['10.0.0.0/12'] },
+    { name: 'IPv4 covering both ranges', cidrs: '10.0.0.0/8', expected: ['10.0.0.0/12', '10.96.0.0/16'] },
+    { name: 'single overlapping IPv6', cidrs: 'fd00:100::/64', expected: ['fd00:100::/96'] },
+    { name: 'IPv6 covering both ranges', cidrs: 'fd00:100::/32', expected: ['fd00:100::/96', 'fd00:100:ffff::/112'] },
+    { name: 'dual-stack, IPv4 overlapping only', cidrs: '10.96.0.0/24,fd00:10:32::/64', expected: ['10.96.0.0/16'] },
+    { name: 'dual-stack, IPv6 overlapping only', cidrs: '192.168.0.0/24,fd00:100::/120', expected: ['fd00:100::/96'] },
+    {
+      name: 'dual-stack with spaces, both overlapping',
+      cidrs: ' 10.0.0.0/24 , fd00:100:ffff::/120 ',
+      expected: ['10.0.0.0/12', 'fd00:100:ffff::/112'],
+    },
+    { name: 'dual-stack, none overlapping', cidrs: '192.168.0.0/24,fd00:10:32::/64', expected: [] },
+    { name: 'empty string', cidrs: '', expected: [] },
+    { name: 'trailing comma', cidrs: '10.10.0.0/16,', expected: ['10.0.0.0/12'] },
+    { name: 'invalid entry', cidrs: 'abc,10.0.0.999/16', expected: [] },
+  ];
+
+  cases.forEach(({ name, cidrs, expected }) => {
+    it(`should return [${expected.join(', ')}] for ${name} ("${cidrs}")`, () => {
+      expect(OverlappedRanges(cidrs, ranges).map(r => r.cidr)).toEqual(expected);
+    });
+  });
+
+  it('should not match a dual-stack string with CidrOverlaps directly', () => {
+    expect(CidrOverlaps('10.10.0.0/16,fd00:10:32::/64', '10.0.0.0/12')).toBe(false);
   });
 });

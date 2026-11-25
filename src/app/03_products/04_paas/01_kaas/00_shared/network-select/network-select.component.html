@@ -14,7 +14,7 @@
 @if (networkList.length > 0) {
   <div cdkDropList class="product-create__network-list" (cdkDropListDropped)="drop($event)">
     @for (network of networkList; track network.eid) {
-      <div class="product-create__network-drag d-flex flex-grow" cdkDrag>
+      <div class="product-create__network-drag d-flex flex-column flex-grow" cdkDrag>
         <div class="product-create__network-item">
           <h4 class="label">
             <span>Interface {{ $index }} - {{ network.productName }} </span>
@@ -28,6 +28,21 @@
             <mat-icon cdkDragHandle>swap_vert</mat-icon>
           </div>
         </div>
+        @let overlaps = kaasOverlaps(network);
+        @if (overlaps.length > 0) {
+          <div class="px-3 pb-3">
+            <span class="color-warn">
+              <i>
+                <strong>Warning:</strong> this subnet overlaps the default KaaS ranges:
+                @for (r of overlaps; track r.cidr; let last = $last) {
+                  {{ r.name }} ({{ r.cidr }}){{ last ? '.' : ',' }}
+                }
+                <br />
+                KaaS nodes using it may encounter connectivity issues.
+              </i>
+            </span>
+          </div>
+        }
       </div>
     }
   </div>
