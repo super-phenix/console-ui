@@ -1,27 +1,27 @@
+// Named so the layout follows the tab width, which depends on the sidenav, not on the viewport
 :host {
   display: block;
+  container: dbaas-connect / inline-size;
 }
 
 .dbaas-connect {
   padding-block: 1rem;
-  max-width: 84rem;
 
   &__muted {
     max-width: 65ch;
     color: var(--mat-sys-on-surface-variant);
   }
 
-  // Steps on the left, endpoints on the right; the endpoints come first in the DOM so they stack on top
+  // Endpoints first in the DOM so they sit on top when the tab is narrow
   &__layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(20rem, 26rem);
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
     gap: 1rem;
   }
 
   &__endpoints {
-    grid-column: 2;
-    grid-row: 1;
+    container: dbaas-endpoints / inline-size;
     margin: 0;
   }
 
@@ -32,8 +32,6 @@
   }
 
   &__steps {
-    grid-column: 1;
-    grid-row: 1;
     display: flex;
     flex-direction: column;
     margin: 0;
@@ -54,6 +52,24 @@
   }
 }
 
+@container dbaas-connect (min-width: 64rem) {
+  .dbaas-connect {
+    &__layout {
+      grid-template-columns: minmax(0, 3fr) minmax(26rem, 2fr);
+    }
+
+    &__endpoints {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    &__steps {
+      grid-column: 1;
+      grid-row: 1;
+    }
+  }
+}
+
 // Private / public switch in the Endpoints title bar
 .dbaas-network {
   margin-block: -6px; // as tall as a plain title bar
@@ -71,20 +87,28 @@
   }
 }
 
-// One row per endpoint: role and what it is for, then the host:port across the card
+// One row per endpoint. Narrow card: role and hint, then host:port below. Wide card: role | host:port | hint.
+// Rows are subgrids so the columns line up across rows.
 .dbaas-endpoints {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
-  align-items: baseline;
   column-gap: 0.75rem;
-  row-gap: 0.375rem;
+  row-gap: 1rem;
   margin: 0;
 
   &__row {
-    display: contents;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    grid-template-areas:
+      'role hint'
+      'value value';
+    align-items: baseline;
+    row-gap: 0.375rem;
   }
 
   &__role {
+    grid-area: role;
     font: var(--mat-sys-title-small);
     color: var(--text-title);
   }
@@ -100,30 +124,24 @@
   }
 
   &__hint {
+    grid-area: hint;
     font: var(--mat-sys-body-medium);
     color: var(--mat-sys-on-surface-variant);
   }
 
   &__value {
-    grid-column: 1 / -1;
-    margin-bottom: 0.5rem;
-  }
-
-  &__row:last-child &__value {
-    margin-bottom: 0;
+    grid-area: value;
   }
 }
 
-@media (max-width: 1100px) {
-  .dbaas-connect {
-    &__layout {
-      grid-template-columns: minmax(0, 1fr);
-    }
+@container dbaas-endpoints (min-width: 30rem) {
+  .dbaas-endpoints {
+    grid-template-columns: max-content minmax(12rem, 18rem) minmax(0, 1fr);
+    row-gap: 0.75rem;
 
-    &__endpoints,
-    &__steps {
-      grid-column: 1;
-      grid-row: auto;
+    &__row {
+      grid-template-areas: 'role value hint';
+      align-items: center;
     }
   }
 }
