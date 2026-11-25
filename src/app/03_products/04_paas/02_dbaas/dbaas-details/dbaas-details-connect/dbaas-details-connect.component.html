@@ -17,8 +17,8 @@
 
           @if (!canProjectDBaaSWrite()) {
             <p class="dbaas-connect__muted m-0">
-              Credentials include the password, so they need write access to databases in this project. Ask a
-              project administrator.
+              Credentials include the password, so they need write access to databases in this project. Ask a project
+              administrator.
             </p>
           } @else if (!credentials()) {
             <p class="dbaas-connect__muted m-0">The owner account has full access to the application database.</p>
@@ -26,10 +26,7 @@
               class="align-self-start"
               [matTooltip]="!isReady() ? 'Credentials are available once the database is Ready.' : ''"
               matTooltipPosition="above">
-              <button
-                matButton="filled"
-                [disabled]="credentialsLoading() || !isReady()"
-                (click)="revealCredentials()">
+              <button matButton="filled" [disabled]="credentialsLoading() || !isReady()" (click)="revealCredentials()">
                 @if (credentialsLoading()) {
                   <mat-spinner diameter="20"></mat-spinner>
                 } @else {
@@ -42,28 +39,28 @@
             @let creds = credentials()!;
             <dl class="dbaas-creds">
               <dt>Database</dt>
-              <dd><spx-span-copy [value]="creds.dbname" /></dd>
+              <dd><spx-span-copy boxed [value]="creds.dbname" /></dd>
 
               <dt>User</dt>
-              <dd><spx-span-copy [value]="creds.username" /></dd>
+              <dd><spx-span-copy boxed [value]="creds.username" /></dd>
 
               <dt>Password</dt>
-              <dd class="dbaas-creds__secret">
-                <span class="text-break-all">{{ secretVisible() ? creds.password : '••••••••••••••••' }}</span>
-                <button
-                  matIconButton
-                  class="icon-btn--with-bg icon-btn--small"
-                  [attr.aria-label]="secretVisible() ? 'Hide password' : 'Show password'"
-                  (click)="secretVisible.set(!secretVisible())">
-                  <mat-icon>{{ secretVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
-                </button>
-                <button
-                  matIconButton
-                  class="icon-btn--with-bg icon-btn--small"
-                  aria-label="Copy password"
-                  (click)="copy(creds.password)">
-                  <mat-icon>content_copy</mat-icon>
-                </button>
+              <dd>
+                <span class="dbaas-creds__secret">
+                  <span class="dbaas-creds__secret-text">{{
+                    secretVisible() ? creds.password : '••••••••••••••••'
+                  }}</span>
+                  <button
+                    matIconButton
+                    type="button"
+                    [attr.aria-label]="secretVisible() ? 'Hide password' : 'Show password'"
+                    (click)="secretVisible.set(!secretVisible())">
+                    <mat-icon>{{ secretVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <button matIconButton type="button" aria-label="Copy password" (click)="copy(creds.password)">
+                    <mat-icon>content_copy</mat-icon>
+                  </button>
+                </span>
               </dd>
             </dl>
 
@@ -78,7 +75,9 @@
       <li class="dbaas-step">
         <span class="dbaas-step__marker" aria-hidden="true">2</span>
         <div class="dbaas-step__body">
-          <h2 class="dbaas-step__title">{{ publicEndpoints().length ? 'Choose a network and endpoint' : 'Choose an endpoint' }}</h2>
+          <h2 class="dbaas-step__title">
+            {{ publicEndpoints().length ? 'Choose a network and endpoint' : 'Choose an endpoint' }}
+          </h2>
 
           @if (publicEndpoints().length) {
             <mat-button-toggle-group

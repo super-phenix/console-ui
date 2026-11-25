@@ -34,8 +34,8 @@
           </p>
         } @else if (shownNetwork() === 'private') {
           <p class="dbaas-overview__lede">
-            Reachable from instances on the database subnet. Every endpoint shares one virtual IP and differs only
-            by port.
+            Reachable from instances on the database subnet. Every endpoint shares one virtual IP and differs only by
+            port.
           </p>
 
           <ng-container *ngTemplateOutlet="endpointRows; context: { $implicit: endpoints() }" />
@@ -93,7 +93,10 @@
         <h2 class="info-card__title" id="dbaas-plan-title">
           Resources
           @if (canEdit()) {
-            <a matButton class="dbaas-overview__title-action" [routerLink]="['/products/paas/dbaas', 'update', db().codeAZ, db().eid]">
+            <a
+              matButton
+              class="dbaas-overview__title-action"
+              [routerLink]="['/products/paas/dbaas', 'update', db().codeAZ, db().eid]">
               Resize
             </a>
           }
@@ -158,10 +161,10 @@
       <div class="info-card__content">
         <dl class="dbaas-facts">
           <dt>ID</dt>
-          <dd class="dbaas-facts__mono"><spx-span-copy [value]="db().eid" /></dd>
+          <dd><spx-span-copy boxed [value]="db().eid" /></dd>
 
           <dt>Local ID</dt>
-          <dd class="dbaas-facts__mono"><spx-span-copy [value]="db().id" /></dd>
+          <dd><spx-span-copy boxed [value]="db().id" /></dd>
 
           <dt>Availability zone</dt>
           <dd class="dbaas-facts__zone">

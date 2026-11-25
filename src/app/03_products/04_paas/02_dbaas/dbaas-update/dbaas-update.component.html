@@ -1,5 +1,6 @@
 <div class="product-create main-content">
-  <spx-content-header navBack title="Edit database"></spx-content-header>
+  <spx-content-header navBack title="Edit database" [resourceName]="app()?.productName" [resourceId]="app()?.eid">
+  </spx-content-header>
 
   <div class="product-create__scrollable">
     @if (!app()) {
@@ -135,9 +136,11 @@
                     </div>
                     <div class="info-card__item">
                       <span class="info-card__item-label">Subnet</span>
-                      <span class="info-card__item-text text-break-all">{{
-                        subnet.value()?.productName || current.subnetEId
-                      }}</span>
+                      @if (subnet.value()?.productName; as subnetName) {
+                        <span class="info-card__item-text text-break-all">{{ subnetName }}</span>
+                      } @else {
+                        <spx-span-copy boxed [value]="current.subnetEId" />
+                      }
                     </div>
                     <div class="info-card__item">
                       <span class="info-card__item-label">Virtual IP</span>

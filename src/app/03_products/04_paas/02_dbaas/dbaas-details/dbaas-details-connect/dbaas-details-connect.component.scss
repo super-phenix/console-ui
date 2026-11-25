@@ -84,13 +84,42 @@
   dd {
     margin: 0;
     min-width: 0;
-    font-family: 'JetBrainsMono', monospace;
-    font-size: 0.875rem;
   }
 
+  // Same box as the boxed spx-span-copy chips above it
   &__secret {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 6px;
+    max-width: 100%;
+    height: 24px;
+    padding-inline: 6px;
+    border: 1px solid var(--stroke-default);
+    border-radius: var(--mat-sys-corner-small);
+    background-color: var(--mat-sys-surface-container);
+
+    button {
+      flex: none;
+      --mat-icon-button-state-layer-size: 22px;
+      --mat-icon-button-icon-size: 14px;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      color: inherit;
+
+      .mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+
+  &__secret-text {
+    min-width: 0;
+    font: var(--mat-sys-body-small);
+    line-height: 16px;
+    overflow: hidden;
+    white-space: nowrap;
   }
 }

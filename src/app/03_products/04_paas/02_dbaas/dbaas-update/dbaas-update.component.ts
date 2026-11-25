@@ -27,6 +27,7 @@ import {
 import { DBaaSService } from '@products/00_shared/services/dbaas.service';
 import { SubnetService } from '@products/00_shared/services/subnet.service';
 import { ContentHeaderComponent } from '@shared/components/content-header/content-header.component';
+import { SpanCopyComponent } from '@shared/components/span-copy/span-copy.component';
 import { ConfirmDialog } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { PermissionsEnum } from '@shared/models/permissions/permission.enum';
 import { PermissionService } from '@shared/services/permission.service';
@@ -49,6 +50,7 @@ import { DBaaSTopologyComponent } from '../00_shared/dbaas-topology/dbaas-topolo
     MatProgressSpinnerModule,
     ContentHeaderComponent,
     StepGeneralComponent,
+    SpanCopyComponent,
     DBaaSTopologyComponent,
   ],
   templateUrl: './dbaas-update.component.html',
