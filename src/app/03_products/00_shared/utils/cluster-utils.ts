@@ -1,6 +1,7 @@
 import {
   APP_NAME_CLUSTER_LABEL_VALUE,
   APP_NAME_LABEL_KEY,
+  GENERATED_LABEL_KEY,
   WORKLOAD_CLASS_KAAS_DATASTORE_VALUE,
   WORKLOAD_CLASS_LABEL_KEY,
 } from '@shared/models/consts';
@@ -10,6 +11,10 @@ export function isClusterResource(labels?: Record<string, string>): boolean {
     return false;
   }
   return labels[APP_NAME_LABEL_KEY] === APP_NAME_CLUSTER_LABEL_VALUE;
+}
+
+export function isGeneratedResource(labels?: Record<string, string>): boolean {
+  return labels?.[GENERATED_LABEL_KEY] === 'true';
 }
 
 export function isClusterManagedDisk(labels?: Record<string, string>): boolean {
@@ -41,7 +46,10 @@ export function isVersionAtLeast(version: string | undefined | null, minMajor: n
   if (!version) {
     return false;
   }
-  const [major, minor] = version.replace(/^v/i, '').split('.').map(p => parseInt(p, 10));
+  const [major, minor] = version
+    .replace(/^v/i, '')
+    .split('.')
+    .map(p => parseInt(p, 10));
   if (Number.isNaN(major) || Number.isNaN(minor)) {
     return false;
   }

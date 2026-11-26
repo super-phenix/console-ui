@@ -1,0 +1,62 @@
+:host {
+  display: block;
+}
+
+.dbaas-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 56rem;
+  padding-block: 1rem;
+
+  &__note {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.dbaas-setting {
+  // Darker red reads on the light block, the lighter one on the dark block
+  --dbaas-danger: light-dark(var(--red-50), var(--red-30));
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding: 1.25rem;
+  border: 1px solid var(--stroke-default);
+  border-radius: var(--br-medium);
+  background-color: var(--block);
+
+  &__text {
+    flex: 1 1 24rem;
+    min-width: 0;
+
+    p {
+      margin: 0.25rem 0 0;
+      max-width: 65ch;
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+    font-family: var(--headline-font);
+    color: var(--text-title);
+  }
+
+  &--danger {
+    border-color: color-mix(in srgb, var(--dbaas-danger) 55%, transparent);
+  }
+
+  &--danger &__title {
+    color: var(--dbaas-danger);
+  }
+
+  &__danger-btn {
+    --mat-button-outlined-label-text-color: var(--dbaas-danger);
+    --mat-button-outlined-outline-color: var(--dbaas-danger);
+  }
+}

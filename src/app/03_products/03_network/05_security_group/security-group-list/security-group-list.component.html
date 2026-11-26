@@ -42,7 +42,11 @@
         <mat-header-cell *matHeaderCellDef> Description </mat-header-cell>
         <mat-cell *matCellDef="let el">
           <div class="text-truncate">
-            {{ el.data.securityGroup?.description }}
+            @if (el.isGenerated && !el.data.securityGroup?.description) {
+              <i>Managed by another product, read-only</i>
+            } @else {
+              {{ el.data.securityGroup?.description }}
+            }
           </div>
         </mat-cell>
       </ng-container>
@@ -63,7 +67,12 @@
           </button>
 
           <mat-menu #menu="matMenu">
-            @if (el.data.gitops !== 'true' && canProjectSecurityGroupWrite() && !el.isClusterSecurityGroup) {
+            @if (
+              el.data.gitops !== 'true' &&
+              canProjectSecurityGroupWrite() &&
+              !el.isClusterSecurityGroup &&
+              !el.isGenerated
+            ) {
               <button
                 mat-menu-item
                 aria-label="Edit security group button"
@@ -87,7 +96,7 @@
                 mat-menu-item
                 aria-label="Delete security group button"
                 (click)="deleteSecurityGroup(el.data)"
-                [disabled]="el.isClusterSecurityGroup">
+                [disabled]="el.isClusterSecurityGroup || el.isGenerated">
                 <mat-icon>delete</mat-icon>
                 Delete
               </button>

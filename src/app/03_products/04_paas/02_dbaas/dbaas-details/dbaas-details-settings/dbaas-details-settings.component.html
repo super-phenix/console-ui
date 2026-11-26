@@ -1,0 +1,52 @@
+<div class="dbaas-settings">
+  @if (isGitops()) {
+    <p class="dbaas-settings__note">
+      This database is managed by GitOps. Resize, restart and delete it from its Git repository.
+    </p>
+  } @else if (!canWrite()) {
+    <p class="dbaas-settings__note">Changing this database needs write access to databases in this project.</p>
+  }
+
+  <section class="dbaas-setting">
+    <div class="dbaas-setting__text">
+      <h2 class="dbaas-setting__title">Resize</h2>
+      <p>Change the PostgreSQL version, the number of instances, their vCPU, memory and storage, or public access.</p>
+    </div>
+    @if (!isGitops() && canWrite()) {
+      <a matButton="outlined" [routerLink]="['/products/paas/dbaas', 'update', db().codeAZ, db().eid]">
+        <mat-icon>tune</mat-icon>
+        Resize
+      </a>
+    }
+  </section>
+
+  @if (db().cluster) {
+    <section class="dbaas-setting">
+      <div class="dbaas-setting__text">
+        <h2 class="dbaas-setting__title">Restart</h2>
+        <p>
+          Instances restart one at a time, replicas first. Open connections to an instance drop while it restarts.
+        </p>
+      </div>
+      @if (canWrite()) {
+        <button matButton="outlined" (click)="restart.emit()">
+          <mat-icon>restart_alt</mat-icon>
+          Restart
+        </button>
+      }
+    </section>
+  }
+
+  <section class="dbaas-setting dbaas-setting--danger">
+    <div class="dbaas-setting__text">
+      <h2 class="dbaas-setting__title">Delete database</h2>
+      <p>Every instance and its storage is deleted. The data cannot be recovered.</p>
+    </div>
+    @if (!isGitops() && canWrite()) {
+      <button matButton="outlined" class="dbaas-setting__danger-btn" (click)="delete.emit()">
+        <mat-icon>delete</mat-icon>
+        Delete
+      </button>
+    }
+  </section>
+</div>

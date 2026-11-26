@@ -1,0 +1,59 @@
+<figure
+  class="dbaas-topology"
+  [class.dbaas-topology--preview]="isPreview()"
+  [style.--dbaas-columns]="nodes().length"
+  [attr.aria-label]="
+    nodes().length === 1
+      ? 'One primary instance, no replica'
+      : 'One primary instance and ' + (nodes().length - 1) + ' standby replicas'
+  ">
+  <div class="dbaas-topology__grid">
+    @for (node of nodes(); track node) {
+      @if (node === 0) {
+        <div class="dbaas-topology__node dbaas-topology__node--primary" [style.grid-column]="1">
+          <mat-icon class="dbaas-topology__node-icon" aria-hidden="true">database</mat-icon>
+          <span class="dbaas-topology__node-role">Primary</span>
+          <span class="dbaas-topology__node-name" [title]="currentPrimary() || ''">
+            {{ currentPrimary() || 'Takes writes' }}
+          </span>
+        </div>
+      } @else {
+        <div class="dbaas-topology__node" [style.grid-column]="node + 1">
+          <mat-icon class="dbaas-topology__node-icon" aria-hidden="true">database</mat-icon>
+          <span class="dbaas-topology__node-role">Replica</span>
+          <span class="dbaas-topology__node-name">Standby</span>
+        </div>
+      }
+    }
+
+    @for (rail of rails(); track rail.role) {
+      <div
+        class="dbaas-topology__rail"
+        [class]="'dbaas-topology__rail--' + rail.role"
+        [style.grid-column]="rail.start + ' / ' + rail.end"
+        [matTooltip]="rail.hint"
+        matTooltipPosition="above">
+        <span class="dbaas-topology__rail-port">:{{ rail.port }}</span>
+        <span class="dbaas-topology__rail-label">{{ rail.label }}</span>
+      </div>
+    }
+  </div>
+
+  @if (!isPreview()) {
+    <figcaption class="dbaas-topology__ready">
+      @if (host()) {
+        <span>Virtual IP <span class="dbaas-topology__rail-port">{{ host() }}</span></span>
+        <span class="dbaas-topology__ready-sep" aria-hidden="true"></span>
+      }
+      <span class="dbaas-topology__ready-meter" aria-hidden="true">
+        <span class="dbaas-topology__ready-fill" [style.width.%]="readyRatio() * 100"></span>
+      </span>
+      {{ readyInstances() }} of {{ nodes().length }} {{ nodes().length === 1 ? 'instance' : 'instances' }} ready
+    </figcaption>
+  } @else if (nodes().length === 1) {
+    <figcaption class="dbaas-topology__ready">
+      With a single instance, the database is unavailable while it restarts or fails over. Add a replica for high
+      availability.
+    </figcaption>
+  }
+</figure>

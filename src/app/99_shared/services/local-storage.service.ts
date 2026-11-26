@@ -29,6 +29,8 @@ export const SECURITY_GROUP_REFRESH_KEY = 'security_group_refresh';
 
 export const KAAS_REFRESH_KEY = 'kaas_refresh';
 
+export const DBAAS_REFRESH_KEY = 'dbaas_refresh';
+
 export const SSH_REFRESH_KEY = 'ssh_refresh';
 
 export const ANNOUNCEMENT_DISMISSED_KEY = 'announcement_dismissed';

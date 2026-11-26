@@ -1,4 +1,12 @@
-import { CidrForVersion, CidrNetworkAddress, GenerateRandomMac, IsValidIPv4, IsValidMac } from './ip';
+import {
+  CidrForVersion,
+  CidrNetworkAddress,
+  GenerateRandomMac,
+  GenerateRandomVirtualIp,
+  IsIPinRange,
+  IsValidIPv4,
+  IsValidMac,
+} from './ip';
 
 describe('IsValidIPv4', () => {
   const cases: { name: string; value: string; expected: boolean }[] = [
@@ -91,5 +99,16 @@ describe('GenerateRandomMac', () => {
     const mac1 = GenerateRandomMac();
     const mac2 = GenerateRandomMac();
     expect(mac1).not.toEqual(mac2);
+  });
+});
+
+describe('GenerateRandomVirtualIp', () => {
+  it('always returns a usable IP in 198.18.0.0/16', () => {
+    for (let i = 0; i < 200; i++) {
+      const ip = GenerateRandomVirtualIp();
+      expect(IsValidIPv4(ip)).toBe(true);
+      expect(IsIPinRange('198.18.0.0/16', ip)).toBe(true);
+      expect(ip.endsWith('.0') || ip.endsWith('.255')).toBe(false);
+    }
   });
 });

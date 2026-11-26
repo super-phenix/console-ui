@@ -88,6 +88,10 @@ export const ProductPaas: ProductCategory = {
       link: 'kaas',
       title: 'Kubernetes',
     },
+    {
+      link: 'dbaas',
+      title: 'Database',
+    },
   ],
 };
 
@@ -119,6 +123,7 @@ export const ProductTypeLink: Map<string, string> = new Map<string, string>([
   // Legacy: deep links shared before the Security Group rename still carry the old `firewall` product type.
   ['firewall', 'security-group'],
   ['kaas', 'kaas'],
+  ['dbaas', 'dbaas'],
   ['bucket', 'bucket'],
   ['ssh', 'ssh'],
 ]);

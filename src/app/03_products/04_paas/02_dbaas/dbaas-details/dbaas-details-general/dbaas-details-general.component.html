@@ -1,0 +1,115 @@
+<div class="dbaas-overview">
+  @if (db().cluster; as cluster) {
+    <section class="info-card dbaas-overview__topology" aria-labelledby="dbaas-topology-title">
+      <h2 class="info-card__title" id="dbaas-topology-title">Topology</h2>
+      <div class="info-card__content">
+        <spx-dbaas-topology
+          [instances]="instances()"
+          [readyInstances]="cluster.status.readyInstances || 0"
+          [currentPrimary]="cluster.status.currentPrimary"
+          [endpoints]="endpoints()"
+          [host]="host()" />
+      </div>
+    </section>
+  }
+
+  @if (db().cluster; as cluster) {
+    <section class="info-card" aria-labelledby="dbaas-plan-title">
+      <h2 class="info-card__title" id="dbaas-plan-title">
+        Resources
+        @if (canEdit()) {
+          <a
+            matButton
+            class="dbaas-overview__title-action"
+            [routerLink]="['/products/paas/dbaas', 'update', db().codeAZ, db().eid]">
+            Resize
+          </a>
+        }
+      </h2>
+
+      <div class="info-card__content info-card__content--multi-block">
+        <div class="dbaas-plan">
+          <span class="dbaas-plan__caption">Each instance</span>
+          <span class="dbaas-plan__spec">
+            <span>{{ cpuLabel() || '—' }}</span>
+            <span>{{ memoryLabel() || '—' }}</span>
+          </span>
+          <span class="dbaas-plan__times">
+            × {{ instances() }} {{ instances() === 1 ? 'instance' : 'instances' }}
+          </span>
+        </div>
+
+        @if (instances() > 1 && (totalCpu() || totalMemory())) {
+          <div class="dbaas-plan dbaas-plan--total">
+            <span class="dbaas-plan__caption">Whole cluster</span>
+            <span class="dbaas-plan__spec">
+              @if (totalCpu()) {
+                <span>{{ totalCpu() }} vCPU</span>
+              }
+              @if (totalMemory()) {
+                <span>{{ totalMemory() }} GiB</span>
+              }
+            </span>
+          </div>
+        }
+
+        <dl class="dbaas-facts">
+          <dt>Storage</dt>
+          <dd>
+            {{ storageLabel() || '—' }}
+            @if (instances() > 1 && totalStorage()) {
+              <span class="dbaas-facts__aside">per instance, {{ totalStorage() }} GiB in total</span>
+            }
+          </dd>
+
+          <dt>Storage class</dt>
+          <dd class="dbaas-facts__mono">{{ cluster.spec.storage?.storageClass || '—' }}</dd>
+
+          @if (cluster.spec.postgresql?.parameters?.['max_connections']; as maxConn) {
+            <dt>Max connections</dt>
+            <dd>{{ maxConn }}</dd>
+          }
+        </dl>
+      </div>
+    </section>
+  } @else {
+    <section class="info-card">
+      <h2 class="info-card__title">Resources</h2>
+      <div class="info-card__content">
+        <p class="dbaas-overview__empty">Resources and topology appear once the database is provisioned.</p>
+      </div>
+    </section>
+  }
+
+  <section class="info-card" aria-labelledby="dbaas-details-title">
+    <h2 class="info-card__title" id="dbaas-details-title">Details</h2>
+    <div class="info-card__content">
+      <dl class="dbaas-facts">
+        <dt>ID</dt>
+        <dd><spx-span-copy boxed [value]="db().eid" /></dd>
+
+        <dt>Local ID</dt>
+        <dd><spx-span-copy boxed [value]="db().id" /></dd>
+
+        <dt>Availability zone</dt>
+        <dd class="dbaas-facts__zone">
+          @if (zone()?.logoUrl) {
+            <img class="dbaas-facts__az-logo" [src]="zone()!.logoUrl" alt="" />
+          }
+          {{ zone()?.name || db().codeAZ?.toUpperCase() }}
+        </dd>
+
+        <dt>PostgreSQL</dt>
+        <dd>{{ version() || '—' }}</dd>
+
+        @if (db().cluster?.metadata?.creationTimestamp; as created) {
+          <dt>Created</dt>
+          <dd>{{ created | date: 'medium' }}</dd>
+        }
+
+        <dt>GitOps</dt>
+        <dd>{{ db().gitops === 'true' ? 'Managed by GitOps' : 'No' }}</dd>
+      </dl>
+    </div>
+  </section>
+</div>
