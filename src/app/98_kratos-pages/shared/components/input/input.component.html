@@ -1,6 +1,6 @@
 @switch (node.attributes.node_type) {
   @case ('input') {
-    @if (node.attributes.type === 'submit') {
+    @if (node.attributes.type === 'submit' || node.attributes.type === 'button') {
       <spx-auth-input-submit
         [form]="form"
         [attributes]="node.attributes"
@@ -12,5 +12,28 @@
         [meta]="node.meta"
         [messages]="node.messages"></spx-auth-input-default>
     }
+  }  @case ('img') {
+    <img
+      class="input__image"
+      [src]="node.attributes.src"
+      [width]="node.attributes.width"
+      [height]="node.attributes.height"
+      [alt]="label" />
+  }
+  @case ('text') {
+    <div class="input__text">
+      <p>{{ label }}</p>
+      @if (secrets.length) {
+        <ul class="input__codes">
+          @for (secret of secrets; track $index) {
+            <li>
+              <code>{{ secret.text }}</code>
+            </li>
+          }
+        </ul>
+      } @else {
+        <code>{{ node.attributes.text.text }}</code>
+      }
+    </div>
   }
 }

@@ -16,10 +16,58 @@
       }
     </form>
   } @else {
-    <form class="dynamic-form__form" [method]="flow.ui.method" [action]="flow.ui.action">
-      @for (node of flow.ui.nodes; track $index) {
-        <spx-auth-input [node]="node" [form]="form"></spx-auth-input>
+    <div [class.dynamic-form__sections]="sections">
+      @for (group of groups(); track group.name) {
+        <section class="dynamic-form__group" [class.dynamic-form__group--back]="group.back">
+          @if (
+            !group.back && (sections || severalMethods()) && i18n.getTranslation('ui', 'group_' + group.name);
+            as title
+          ) {
+            <div class="dynamic-form__group-header">
+              <h2 class="dynamic-form__group-title">{{ title }}</h2>
+              @if (sections && group.enabled) {
+                <span class="dynamic-form__status">{{ i18n.getTranslation('ui', 'group_enabled') }}</span>
+              }
+            </div>
+          }
+          @if (i18n.getTranslation('ui', 'group_' + group.name + (sections ? '_hint' : '_login_hint')); as hint) {
+            <p class="dynamic-form__hint">{{ hint }}</p>
+          }
+          <form
+            class="dynamic-form__form"
+            [class.dynamic-form__form--actions]="group.actionsOnly"
+            [class.dynamic-form__form--keys]="group.name === 'webauthn'"
+            [method]="flow.ui.method"
+            [action]="flow.ui.action"
+            (submit)="checkPasswordConfirmation($event)">
+            @for (node of group.nodes; track node) {
+              <spx-auth-input
+                [class.dynamic-form__node--hidden]="isHidden(node)"
+                [class.dynamic-form__node--image]="node.type === 'img'"
+                [class.dynamic-form__node--key]="isSecurityKey(node)"
+                [node]="node"
+                [form]="form"></spx-auth-input>
+              @if (confirmPassword && isPassword(node)) {
+                <mat-form-field>
+                  <mat-label>{{ i18n.getTranslation('ui', 'password_confirmation') }}</mat-label>
+                  <input
+                    matInput
+                    type="password"
+                    autocomplete="new-password"
+                    required
+                    [formControl]="passwordConfirmation"
+                    (input)="passwordMismatch.set(false)" />
+                  @if (passwordMismatch()) {
+                    <mat-hint>
+                      <span class="color-error" role="alert">{{ i18n.getTranslation('ui', 'password_mismatch') }}</span>
+                    </mat-hint>
+                  }
+                </mat-form-field>
+              }
+            }
+          </form>
+        </section>
       }
-    </form>
+    </div>
   }
 }
